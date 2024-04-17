@@ -31,10 +31,10 @@ import java.util.List;
 @Slf4j
 public class SecurityConfig {
 
-//    private final CustomOAuth2UserService customOAuth2UserService;
-//    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
-//    private final OAuth2LoginFailHandler oAuth2LoginFailHandler;
-//    private final JwtService jwtService;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2LoginFailHandler oAuth2LoginFailHandler;
+    private final JwtService jwtService;
     private final CorsConfig corsConfig;
     private static final String[] PERMIT_PATTERNS = List.of(
             "/login"
@@ -64,19 +64,18 @@ public class SecurityConfig {
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
-//                .oauth2Login((oauth2) -> oauth2
-//
-//                        .successHandler(oAuth2LoginSuccessHandler)
-//                        .failureHandler(oAuth2LoginFailHandler)
-//                        .userInfoEndpoint((userInfoEndpoint) ->
-//                                userInfoEndpoint
-//                                        .userService(customOAuth2UserService)
-//                        )
-//
-//                )
+                .oauth2Login((oauth2) -> oauth2
 
-//                .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
-        ;
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .failureHandler(oAuth2LoginFailHandler)
+                        .userInfoEndpoint((userInfoEndpoint) ->
+                                userInfoEndpoint
+                                        .userService(customOAuth2UserService)
+                        )
+
+                )
+
+                .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

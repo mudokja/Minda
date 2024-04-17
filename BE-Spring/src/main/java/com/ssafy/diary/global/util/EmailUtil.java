@@ -1,4 +1,4 @@
-package com.ssafy.diary.global.utils;
+package com.ssafy.diary.global.util;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -9,7 +9,7 @@ import java.security.SecureRandom;
 import java.util.Properties;
 
 @Component
-public class EmailUtils {
+public class EmailUtil {
     private String type = "text/html; charset=utf-8";
 
     @Value("${email.address}")

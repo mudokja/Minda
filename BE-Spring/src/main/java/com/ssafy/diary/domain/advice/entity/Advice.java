@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.advice.entity;
 
+import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -7,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-public class Advice {
+public class Advice extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

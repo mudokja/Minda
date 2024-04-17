@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Entity
 @Getter
-public class Image extends BaseEntity {
+public class Image {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

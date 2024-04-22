@@ -1,5 +1,7 @@
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/widgets/carousel_element.dart';
 import 'package:diary_fe/src/widgets/login_dialog.dart';
+import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -18,102 +20,18 @@ class _IntroPageState extends State<IntroPage> {
   int _currentIndex = 0;
   final CarouselController _controller = CarouselController();
   final List<Widget> imageSliders = [
-    SizedBox(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/gifs/thinking_face.gif',
-              width: 100,
-              height: 100,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            const Text(
-              '테스트 텍스트입니다.',
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Container(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/gifs/thinking_face.gif',
-              width: 100,
-              height: 100,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            const Text(
-              '테스트 텍스트입니다.',
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Container(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/gifs/thinking_face.gif',
-              width: 100,
-              height: 100,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            const Text(
-              '테스트 텍스트입니다.',
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Container(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/gifs/thinking_face.gif',
-              width: 100,
-              height: 100,
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            const Text(
-              '테스트 텍스트입니다.',
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
+    const CarouselElement(
+        imagePath: 'assets/gifs/thinking_face.gif',
+        displayText: 'displayText,'),
+    const CarouselElement(
+        imagePath: 'assets/gifs/thinking_face.gif',
+        displayText: 'displayText,'),
+    const CarouselElement(
+        imagePath: 'assets/gifs/thinking_face.gif',
+        displayText: 'displayText,'),
+    const CarouselElement(
+        imagePath: 'assets/gifs/thinking_face.gif',
+        displayText: 'displayText,'),
   ];
 
   @override
@@ -171,12 +89,27 @@ class _IntroPageState extends State<IntroPage> {
                         _currentIndex == 2) ...[
                       const SizedBox(height: 70),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            barrierColor: Colors.transparent,
+                            builder: (BuildContext context) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  dialogBackgroundColor:
+                                      const Color(0xFFFFFFFF),
+                                  dialogTheme: const DialogTheme(elevation: 0),
+                                ),
+                                child: const LoginModal(),
+                              );
+                            },
+                          );
+                        },
                         child: Text(
                           '로그인으로 넘어가기',
                           style: TextStyle(
-                            color: themeColors.gray,
-                            decoration: TextDecoration.underline,
+                            color: themeColors.white,
                             decorationColor: themeColors.gray,
                           ),
                         ),
@@ -220,12 +153,27 @@ class _IntroPageState extends State<IntroPage> {
                         height: 20,
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            barrierColor: Colors.transparent,
+                            builder: (BuildContext context) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  dialogBackgroundColor:
+                                      const Color(0xFFFFFFFF),
+                                  dialogTheme: const DialogTheme(elevation: 0),
+                                ),
+                                child: const SignUpModal(),
+                              );
+                            },
+                          );
+                        },
                         child: Text(
                           '처음 사용해봐요',
                           style: TextStyle(
-                            color: themeColors.gray,
-                            decoration: TextDecoration.underline,
+                            color: themeColors.white,
                             decorationColor: themeColors.gray,
                           ),
                         ),

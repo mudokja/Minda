@@ -99,7 +99,7 @@ class _SignUpModalState extends State<SignUpModal> {
                         } else if (!RegExp(
                                 r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$')
                             .hasMatch(value)) {
-                          return '비밀번호는 8자 이상이며, 숫자와 영문자를 포함해야 합니다';
+                          return '비밀번호는 8자 이상이며, 숫자와 영문자를\n포함해야 합니다';
                         }
                         return null;
                       },

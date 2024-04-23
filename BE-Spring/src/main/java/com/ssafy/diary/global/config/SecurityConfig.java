@@ -57,22 +57,20 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_PATTERNS).permitAll()
-//                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
-
-//                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/refresh", "/api/auth/login").permitAll()
-
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/member/check").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/member/register", "/api/auth/refresh", "/api/auth/login").permitAll()
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login((oauth2) -> oauth2
-
                         .successHandler(oAuth2LoginSuccessHandler)
                         .failureHandler(oAuth2LoginFailHandler)
                         .userInfoEndpoint((userInfoEndpoint) ->
                                 userInfoEndpoint
                                         .userService(customOAuth2UserService)
                         )
-
+                        .loginPage("/")
                 )
 
                 .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);

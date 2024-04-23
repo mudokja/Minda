@@ -1,5 +1,7 @@
 package com.ssafy.diary.domain.member.entity;
 
+import com.ssafy.diary.domain.advice.entity.Advice;
+import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -8,6 +10,9 @@ import com.ssafy.diary.global.constant.AuthType;
 import com.ssafy.diary.global.constant.Role;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -46,6 +51,14 @@ public class Member extends BaseEntity {
     @Setter
     @Column(name = "member_profile_image")
     private String profileImage;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "member_index")
+    private List<Diary> diaryList = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "member_index")
+    private List<Advice> adviceList = new ArrayList<>();
 
     @Builder
     public Member(Long index, String id, String password, Role role, AuthType platform, String email, String nickname, String profileImage) {

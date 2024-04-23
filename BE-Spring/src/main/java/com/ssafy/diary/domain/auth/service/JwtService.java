@@ -15,6 +15,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -62,8 +64,9 @@ public class JwtService {
 
     public TokenInfoDto createToken(Authentication authentication) {
         Member member = ((PrincipalMember) authentication.getPrincipal()).toEntity();
-
-        String accessToken= createAccessToken(member.getIndex(),authentication.getAuthorities(),member.getPlatform());
+        Collection<GrantedAuthority> roles = new ArrayList<>();
+        roles.add(new SimpleGrantedAuthority(member.getRole().toString()));
+        String accessToken= createAccessToken(member.getIndex(),roles,member.getPlatform());
 
         String refreshToken= createRefreshToken(String.valueOf(member.getIndex()));
 
@@ -123,7 +126,7 @@ public class JwtService {
 
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get("hasGrade").toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
+                        .map((role)-> EnumUtils.isValidEnum(Role.class, role)?new SimpleGrantedAuthority("ROLE_".concat(role)):new SimpleGrantedAuthority(role))
                         .collect(Collectors.toList());
 
         switch (AuthType.valueOf(claims.get("platform").toString())) {

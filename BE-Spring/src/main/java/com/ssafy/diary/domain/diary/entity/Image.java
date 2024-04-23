@@ -3,9 +3,11 @@ package com.ssafy.diary.domain.diary.entity;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Image {
 
     @Id

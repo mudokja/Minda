@@ -23,7 +23,7 @@ public class MemberService {
 
         boolean isExistsMember = checkExistMemberId(memberRegisterRequestDto.getId());
 
-        if (isExistsMember) {
+        if (!isExistsMember) {
             memberRepository.save(
                     Member.builder()
                             .id(memberRegisterRequestDto.getId())
@@ -34,7 +34,7 @@ public class MemberService {
                             .build()
             );
         }
-        if(!isExistsMember){
+        if(isExistsMember){
             throw new AlreadyExistsMemberException("member ID "+memberRegisterRequestDto.getId()+ " is exists");
         }
     }

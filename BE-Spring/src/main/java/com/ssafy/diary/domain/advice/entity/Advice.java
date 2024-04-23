@@ -3,11 +3,13 @@ package com.ssafy.diary.domain.advice.entity;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Advice extends BaseEntity {
 
     @Id

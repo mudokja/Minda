@@ -1,6 +1,7 @@
 import 'package:diary_fe/src/screens/intro_page.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:flutter/material.dart';
+import 'package:diary_fe/src/screens/diary_list_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +17,8 @@ class MyApp extends StatelessWidget {
         body: Stack(
           children: <Widget>[
             Background(), // 기본 배경
-            IntroPage(),
+            // IntroPage(),
+            DiaryListPage(),
           ],
         ),
       ),

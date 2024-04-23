@@ -60,20 +60,21 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/member/register", "/api/auth/refresh", "/api/auth/login", "/api/member/check").permitAll()
-                        .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/**").permitAll()
+//                        .hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
-                .oauth2Login((oauth2) -> oauth2
-
-                        .successHandler(oAuth2LoginSuccessHandler)
-                        .failureHandler(oAuth2LoginFailHandler)
-                        .userInfoEndpoint((userInfoEndpoint) ->
-                                userInfoEndpoint
-                                        .userService(customOAuth2UserService)
-                        )
-                        .loginPage("/")
-
-                )
+//                .oauth2Login((oauth2) -> oauth2
+//
+//                        .successHandler(oAuth2LoginSuccessHandler)
+//                        .failureHandler(oAuth2LoginFailHandler)
+//                        .userInfoEndpoint((userInfoEndpoint) ->
+//                                userInfoEndpoint
+//                                        .userService(customOAuth2UserService)
+//                        )
+//                        .loginPage("/")
+//
+//                )
 
                 .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
 

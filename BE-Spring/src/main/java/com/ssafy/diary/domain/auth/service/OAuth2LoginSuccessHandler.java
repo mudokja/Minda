@@ -40,7 +40,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         log.info("OAuth2 Login 성공");
         try {
             Member oAuth2User = ((PrincipalMember) authentication.getPrincipal()).toEntity();
-            System.out.println(oAuth2User.toString());
             log.debug(oAuth2User.toString());
             loginSuccess(response, oAuth2User,authentication.getAuthorities()); // 로그인에 성공한 경우 access, refresh 토큰 생성
         } catch (Exception e) {

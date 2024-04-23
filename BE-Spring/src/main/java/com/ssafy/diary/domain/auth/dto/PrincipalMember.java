@@ -2,9 +2,12 @@ package com.ssafy.diary.domain.auth.dto;
 
 
 import com.ssafy.diary.domain.member.entity.Member;
+import com.ssafy.diary.global.constant.Role;
 import lombok.Builder;
 import lombok.ToString;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -39,8 +42,9 @@ public class PrincipalMember implements OAuth2User, UserDetails   {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        String role = member.getRole().toString();
         Collection<GrantedAuthority> collection = new ArrayList<>();
-        collection.add((GrantedAuthority) () -> "ROLE_".concat(member.getRole().toString()));
+        collection.add(EnumUtils.isValidEnum(Role.class, role)?new SimpleGrantedAuthority("ROLE_".concat(role)):new SimpleGrantedAuthority(role));
         return collection;
     }
 

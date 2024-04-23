@@ -1,16 +1,12 @@
 package com.ssafy.diary.domain.diary.entity;
 
 
-import com.ssafy.diary.domain.diary.dto.DiaryUpdateRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Generated;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +20,7 @@ public class Diary extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long diaryIndex;
 
+    @Setter
     @Column(name = "member_index")
     private Long memberIndex;
 
@@ -59,7 +56,21 @@ public class Diary extends BaseEntity {
     @JoinColumn(name = "diary_index")
     private List<Image> imageList = new ArrayList<>();
 
-    public void update(DiaryUpdateRequestDto diaryUpdateRequestDto) {
+    @Builder
+    public Diary (Long memberIndex, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diaryDisgust, Long diarySurprise, List<Image> imageList){
+        this.memberIndex = memberIndex;
+        this.diaryTitle = diaryTitle;
+        this.diaryContent = diaryContent;
+        this.diaryHappiness = diaryHappiness;
+        this.diarySadness = diarySadness;
+        this.diaryFear = diaryFear;
+        this.diaryAnger = diaryAnger;
+        this.diaryDisgust = diaryDisgust;
+        this.diarySurprise = diarySurprise;
+        this.imageList = imageList;
+    }
+
+    public void update(DiaryRequestDto diaryUpdateRequestDto) {
         this.diaryTitle = diaryUpdateRequestDto.getDiaryTitle();
         this.diaryContent = diaryUpdateRequestDto.getDiaryContent();
         this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();

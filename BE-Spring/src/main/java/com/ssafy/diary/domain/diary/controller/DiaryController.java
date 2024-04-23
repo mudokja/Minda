@@ -1,21 +1,15 @@
 package com.ssafy.diary.domain.diary.controller;
 
-import com.ssafy.diary.domain.auth.dto.*;
 import com.ssafy.diary.domain.auth.service.JwtService;
-import com.ssafy.diary.domain.diary.dto.DiaryUpdateRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
-import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.domain.diary.service.DiaryService;
-import com.ssafy.diary.domain.refreshToken.entity.RefreshToken;
 import com.ssafy.diary.global.util.JwtUtil;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,8 +25,12 @@ public class DiaryController {
 
     //일기 등록
     @PostMapping("/diary")
-    public ResponseEntity<Object> postDiary(@RequestBody Diary diary) {
-        diaryService.addDairy(diary);
+    public ResponseEntity<Object> postDiary(@RequestBody DiaryRequestDto diaryAddRequestDto, HttpServletRequest request) {
+        String accessToken = jwtUtil.resolveToken(request);
+        Claims claims = jwtService.parseClaims(accessToken);
+        Long memberIndex = claims.get("memberIndex", Long.class);
+        diaryAddRequestDto.setMemberIndex(memberIndex);
+        diaryService.addDairy(diaryAddRequestDto.toEntity());
         return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");
     }
 
@@ -45,7 +43,7 @@ public class DiaryController {
 
     //일기 수정
     @PutMapping("/diary")
-    public ResponseEntity<Object> putDiary(@RequestBody DiaryUpdateRequestDto diaryUpdateRequestDto) {
+    public ResponseEntity<Object> putDiary(@RequestBody DiaryRequestDto diaryUpdateRequestDto) {
         diaryService.updateDiary(diaryUpdateRequestDto);
         return ResponseEntity.ok("diary updating succeeded");
     }

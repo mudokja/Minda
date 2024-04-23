@@ -1,6 +1,6 @@
 package com.ssafy.diary.domain.diary.service;
 
-import com.ssafy.diary.domain.diary.dto.DiaryUpdateRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
@@ -30,7 +30,7 @@ public class DiaryService {
 
     //일기 수정
     @Transactional
-    public void updateDiary(DiaryUpdateRequestDto diaryUpdateRequestDto) {
+    public void updateDiary(DiaryRequestDto diaryUpdateRequestDto) {
         Optional<Diary> optionalDiary = diaryRepository.findById(diaryUpdateRequestDto.getDiaryIndex());
 
         if (!optionalDiary.isPresent()) {

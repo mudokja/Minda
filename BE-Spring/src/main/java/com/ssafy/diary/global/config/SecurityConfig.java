@@ -63,17 +63,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
-                .oauth2Login((oauth2) -> oauth2
-
-                        .successHandler(oAuth2LoginSuccessHandler)
-                        .failureHandler(oAuth2LoginFailHandler)
-                        .userInfoEndpoint((userInfoEndpoint) ->
-                                userInfoEndpoint
-                                        .userService(customOAuth2UserService)
-                        )
-                        .loginPage("/")
-
-                )
+//                .oauth2Login((oauth2) -> oauth2
+//
+//                        .successHandler(oAuth2LoginSuccessHandler)
+//                        .failureHandler(oAuth2LoginFailHandler)
+//                        .userInfoEndpoint((userInfoEndpoint) ->
+//                                userInfoEndpoint
+//                                        .userService(customOAuth2UserService)
+//                        )
+//                        .loginPage("/")
+//
+//                )
 
                 .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
 

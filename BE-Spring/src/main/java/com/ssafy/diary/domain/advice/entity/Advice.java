@@ -17,8 +17,8 @@ public class Advice extends BaseEntity {
     @Column(name = "advice_index")
     private Long adviceIndex;
 
-//    @Column(name = "member_index")
-//    private Long memberIndex;
+    @Column(name = "member_index")
+    private Long memberIndex;
 
     @Column(name = "start_date")
     private LocalDateTime startDate;

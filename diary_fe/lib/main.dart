@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: Stack(
           children: <Widget>[
-            Background(), // 기본 배경
+            Background(),
             IntroPage(),
           ],
         ),

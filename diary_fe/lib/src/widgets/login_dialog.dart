@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,12 @@ class _LoginModalState extends State<LoginModal> {
     String password = _pwController.text;
 
     log('Email: $email, Password: $password');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Pages(),
+      ),
+    );
   }
 
   @override

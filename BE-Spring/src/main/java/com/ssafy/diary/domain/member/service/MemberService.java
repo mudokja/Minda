@@ -1,6 +1,6 @@
 package com.ssafy.diary.domain.member.service;
 
-import com.ssafy.diary.domain.auth.dto.MemberRegisterRequestDto;
+import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
 import com.ssafy.diary.global.constant.AuthType;
@@ -10,8 +10,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,18 +21,19 @@ public class MemberService {
 
         boolean isExistsMember = checkExistMemberId(memberRegisterRequestDto.getId());
 
-        if (isExistsMember) {
+        if (!isExistsMember) {
             memberRepository.save(
                     Member.builder()
                             .id(memberRegisterRequestDto.getId())
                             .role(Role.USER)
                             .platform(AuthType.LOCAL)
                             .nickname(memberRegisterRequestDto.getNickname())
+                            .email(memberRegisterRequestDto.getEmail())
                             .password(passwordEncoder.encode(memberRegisterRequestDto.getPassword()))
                             .build()
             );
         }
-        if(!isExistsMember){
+        if(isExistsMember){
             throw new AlreadyExistsMemberException("member ID "+memberRegisterRequestDto.getId()+ " is exists");
         }
     }

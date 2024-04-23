@@ -34,7 +34,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             default -> null;
         };
         String memberId = oAuth2UserInfo.getProviderId();
-        String userEmail= oAuth2UserInfo.getEmail();
+        String memberEmail= oAuth2UserInfo.getEmail();
         String memberNickname = oAuth2UserInfo.getNickname();
         String memberProfileImageUrl= oAuth2UserInfo.getProfileImageUrl();
         AuthType snsType= switch (oAuth2UserInfo.getProvider()){
@@ -55,6 +55,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .role(Role.USER)
                     .nickname(memberNickname)
                     .profileImage(memberProfileImageUrl)
+                    .email(memberEmail)
                 .build();
 
             memberRepository.save(member);

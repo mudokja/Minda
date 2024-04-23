@@ -26,19 +26,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final MemberService memberService;
     private final AuthService authService;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${app.baseurl.frontend}")
     private String frontendBaseurl;
-
-    @PostMapping("/register")
-    public ResponseEntity<Object> authJoin(@RequestBody MemberRegisterRequestDto memberRegisterRequestDto) {
-        memberService.registerMember(memberRegisterRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("register successfully");
-    }
 
 //
 

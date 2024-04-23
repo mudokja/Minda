@@ -26,7 +26,7 @@ public class SwaggerConfig {
                 .type(SecurityScheme.Type.APIKEY)
                 .in(SecurityScheme.In.HEADER)
                 .name("Authorization")
-                .scheme("bearer")
+                .scheme("Bearer")
                 .bearerFormat("JWT");
 
         SecurityRequirement securityRequirement = new SecurityRequirement()

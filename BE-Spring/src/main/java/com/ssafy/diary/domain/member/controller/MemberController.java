@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.member.controller;
 
+import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +19,10 @@ public class MemberController {
             throw new AlreadyExistsMemberException("member ID "+id+ " is exists");
         }
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/register")
+    public ResponseEntity<Object> authJoin(@RequestBody MemberRegisterRequestDto memberRegisterRequestDto) {
+        memberService.registerMember(memberRegisterRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body("register successfully");
     }
 }

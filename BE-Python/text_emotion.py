@@ -1,21 +1,22 @@
 import torch
-from torch import nn
-from torch.utils.data import Dataset
 from kobert.pytorch_kobert import get_pytorch_kobert_model
 from kobert.utils import get_tokenizer
 import numpy as np
 import gluonnlp as nlp
+import torch
+from torch import nn
+import gluonnlp as nlp
+from BERTDataset import BERTDataset
 
+print("text_emotion.py 호출")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #cuda사용가능하면 or cpu
 bertmodel, vocab = get_pytorch_kobert_model(cachedir=".cache")
 
 max_len = 64
 batch_size = 64
 
-tokenizer = get_tokenizer()
-tok = nlp.data.BERTSPTokenizer(tokenizer, vocab, lower = False)
-
 class BERTClassifier(nn.Module):
+    print("BERTClassifier 호출")
     def __init__(self,
                  bert,
                  hidden_size = 768,
@@ -46,25 +47,11 @@ class BERTClassifier(nn.Module):
             out = pooler
         return self.classifier(out)
     
-class BERTDataset(Dataset):
-    def __init__(self, dataset, sent_idx, label_idx, bert_tokenizer, max_len, pad, pair):
-
-        transform = nlp.data.BERTSentenceTransform(
-            bert_tokenizer, max_seq_length=max_len, pad = pad, pair = pair)
-
-        self.sentences = [transform([i[sent_idx]]) for i in dataset]
-        self.labels = [np.int32(i[label_idx]) for i in dataset]
-
-    def __getitem__(self, i):
-        return (self.sentences[i] + (self.labels[i], ))
-
-
-    def __len__(self):
-        return (len(self.labels))    
+tokenizer = get_tokenizer()
+tok = nlp.data.BERTSPTokenizer(tokenizer, vocab, lower = False)
 
 model = BERTClassifier(bertmodel,dr_rate=0.5)
 model.load_state_dict(torch.load("model_state_dict.pt",map_location=device))
-
 
 def predict_emotion(predict_sentence):
     try:

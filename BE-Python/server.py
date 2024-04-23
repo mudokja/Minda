@@ -2,7 +2,9 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import text_function
+import text_emotion
+
+print("server.py 호출")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -30,6 +32,13 @@ def test_api():
 @app.get("/api/ai/analyze_text")
 def analyze_text(text:str):
     try:
-        return(text_function.predict_emotion(text))
+        return(text_emotion.predict_emotion(text))
     except Exception as e:
-        return e
+        return {str(e)}
+
+@app.get("/api/ai/keyword")
+def get_keyword(text:str):
+    try:
+        return text
+    except Exception as e:
+        return {str(e)}

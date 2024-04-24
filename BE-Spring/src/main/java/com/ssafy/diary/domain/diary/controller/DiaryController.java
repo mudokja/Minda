@@ -2,6 +2,7 @@ package com.ssafy.diary.domain.diary.controller;
 
 import com.ssafy.diary.domain.auth.service.JwtService;
 import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.service.DiaryService;
 import com.ssafy.diary.global.util.JwtUtil;
@@ -24,44 +25,44 @@ public class DiaryController {
     private final JwtService jwtService;
 
     //일기 등록
-    @PostMapping("/diary")
+    @PostMapping
     public ResponseEntity<Object> postDiary(@RequestBody DiaryRequestDto diaryAddRequestDto, HttpServletRequest request) {
         String accessToken = jwtUtil.resolveToken(request);
         Claims claims = jwtService.parseClaims(accessToken);
         Long memberIndex = claims.get("memberIndex", Long.class);
         diaryAddRequestDto.setMemberIndex(memberIndex);
-        diaryService.addDairy(diaryAddRequestDto.toEntity());
+        diaryService.addDairy(diaryAddRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");
     }
 
     //일기 조회
-    @GetMapping("/diary")
-    public ResponseEntity<Diary> getDiary(Long diaryIndex) {
-        Diary diary = diaryService.getDiary(diaryIndex);
-        return ResponseEntity.ok(diary);
+    @GetMapping
+    public ResponseEntity<DiaryResponseDto> getDiary(Long diaryIndex) {
+        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryIndex);
+        return ResponseEntity.ok(diaryResponseDto);
     }
 
     //일기 수정
-    @PutMapping("/diary")
+    @PutMapping
     public ResponseEntity<Object> putDiary(@RequestBody DiaryRequestDto diaryUpdateRequestDto) {
         diaryService.updateDiary(diaryUpdateRequestDto);
         return ResponseEntity.ok("diary updating succeeded");
     }
 
     //일기 삭제
-    @DeleteMapping("/diary")
+    @DeleteMapping
     public ResponseEntity<Object> deleteDiary(@RequestParam Long diaryIndex) {
         diaryService.removeDiary(diaryIndex);
         return ResponseEntity.ok("diary deletion succeeded");
     }
 
     //일기 목록 조회
-    @GetMapping("/diary/list")
-    public ResponseEntity<List<Diary>> getDairyList(HttpServletRequest request) {
+    @GetMapping("/list")
+    public ResponseEntity<List<DiaryResponseDto>> getDairyList(HttpServletRequest request) {
         String accessToken = jwtUtil.resolveToken(request);
         Claims claims = jwtService.parseClaims(accessToken);
         Long memberIndex = claims.get("memberIndex", Long.class);
-        List<Diary> diaryList = diaryService.getDiaryList(memberIndex);
+        List<DiaryResponseDto> diaryList = diaryService.getDiaryList(memberIndex);
         return ResponseEntity.ok(diaryList);
     }
 

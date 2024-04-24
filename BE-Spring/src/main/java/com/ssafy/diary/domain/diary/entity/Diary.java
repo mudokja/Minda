@@ -70,7 +70,7 @@ public class Diary extends BaseEntity {
         this.imageList = imageList;
     }
 
-    public void update(DiaryRequestDto diaryUpdateRequestDto) {
+    public void update(DiaryRequestDto diaryUpdateRequestDto, List<Image> imageList) {
         this.diaryTitle = diaryUpdateRequestDto.getDiaryTitle();
         this.diaryContent = diaryUpdateRequestDto.getDiaryContent();
         this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();
@@ -79,7 +79,7 @@ public class Diary extends BaseEntity {
         this.diaryAnger = diaryUpdateRequestDto.getDiaryAnger();
         this.diaryDisgust = diaryUpdateRequestDto.getDiaryDisgust();
         this.diarySurprise = diaryUpdateRequestDto.getDiarySurprise();
-        this.imageList = diaryUpdateRequestDto.getImageList();
+        this.imageList = imageList;
     }
 
 }

@@ -4,6 +4,7 @@ import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.entity.Image;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,9 +34,9 @@ public class DiaryRequestDto {
 
     private Long diarySurprise;
 
-    private List<Image> imageList;
+    private List<MultipartFile> imageFileList;
 
-    public Diary toEntity() {
+    public Diary toEntity(List<Image> imageList) {
         return Diary.builder()
                 .memberIndex(memberIndex)
                 .diaryTitle(diaryTitle)
@@ -49,4 +50,5 @@ public class DiaryRequestDto {
                 .imageList(imageList)
                 .build();
     }
+
 }

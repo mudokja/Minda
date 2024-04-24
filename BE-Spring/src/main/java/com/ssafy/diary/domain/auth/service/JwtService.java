@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -63,8 +64,9 @@ public class JwtService {
 
     public TokenInfoDto createToken(Authentication authentication) {
         Member member = ((PrincipalMember) authentication.getPrincipal()).toEntity();
-
-        String accessToken= createAccessToken(member.getIndex(),authentication.getAuthorities(),member.getPlatform());
+        Collection<GrantedAuthority> roles = new ArrayList<>();
+        roles.add(new SimpleGrantedAuthority(member.getRole().toString()));
+        String accessToken= createAccessToken(member.getIndex(),roles,member.getPlatform());
 
         String refreshToken= createRefreshToken(String.valueOf(member.getIndex()));
 

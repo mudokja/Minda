@@ -1,16 +1,19 @@
 package com.ssafy.diary.domain.diary.controller;
 
+import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.auth.service.JwtService;
 import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.service.DiaryService;
+import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.global.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,10 +29,8 @@ public class DiaryController {
 
     //일기 등록
     @PostMapping
-    public ResponseEntity<Object> postDiary(@RequestBody DiaryRequestDto diaryAddRequestDto, HttpServletRequest request) {
-        String accessToken = jwtUtil.resolveToken(request);
-        Claims claims = jwtService.parseClaims(accessToken);
-        Long memberIndex = claims.get("memberIndex", Long.class);
+    public ResponseEntity<Object> postDiary(@RequestBody DiaryRequestDto diaryAddRequestDto, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
         diaryAddRequestDto.setMemberIndex(memberIndex);
         diaryService.addDairy(diaryAddRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");
@@ -58,10 +59,8 @@ public class DiaryController {
 
     //일기 목록 조회
     @GetMapping("/list")
-    public ResponseEntity<List<DiaryResponseDto>> getDairyList(HttpServletRequest request) {
-        String accessToken = jwtUtil.resolveToken(request);
-        Claims claims = jwtService.parseClaims(accessToken);
-        Long memberIndex = claims.get("memberIndex", Long.class);
+    public ResponseEntity<List<DiaryResponseDto>> getDairyList(@AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
         List<DiaryResponseDto> diaryList = diaryService.getDiaryList(memberIndex);
         return ResponseEntity.ok(diaryList);
     }

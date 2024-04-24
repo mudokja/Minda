@@ -1,6 +1,8 @@
 import 'package:diary_fe/src/screens/test1.dart';
 import 'package:diary_fe/src/screens/test2.dart';
-import 'package:diary_fe/src/widgets/background.dart';
+import 'package:diary_fe/src/screens/test3.dart';
+import 'package:diary_fe/src/screens/write_page.dart';
+
 import 'package:diary_fe/src/widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
 
@@ -20,9 +22,35 @@ class _PagesState extends State<Pages> {
     widgetOptions = [
       const DiaryListPage(),
       const DiaryListPage2(),
-      const DiaryListPage(),
+      const DiaryListPage3(),
       const DiaryListPage(),
     ];
+  }
+
+  void showWritingPage(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent, // 모달의 배경을 투명하게 설정
+      barrierColor: Colors.transparent, // 뒷 배경을 반투명하게 설정
+      builder: (BuildContext context) {
+        final Size screenSize = MediaQuery.of(context).size;
+        final double modalHeight = screenSize.height * 0.9; // 높이를 화면의 90%로 설정
+        final double modalWidth = screenSize.width * 0.9; // 너비를 화면의 90%로 설정
+
+        return Center(
+          child: Container(
+            width: modalWidth,
+            height: modalHeight,
+            decoration: BoxDecoration(
+              color: Colors.white, // 모달의 배경색을 하얗게 설정
+              borderRadius: BorderRadius.circular(25), // 모달의 모서리를 둥글게 설정
+            ),
+            child: const Write(), // 여기에 커스텀 위젯을 넣으면 됩니다.
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -49,7 +77,9 @@ class _PagesState extends State<Pages> {
         width: 80,
         height: 80,
         child: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () {
+            showWritingPage(context);
+          },
           shape: const StadiumBorder(),
           backgroundColor: Colors.white,
           child: Image.asset(

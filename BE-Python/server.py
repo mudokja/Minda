@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import text_emotion
-import test
+import text_keyword
+import mongodb_util
 
 print("호출: server.py")
 
@@ -21,6 +22,10 @@ app.add_middleware(
     allow_methods=["*"],    # 허용할 method를 설정할 수 있으며, 기본값은 'GET'이다.
     allow_headers=["*"],	# 허용할 http header 목록을 설정할 수 있으며 Content-Type, Accept, Accept-Language, Content-Language은 항상 허용된다.
 )
+
+mongodb_client = mongodb_util.mongodb_connection()
+
+print(type(mongodb_client))
 
 @app.get("/")
 def read_root(): 
@@ -40,9 +45,9 @@ def analyze_text(text:str):
 @app.get("/api/ai/keyword")
 def get_keyword(text:str):
     try:
-        texts = test.split_sentences(text)
+        texts = text_keyword.split_sentences(text)
         # print()
-        test.get_keyword(texts)
+        text_keyword.get_keyword(texts)
         return text
     except Exception as e:
         return {str(e)}

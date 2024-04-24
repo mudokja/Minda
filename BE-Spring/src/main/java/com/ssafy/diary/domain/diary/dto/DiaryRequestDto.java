@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class DiaryResponseDto {
+public class DiaryRequestDto {
 
     private Long diaryIndex;
 
@@ -34,18 +34,21 @@ public class DiaryResponseDto {
 
     private Long diarySurprise;
 
-    private List<Image> imageList;
+    private List<MultipartFile> imageFileList;
 
-    public DiaryResponseDto(Diary diary) {
-        this.memberIndex = memberIndex;
-        this.diaryTitle = diaryTitle;
-        this.diaryContent = diaryContent;
-        this.diaryHappiness = diaryHappiness;
-        this.diarySadness = diarySadness;
-        this.diaryFear = diaryFear;
-        this.diaryAnger = diaryAnger;
-        this.diaryDisgust = diaryDisgust;
-        this.diarySurprise = diarySurprise;
-        this.imageList = imageList;
+    public Diary toEntity(List<Image> imageList) {
+        return Diary.builder()
+                .memberIndex(memberIndex)
+                .diaryTitle(diaryTitle)
+                .diaryContent(diaryContent)
+                .diaryHappiness(diaryHappiness)
+                .diarySadness(diarySadness)
+                .diaryFear(diaryFear)
+                .diaryAnger(diaryAnger)
+                .diaryDisgust(diaryDisgust)
+                .diarySurprise(diarySurprise)
+                .imageList(imageList)
+                .build();
     }
+
 }

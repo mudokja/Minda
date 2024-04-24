@@ -1,5 +1,6 @@
+import 'dart:developer';
+
 import 'package:diary_fe/constants.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -10,8 +11,61 @@ class Write extends StatefulWidget {
   State<Write> createState() => _WriteState();
 }
 
+class NotebookHolesPainter extends CustomPainter {
+  final double lineSpacing;
+
+  NotebookHolesPainter(this.lineSpacing);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    double holeRadius = 5;
+    double xOffset = 20; // 공책 구멍의 x 축 위치
+
+    // 줄마다 구멍을 그립니다.
+    for (double y = lineSpacing; y < size.height; y += lineSpacing) {
+      canvas.drawCircle(Offset(xOffset, y), holeRadius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class LinedPaperPainter extends CustomPainter {
+  final double lineSpacing = 24;
+  final double horizontalPadding = 20;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 1.5;
+    double dashWidth = 5.0;
+    double dashSpace = 5.0;
+
+    for (double i = lineSpacing; i < size.height; i += lineSpacing) {
+      double x = horizontalPadding; // 패딩을 적용한 시작점
+      while (x < size.width - horizontalPadding) {
+        // 패딩을 적용한 끝점까지 그립니다.
+        canvas.drawLine(Offset(x, i), Offset(x + dashWidth, i), paint);
+        x += dashWidth + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
 class _WriteState extends State<Write> {
-  DateTime selectedDate = DateTime.now(); // 선택된 날짜를 저장하는 변수, 기본값은 오늘 날짜
+  DateTime selectedDate = DateTime.now();
+  TextEditingController diaryController = TextEditingController();
+  TextEditingController titleController = TextEditingController();
+  bool showConfirmation = false;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -21,102 +75,250 @@ class _WriteState extends State<Write> {
       lastDate: DateTime(2050),
       locale: const Locale('ko', 'KR'),
     );
-    if (picked != null) {
-      if (picked.isAfter(DateTime.now())) {
-        // 선택된 날짜가 오늘 날짜보다 미래일 경우, 오늘 날짜로 설정합니다.
-        setState(() {
-          selectedDate = DateTime.now();
-        });
-      } else if (picked != selectedDate) {
-        // 선택된 날짜가 오늘 날짜보다 과거일 경우, 그 날짜로 설정합니다.
-        setState(() {
-          selectedDate = picked;
-        });
-      }
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked.isAfter(DateTime.now()) ? DateTime.now() : picked;
+      });
     }
+  }
+
+  void _toggleConfirmationView() {
+    setState(() {
+      showConfirmation = !showConfirmation;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     ThemeColors themeColors = ThemeColors();
-    final double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
     return SingleChildScrollView(
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(30.0),
-          child: SizedBox(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!showConfirmation) ..._buildDiaryEntryForm(themeColors),
+              if (showConfirmation) ..._buildDiaryConfirmationView(themeColors),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildDiaryEntryForm(ThemeColors themeColors) {
+    Size screenSize = MediaQuery.of(context).size;
+    double modalHeight = screenSize.height * 0.9;
+    double modalWidth = screenSize.width * 0.9;
+    final double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(Icons.keyboard_arrow_down,
+                color: Colors.grey, size: 30),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
+      Row(
+        children: [
+          InkWell(
+            onTap: () => _selectDate(context),
+            child: const Icon(Icons.calendar_month),
+          ),
+          const SizedBox(width: 30),
+          Text(
+            "${selectedDate.toLocal()}".split(' ')[0],
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+      const SizedBox(height: 15),
+      Text(
+        '오늘은 어떤일이 있었나요?',
+        style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: themeColors.color1),
+      ),
+      const SizedBox(height: 15),
+      TextField(
+        controller: titleController,
+        decoration: InputDecoration(
+          hintText: '제목',
+          border: InputBorder.none,
+          hintStyle: TextStyle(
+            color: themeColors.color2,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
+        ),
+      ),
+      SingleChildScrollView(
+        child: SizedBox(
+          height: keyboardHeight == 0
+              ? modalHeight / 2
+              : modalHeight / 2 - keyboardHeight * 2 / 3,
+          child: TextField(
+            controller: diaryController,
+            decoration: const InputDecoration(
+              hintText: '자유롭게 일기를 작성해보세요.',
+              border: InputBorder.none,
+            ),
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
+            textInputAction: TextInputAction.newline,
+          ),
+        ),
+      ),
+      const SizedBox(
+        height: 20,
+      ),
+      SizedBox(
+        width: modalWidth * 0.8,
+        child: ElevatedButton(
+          onPressed: _toggleConfirmationView,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: themeColors.color1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: const Text(
+            '완료',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _buildDiaryConfirmationView(ThemeColors themeColors) {
+    Size screenSize = MediaQuery.of(context).size;
+    // double modalHeight = screenSize.height * 0.9;
+    double modalWidth = screenSize.width * 0.9;
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(Icons.keyboard_arrow_down,
+                color: Colors.grey, size: 30),
+          ),
+        ],
+      ),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 20, right: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.grey,
-                        size: 30,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  children: [
-                    InkWell(
-                      onTap: () => _selectDate(context), // 날짜 선택 메서드 호출
-                      child: const Icon(Icons.calendar_month),
-                    ),
-                    const SizedBox(
-                      width: 30,
-                    ),
-                    Text(
-                      "${selectedDate.toLocal()}".split(' ')[0],
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
                 Text(
-                  '오늘은 어떤일이 있었나요?',
+                  '작성된 일기',
                   style: TextStyle(
                     fontSize: 20,
-                    color: themeColors.color1,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w800,
+                    color: themeColors.color2,
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                SingleChildScrollView(
-                  child: SizedBox(
-                    height: keyboardHeight == 0 ? 370 : 180,
-                    child: const TextField(
-                      decoration: InputDecoration(
-                        hintText: '자유롭게 일기를 작성해보세요.',
-                        border: InputBorder.none,
-                      ),
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      textInputAction: TextInputAction.newline,
+                SizedBox(
+                  width: 80, // 너비를 늘림
+                  height: 40, // 높이를 늘림
+                  child: TextButton(
+                    onPressed: _toggleConfirmationView,
+                    child: Text(
+                      '수정하기',
+                      style: TextStyle(
+                          color: themeColors.color1,
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
               ],
             ),
           ),
+          Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9D1DD), // 배경색
+
+              borderRadius: BorderRadius.circular(8), // 모서리 둥글게
+            ),
+            child: CustomPaint(
+              painter: LinedPaperPainter(),
+              foregroundPainter: NotebookHolesPainter(24), // 줄 간격으로 구멍 위치 조정
+              child: SizedBox(
+                width: modalWidth,
+                height: 400, // 적절한 높이 지정
+                child: Padding(
+                  padding: const EdgeInsets.all(30),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          titleController.text.isNotEmpty
+                              ? titleController.text
+                              : '${DateTime.now().year}년 ${DateTime.now().month}월 ${DateTime.now().day}일의 일기',
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          diaryController.text.isNotEmpty
+                              ? diaryController.text
+                              : '일기가 작성되지 않았어요..',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFFA488AF),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 70),
+      SizedBox(
+        width: modalWidth * 0.9,
+        child: ElevatedButton(
+          onPressed: diaryController.text.isNotEmpty
+              ? () {
+                  print('ddd');
+                }
+              : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: themeColors.color1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: const Text(
+            '일기 저장 및 분석하기',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
-    );
+      const SizedBox(height: 30),
+      Center(
+        child: Text(
+          '⚠️ 주의 : 창을 닫으면 작성했던 일기가 모두 사라져요!',
+          style: TextStyle(fontSize: 10, color: themeColors.color2),
+        ),
+      ),
+    ];
   }
 }

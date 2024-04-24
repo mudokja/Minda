@@ -37,15 +37,16 @@ public class DiaryResponseDto {
     private List<Image> imageList;
 
     public DiaryResponseDto(Diary diary) {
-        this.memberIndex = memberIndex;
-        this.diaryTitle = diaryTitle;
-        this.diaryContent = diaryContent;
-        this.diaryHappiness = diaryHappiness;
-        this.diarySadness = diarySadness;
-        this.diaryFear = diaryFear;
-        this.diaryAnger = diaryAnger;
-        this.diaryDisgust = diaryDisgust;
-        this.diarySurprise = diarySurprise;
-        this.imageList = imageList;
+        this.diaryIndex = diary.getDiaryIndex();
+        this.memberIndex = diary.getMemberIndex();
+        this.diaryTitle = diary.getDiaryTitle();
+        this.diaryContent = diary.getDiaryContent();
+        this.diaryHappiness = diary.getDiaryHappiness();
+        this.diarySadness = diary.getDiarySadness();
+        this.diaryFear = diary.getDiaryFear();
+        this.diaryAnger = diary.getDiaryAnger();
+        this.diaryDisgust = diary.getDiaryDisgust();
+        this.diarySurprise = diary.getDiarySurprise();
+        this.imageList = diary.getImageList();
     }
 }

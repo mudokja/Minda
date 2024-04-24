@@ -34,7 +34,7 @@ public class DiaryRequestDto {
 
     private Long diarySurprise;
 
-    private List<MultipartFile> imageFileList;
+//    private List<MultipartFile> imageFileList;
 
     public Diary toEntity(List<Image> imageList) {
         return Diary.builder()

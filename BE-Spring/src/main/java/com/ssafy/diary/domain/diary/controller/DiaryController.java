@@ -24,8 +24,6 @@ import java.util.List;
 public class DiaryController {
 
     private final DiaryService diaryService;
-    private final JwtUtil jwtUtil;
-    private final JwtService jwtService;
 
     //일기 등록
     @PostMapping

@@ -25,8 +25,8 @@ public class DiaryService {
     private final S3Service s3Service;
 
     //일기 등록
-    public void addDairy(DiaryRequestDto diaryAddRequestDto) {
-        List<Image> imageList = saveAndGetImageList(diaryAddRequestDto);
+    public void addDiary(DiaryRequestDto diaryAddRequestDto, MultipartFile[] imageFiles) {
+        List<Image> imageList = saveAndGetImageList(imageFiles);
 
         diaryRepository.save(diaryAddRequestDto.toEntity(imageList));
     }
@@ -40,9 +40,9 @@ public class DiaryService {
 
     //일기 수정
     @Transactional
-    public void updateDiary(DiaryRequestDto diaryUpdateRequestDto) {
+    public void updateDiary(DiaryRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles) {
 
-        List<Image> imageList = saveAndGetImageList(diaryUpdateRequestDto);
+        List<Image> imageList = saveAndGetImageList(imageFiles);
 
         Optional<Diary> optionalDiary = diaryRepository.findById(diaryUpdateRequestDto.getDiaryIndex());
         Diary diary = optionalDiary.orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryUpdateRequestDto.getDiaryIndex()));
@@ -82,10 +82,9 @@ public class DiaryService {
     }
 
     //이미지 s3에 저장하고 imageList 반환
-    private List<Image> saveAndGetImageList(DiaryRequestDto diaryRequestDto) {
-        List<MultipartFile> imageFileList = diaryRequestDto.getImageFileList();
+    private List<Image> saveAndGetImageList(MultipartFile[] imageFiles) {
         List<Image> imageList = new ArrayList<>();
-        for (MultipartFile imageFile : imageFileList) {
+        for (MultipartFile imageFile : imageFiles) {
 
             try {
                 String imageLink = s3Service.saveFile(imageFile);

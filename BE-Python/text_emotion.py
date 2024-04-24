@@ -8,7 +8,7 @@ from torch import nn
 import gluonnlp as nlp
 from BERTDataset import BERTDataset
 
-print("text_emotion.py 호출")
+print("호출: text_emotion.py ")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #cuda사용가능하면 or cpu
 bertmodel, vocab = get_pytorch_kobert_model(cachedir=".cache")
 
@@ -16,7 +16,7 @@ max_len = 64
 batch_size = 64
 
 class BERTClassifier(nn.Module):
-    print("BERTClassifier 호출")
+    print("호출: BERTClassifier ")
     def __init__(self,
                  bert,
                  hidden_size = 768,

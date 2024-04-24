@@ -3,7 +3,7 @@ import gluonnlp as nlp
 from torch.utils.data import Dataset
 
 class BERTDataset(Dataset):
-    print("BERTDataset 호출")
+    print("호출: BERTDataset ")
     def __init__(self, dataset, sent_idx, label_idx, bert_tokenizer, max_len, pad, pair):
 
         transform = nlp.data.BERTSentenceTransform(

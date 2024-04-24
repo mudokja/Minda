@@ -1,7 +1,7 @@
 from krwordrank.word import summarize_with_keywords
 import re
 
-print("호출: test.py")
+print("호출: text_keyword.py")
 
 # def split_sentences(text):
 #     sentences = re.sub(r'([^\n\s\.\?!]+[^\n\.\?!]*[\.\?!])', r'\1\n', text).strip().split("\n")

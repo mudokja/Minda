@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import text_emotion
 import text_keyword
-import mongodb_util
+import mongo_util
+from pymongo import MongoClient
 
 print("호출: server.py")
 
@@ -23,9 +24,31 @@ app.add_middleware(
     allow_headers=["*"],	# 허용할 http header 목록을 설정할 수 있으며 Content-Type, Accept, Accept-Language, Content-Language은 항상 허용된다.
 )
 
-mongodb_client = mongodb_util.mongodb_connection()
 
-print(type(mongodb_client))
+mongo_client = mongo_util.mongo_connection()
+print(type(mongo_client))
+print(mongo_client.list_database_names())
+mongo_db = mongo_client[os.environ["MONGO_DB_NAME"]]
+
+
+# # 환경변수에서 호스트, 포트, 사용자 이름, 비밀번호를 불러옵니다.
+# mongo_host = os.environ["MONGO_DB_HOST"]
+# mongo_port = int(os.environ["MONGO_DB_PORT"])
+# mongo_user = os.environ["MONGO_DB_USERNAME"]
+# mongo_pass = os.environ["MONGO_DB_PASSWORD"]
+# mongo_db_name = os.environ["MONGO_DB_NAME"]  # 접근하려는 데이터베이스 이름
+
+# # 인증 정보를 포함하여 MongoClient 객체를 생성합니다.
+# mongo_client = MongoClient(
+#     host=mongo_host,
+#     port=mongo_port,
+#     username=mongo_user,
+#     password=mongo_pass,
+#     authSource=mongo_db_name  # 인증을 수행할 데이터베이스
+# )
+
+# print(type(mongo_client))
+# print(mongo_client.list_database_names())
 
 @app.get("/")
 def read_root(): 

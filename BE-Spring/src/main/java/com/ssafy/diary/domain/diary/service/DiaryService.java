@@ -61,6 +61,11 @@ public class DiaryService {
     //일기 삭제
     @Transactional
     public void removeDiary(Long diaryIndex) {
+        Diary diary = diaryRepository.findById(diaryIndex).orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+
+        for(Image image: diary.getImageList()) {
+            s3Service.deleteFile(image.getImageName());
+        }
         diaryRepository.deleteById(diaryIndex);
     }
 

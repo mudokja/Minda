@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import text_emotion
 import text_keyword
 import mongo_util
-from pymongo import MongoClient
 
 print("호출: server.py")
 
@@ -24,31 +23,10 @@ app.add_middleware(
     allow_headers=["*"],	# 허용할 http header 목록을 설정할 수 있으며 Content-Type, Accept, Accept-Language, Content-Language은 항상 허용된다.
 )
 
-
+#mongoDB로드
 mongo_client = mongo_util.mongo_connection()
-print(type(mongo_client))
-print(mongo_client.list_database_names())
 mongo_db = mongo_client[os.environ["MONGO_DB_NAME"]]
-
-
-# # 환경변수에서 호스트, 포트, 사용자 이름, 비밀번호를 불러옵니다.
-# mongo_host = os.environ["MONGO_DB_HOST"]
-# mongo_port = int(os.environ["MONGO_DB_PORT"])
-# mongo_user = os.environ["MONGO_DB_USERNAME"]
-# mongo_pass = os.environ["MONGO_DB_PASSWORD"]
-# mongo_db_name = os.environ["MONGO_DB_NAME"]  # 접근하려는 데이터베이스 이름
-
-# # 인증 정보를 포함하여 MongoClient 객체를 생성합니다.
-# mongo_client = MongoClient(
-#     host=mongo_host,
-#     port=mongo_port,
-#     username=mongo_user,
-#     password=mongo_pass,
-#     authSource=mongo_db_name  # 인증을 수행할 데이터베이스
-# )
-
-# print(type(mongo_client))
-# print(mongo_client.list_database_names())
+mongo_collection=mongo_db['diary']
 
 @app.get("/")
 def read_root(): 
@@ -58,19 +36,23 @@ def read_root():
 def test_api():
     return "test success"
 
-@app.get("/api/ai/analyze_text")
-def analyze_text(text:str):
+@app.post("/api/ai/emotion")
+def analyze_text(diary_index:int, diary_content:str):
     try:
-        return(text_emotion.predict_emotion(text))
+        emotion=text_emotion.predict_emotion(diary_content)
+        dict = {}
+        dict['diary_index'] = diary_index
+        dict['emotion'] = emotion
+        mongo_util.mongo_insert(mongo_collection,dict)
+        return emotion
     except Exception as e:
         return {str(e)}
 
-@app.get("/api/ai/keyword")
-def get_keyword(text:str):
+@app.post("/api/ai/keyword")
+def get_keyword(diary_index:int, diary_content:str):
     try:
-        texts = text_keyword.split_sentences(text)
-        # print()
+        texts = text_keyword.split_sentences(diary_content)
         text_keyword.get_keyword(texts)
-        return text
+        return diary_content
     except Exception as e:
         return {str(e)}

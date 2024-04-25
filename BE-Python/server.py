@@ -26,7 +26,7 @@ app.add_middleware(
 #mongoDB로드
 mongo_client = mongo_util.mongo_connection()
 mongo_db = mongo_client[os.environ["MONGO_DB_NAME"]]
-mongo_collection=mongo_db['diary']
+mongo_collection=mongo_db['analyze']
 
 @app.get("/")
 def read_root(): 

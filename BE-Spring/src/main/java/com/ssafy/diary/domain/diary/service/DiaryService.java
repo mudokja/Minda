@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.diary.service;
 
+import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
@@ -40,7 +41,7 @@ public class DiaryService {
     public DiaryResponseDto getDiary(Long diaryIndex) {
         Diary diary = diaryRepository.findById(diaryIndex)
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
-        return new DiaryResponseDto(diary);
+        return diary.toDto();
     }
 
 //    //일기 수정
@@ -109,14 +110,22 @@ public class DiaryService {
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for (Diary diary : diaryList) {
-            responseDtoList.add(new DiaryResponseDto(diary));
+            responseDtoList.add(diary.toDto());
         }
 
         return responseDtoList;
     }
 
     //특정 기간동안의 일기 리스트 조회(통계 내기 위함)
+    public List<DiaryResponseDto> getDiaryListByPeriod(DiaryListByPeriodRequestDto diaryListByPeriodRequestDto, Long memberIndex) {
+        List<Diary> diaryList = diaryRepository.findByDiarySetDate(diaryListByPeriodRequestDto.getStartDate(), diaryListByPeriodRequestDto.getEndDate());
 
+        List<DiaryResponseDto> responseDtoList = new ArrayList<>();
+        for(Diary diary: diaryList) {
+            responseDtoList.add(diary.toDto());
+        }
+        return responseDtoList;
+    }
 
 
     //이미지 s3에 저장하고 imageList 반환
@@ -125,7 +134,10 @@ public class DiaryService {
         for (MultipartFile imageFile : imageFiles) {
             try {
                 String imageLink = s3Service.saveFile(imageFile);
-                imageList.add(new Image(imageFile.getOriginalFilename(), imageLink));
+                imageList.add(Image.builder()
+                        .imageName(imageFile.getOriginalFilename())
+                        .imageLink(imageLink)
+                        .build());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -137,7 +149,7 @@ public class DiaryService {
 
     //이미지url에서 파일이름 추출해서 삭제
     private void deleteImageFromS3(List<Image> imageList) {
-        for(Image image: imageList) {
+        for (Image image : imageList) {
             String imageName;
             int lastSlashIndex = image.getImageLink().lastIndexOf('/');
             if (lastSlashIndex != -1) {

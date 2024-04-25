@@ -2,6 +2,7 @@ package com.ssafy.diary.domain.diary.dto;
 
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.entity.Image;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,8 +15,6 @@ import java.util.List;
 public class DiaryResponseDto {
 
     private Long diaryIndex;
-
-    private Long memberIndex;
 
     private LocalDateTime diarySetDate;
 
@@ -37,18 +36,18 @@ public class DiaryResponseDto {
 
     private List<Image> imageList;
 
-    public DiaryResponseDto(Diary diary) {
-        this.diarySetDate = diary.getDiarySetDate();
-        this.diaryIndex = diary.getDiaryIndex();
-        this.memberIndex = diary.getMemberIndex();
-        this.diaryTitle = diary.getDiaryTitle();
-        this.diaryContent = diary.getDiaryContent();
-        this.diaryHappiness = diary.getDiaryHappiness();
-        this.diarySadness = diary.getDiarySadness();
-        this.diaryFear = diary.getDiaryFear();
-        this.diaryAnger = diary.getDiaryAnger();
-        this.diaryDisgust = diary.getDiaryDisgust();
-        this.diarySurprise = diary.getDiarySurprise();
-        this.imageList = diary.getImageList();
+    @Builder
+    public DiaryResponseDto(Long diaryIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diaryDisgust, Long diarySurprise, List<Image> imageList) {
+        this.diaryIndex = diaryIndex;
+        this.diarySetDate = diarySetDate;
+        this.diaryTitle = diaryTitle;
+        this.diaryContent = diaryContent;
+        this.diaryHappiness = diaryHappiness;
+        this.diarySadness = diarySadness;
+        this.diaryFear = diaryFear;
+        this.diaryAnger = diaryAnger;
+        this.diaryDisgust = diaryDisgust;
+        this.diarySurprise = diarySurprise;
+        this.imageList = imageList;
     }
 }

@@ -23,17 +23,6 @@ public class DiaryRequestDto {
 
     private String diaryContent;
 
-    private Long diaryHappiness;
-
-    private Long diarySadness;
-
-    private Long diaryFear;
-
-    private Long diaryAnger;
-
-    private Long diaryDisgust;
-
-    private Long diarySurprise;
 
     public Diary toEntity(List<Image> imageList) {
         return Diary.builder()
@@ -41,12 +30,6 @@ public class DiaryRequestDto {
                 .diarySetDate(diarySetDate)
                 .diaryTitle(diaryTitle)
                 .diaryContent(diaryContent)
-                .diaryHappiness(diaryHappiness)
-                .diarySadness(diarySadness)
-                .diaryFear(diaryFear)
-                .diaryAnger(diaryAnger)
-                .diaryDisgust(diaryDisgust)
-                .diarySurprise(diarySurprise)
                 .imageList(imageList)
                 .build();
     }

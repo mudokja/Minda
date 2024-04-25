@@ -2,6 +2,7 @@ package com.ssafy.diary.domain.diary.controller;
 
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.auth.service.JwtService;
+import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.domain.diary.dto.ImageUploadDto;
@@ -63,6 +64,14 @@ public class DiaryController {
     public ResponseEntity<List<DiaryResponseDto>> getDairyList(@AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();
         List<DiaryResponseDto> diaryList = diaryService.getDiaryList(memberIndex);
+        return ResponseEntity.ok(diaryList);
+    }
+
+    //특정 기간의 일기 목록 조회
+    @PostMapping("/list/period")
+    public ResponseEntity<List<DiaryResponseDto>> getDiaryListByPeriod(@RequestBody DiaryListByPeriodRequestDto diaryListByPeriodRequestDto, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        List<DiaryResponseDto> diaryList = diaryService.getDiaryListByPeriod(diaryListByPeriodRequestDto, memberIndex);
         return ResponseEntity.ok(diaryList);
     }
 

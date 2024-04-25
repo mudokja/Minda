@@ -2,6 +2,7 @@ package com.ssafy.diary.domain.diary.entity;
 
 
 import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -73,15 +74,31 @@ public class Diary extends BaseEntity {
         this.imageList = imageList;
     }
 
+    public DiaryResponseDto toDto() {
+        return DiaryResponseDto.builder()
+                .diaryIndex(diaryIndex)
+                .diarySetDate(diarySetDate)
+                .diaryTitle(diaryTitle)
+                .diaryContent(diaryContent)
+                .diaryHappiness(diaryHappiness)
+                .diarySadness(diarySadness)
+                .diaryFear(diaryFear)
+                .diaryAnger(diaryAnger)
+                .diaryDisgust(diaryDisgust)
+                .diarySurprise(diarySurprise)
+                .imageList(imageList)
+                .build();
+    }
+
     public void update(DiaryRequestDto diaryUpdateRequestDto) {
         this.diaryTitle = diaryUpdateRequestDto.getDiaryTitle();
         this.diaryContent = diaryUpdateRequestDto.getDiaryContent();
-        this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();
-        this.diarySadness = diaryUpdateRequestDto.getDiarySadness();
-        this.diaryFear = diaryUpdateRequestDto.getDiaryFear();
-        this.diaryAnger = diaryUpdateRequestDto.getDiaryAnger();
-        this.diaryDisgust = diaryUpdateRequestDto.getDiaryDisgust();
-        this.diarySurprise = diaryUpdateRequestDto.getDiarySurprise();
+//        this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();
+//        this.diarySadness = diaryUpdateRequestDto.getDiarySadness();
+//        this.diaryFear = diaryUpdateRequestDto.getDiaryFear();
+//        this.diaryAnger = diaryUpdateRequestDto.getDiaryAnger();
+//        this.diaryDisgust = diaryUpdateRequestDto.getDiaryDisgust();
+//        this.diarySurprise = diaryUpdateRequestDto.getDiarySurprise();
     }
 
 }

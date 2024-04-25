@@ -52,7 +52,6 @@ def analyze_text(diary_index:int, diary_content:str):
 def get_keyword(diary_index:int, diary_content:str):
     try:
         texts = text_keyword.split_sentences(diary_content)
-        text_keyword.get_keyword(texts)
-        return diary_content
+        return text_keyword.get_keyword(texts)
     except Exception as e:
         return {str(e)}

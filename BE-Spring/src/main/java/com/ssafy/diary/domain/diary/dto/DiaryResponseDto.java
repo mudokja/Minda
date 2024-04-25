@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -16,7 +17,7 @@ public class DiaryResponseDto {
 
     private Long memberIndex;
 
-//    private LocalDateTime diarySetDate;
+    private LocalDateTime diarySetDate;
 
     private String diaryTitle;
 
@@ -37,6 +38,7 @@ public class DiaryResponseDto {
     private List<Image> imageList;
 
     public DiaryResponseDto(Diary diary) {
+        this.diarySetDate = diary.getDiarySetDate();
         this.diaryIndex = diary.getDiaryIndex();
         this.memberIndex = diary.getMemberIndex();
         this.diaryTitle = diary.getDiaryTitle();

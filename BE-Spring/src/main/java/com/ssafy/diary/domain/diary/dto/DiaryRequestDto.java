@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -16,7 +17,7 @@ public class DiaryRequestDto {
 
     private Long memberIndex;
 
-//    private LocalDateTime diarySetDate;
+    private LocalDateTime diarySetDate;
 
     private String diaryTitle;
 
@@ -34,11 +35,10 @@ public class DiaryRequestDto {
 
     private Long diarySurprise;
 
-//    private List<MultipartFile> imageFileList;
-
     public Diary toEntity(List<Image> imageList) {
         return Diary.builder()
                 .memberIndex(memberIndex)
+                .diarySetDate(diarySetDate)
                 .diaryTitle(diaryTitle)
                 .diaryContent(diaryContent)
                 .diaryHappiness(diaryHappiness)

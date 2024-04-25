@@ -53,6 +53,7 @@ public class DiaryController {
     //일기 삭제
     @DeleteMapping
     public ResponseEntity<Object> deleteDiary(@RequestParam Long diaryIndex) {
+        System.out.println("diaryController: " + diaryIndex);
         diaryService.removeDiary(diaryIndex);
         return ResponseEntity.ok("diary deletion succeeded");
     }

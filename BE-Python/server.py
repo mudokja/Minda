@@ -55,3 +55,19 @@ def get_keyword(diary_index:int, diary_content:str):
         return text_keyword.get_keyword(texts)
     except Exception as e:
         return {str(e)}
+    
+@app.post("/api/ai/analyze") #메인 기능
+def analyze_diary(diary_index:int, diary_content:str):
+    try:
+        anaylyze_dict = {} #몽고DB 저장 용 딕셔너리
+        emotion_dict = {} #문장 별 감정 저장 용 딕셔터리
+        diary_sentences = text_keyword.split_sentences(diary_content)   #문장 별 분리
+        for index, sentence in enumerate(diary_sentences):
+            emotion_dict[str(index)] = text_emotion.predict_emotion(sentence).tolist()
+        anaylyze_dict['diary_index'] = diary_index
+        anaylyze_dict['emotion'] = emotion_dict
+        anaylyze_dict['keyword'] = text_keyword.get_keyword(diary_sentences)
+        mongo_util.mongo_insert(mongo_collection,anaylyze_dict)
+        return str(anaylyze_dict)
+    except Exception as e:
+        return {str(e)}

@@ -1,12 +1,15 @@
 import 'package:diary_fe/constants.dart'; // 이 부분은 실제 경로에 맞게 조정해주세요.
 import 'package:diary_fe/src/widgets/background.dart'; // 이 부분은 실제 경로에 맞게 조정해주세요.
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:math';
 // MoodEntry 모델과 getColorFromMood 함수를 import 합니다.
 import 'package:diary_fe/src/models/MoodEntry.dart';
 import 'package:diary_fe/src/models/MoodEntry.dart' as MoodEntryHelper;
+import 'dart:math';
 
+//점선
 class DottedLinePainter extends CustomPainter {
   final double dashWidth;
   final double dashHeight;
@@ -32,6 +35,156 @@ class DottedLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// 달력페이지에서 감정설명부분 토글
+class ColorLegendToggle extends StatefulWidget {
+  const ColorLegendToggle({super.key});
+
+  @override
+  _ColorLegendToggleState createState() => _ColorLegendToggleState();
+}
+
+class _ColorLegendToggleState extends State<ColorLegendToggle> {
+  bool _showLegend = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        TextButton(
+          onPressed: () {
+            setState(() {
+              _showLegend = !_showLegend; // 토글 상태 변경
+            });
+          },
+          child: Text(
+            _showLegend ? '감정 색상 설명 숨기기' : '감정 색상 설명 보기',
+            style: const TextStyle(
+              color: Colors.grey,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        if (_showLegend)
+          RichText(
+            text: const TextSpan(
+              children: [
+                TextSpan(
+                  text: "●",
+                  style: TextStyle(
+                    color: Color(0xFFF5AC25), // 기쁨에 노랑
+                    fontSize: 24,
+                  ),
+                ),
+                TextSpan(
+                  text: " : 기쁨       ",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 122, 122, 122),
+                    fontSize: 16,
+                  ),
+                ),
+                TextSpan(
+                  text: "●",
+                  style: TextStyle(
+                    color: Color(0xFFBC7FCD), // 슬픔에 연보라
+                    fontSize: 24,
+                  ),
+                ),
+                TextSpan(
+                  text: " : 슬픔       ",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 122, 122, 122),
+                    fontSize: 16,
+                  ),
+                ),
+                TextSpan(
+                  text: "●",
+                  style: TextStyle(
+                    color: Color(0xFFB3B4B4), // 불안에 회색
+                    fontSize: 24,
+                  ),
+                ),
+                TextSpan(
+                  text: " : 불안\n",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 122, 122, 122),
+                    fontSize: 16,
+                  ),
+                ),
+                TextSpan(
+                  text: "●",
+                  style: TextStyle(
+                    color: Color(0xFFDF1E1E), // 분노에 빨강
+                    fontSize: 24,
+                  ),
+                ),
+                TextSpan(
+                  text: " : 분노       ",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 122, 122, 122),
+                    fontSize: 16,
+                  ),
+                ),
+                TextSpan(
+                  text: "●",
+                  style: TextStyle(
+                    color: Color(0xFF86469C), // 상처에 진보라
+                    fontSize: 24,
+                  ),
+                ),
+                TextSpan(
+                  text: " : 상처       ",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 122, 122, 122),
+                    fontSize: 16,
+                  ),
+                ),
+                TextSpan(
+                  text: "●",
+                  style: TextStyle(
+                    color: Color(0xFFFC819E), // 놀람에 핑크
+                    fontSize: 24,
+                  ),
+                ),
+                TextSpan(
+                  text: " : 놀람",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 122, 122, 122),
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(String emotion, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          emotion,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // class DiaryListPage extends StatelessWidget {
@@ -133,43 +286,61 @@ class _DiaryListPageState extends State<DiaryListPage> {
                   color = const Color(0xff7769D4);
                 }
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 일기 작성 날짜
-                    Padding(
-                      padding: const EdgeInsets.only(left: 5.0), // 글자를 안쪽으로 이동
-                      child: Text(
-                        currentPageEntries[index].split('\n')[0],
-                        style: TextStyle(
-                          color: color, // 여기에 계산된 색상 적용
-                          // color: Color(0xff7769D4),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                return GestureDetector(
+                  onTap: () {
+                    // 해당 날짜의 일기 페이지로 이동하는 코드를 추가합니다.
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DiaryPage(
+                          selectedDay: DateTime.parse(
+                              currentPageEntries[index].split('\n')[0]),
                         ),
                       ),
-                    ),
-                    // 일기 제목
-                    Padding(
-                      padding: const EdgeInsets.only(left: 5.0), // 글자를 안쪽으로 이동
-                      child: Text(
-                        currentPageEntries[index].split('\n')[1],
-                        style: const TextStyle(
-                          color: Color.fromARGB(255, 255, 230, 251),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                    );
+                  },
+
+                  // return Column(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 일기 작성 날짜
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(left: 5.0), // 글자를 안쪽으로 이동
+                        child: Text(
+                          currentPageEntries[index].split('\n')[0],
+                          style: TextStyle(
+                            color: color, // 여기에 계산된 색상 적용
+                            // color: Color(0xff7769D4),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    // 점선 구분선
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: CustomPaint(
-                        size: const Size(double.infinity, 1),
-                        painter: DottedLinePainter(color: Colors.white),
+                      // 일기 제목
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(left: 5.0), // 글자를 안쪽으로 이동
+                        child: Text(
+                          currentPageEntries[index].split('\n')[1],
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 255, 230, 251),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                      // 점선 구분선
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: CustomPaint(
+                          size: const Size(double.infinity, 1),
+                          painter: DottedLinePainter(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
@@ -216,19 +387,19 @@ class _DiaryListPageState extends State<DiaryListPage> {
 
   // 날짜색
   // 날짜에 따른 MoodEntry를 가져오는 함수
-MoodEntry getMoodEntryForDate(DateTime date) {
-  // 여기서는 가정하여 MoodEntry를 미리 생성해둔 것으로 가정합니다.
-  // 실제로는 날짜에 맞는 MoodEntry를 데이터베이스 등에서 가져와야 합니다.
-  return MoodEntry(
-    date: date,
-    diary_happiness: "기쁨", // 예시 감정
-  );
-}
+  MoodEntry getMoodEntryForDate(DateTime date) {
+    // 여기서는 가정하여 MoodEntry를 미리 생성해둔 것으로 가정합니다.
+    // 실제로는 날짜에 맞는 MoodEntry를 데이터베이스 등에서 가져와야 합니다.
+    return MoodEntry(
+      date: date,
+      diary_happiness: "기쁨", // 예시 감정
+    );
+  }
 
 // MoodEntry 모델에서 감정에 따른 색상을 가져오는 함수
-Color getColorFromMood(String? mood) {
-  return MoodEntryHelper.getColorFromMood(mood);
-}
+  Color getColorFromMood(String? mood) {
+    return MoodEntryHelper.getColorFromMood(mood);
+  }
 
   // 날짜색_
 
@@ -239,7 +410,10 @@ Color getColorFromMood(String? mood) {
         centerTitle: true,
         title: const Text(
           '일기장',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0.0,
@@ -319,13 +493,22 @@ Color getColorFromMood(String? mood) {
 //
 
 void _showCalendarDialog(BuildContext context) {
+  // 색상 리스트 정의
+  final List<Color> colors = [
+    const Color(0xFFF5AC25), // 기쁨에 노랑
+    const Color(0xFFFC819E), // 놀람에 핑크
+    const Color(0xFFB3B4B4), // 불안에 회색
+    const Color(0xFFBC7FCD), // 슬픔에 연보라
+    const Color(0xFF86469C), // 상처에 진보라
+    const Color(0xFFDF1E1E), // 분노에 빨강
+  ];
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
       content: SizedBox(
         width: double.maxFinite,
         // SizedBox의 높이를 증가시켜 색상 설명을 포함할 공간을 확보합니다.
-        height: 420, 
+        height: 510,
         child: Column(
           mainAxisSize: MainAxisSize.min, // Column의 크기를 내용물에 맞춥니다.
           children: [
@@ -346,50 +529,79 @@ void _showCalendarDialog(BuildContext context) {
                 },
                 calendarBuilders: CalendarBuilders(
                   defaultBuilder: (context, day, focusedDay) {
-                    if (day.weekday == DateTime.sunday) {
-                      return Container(
-                        margin: const EdgeInsets.all(4.0),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: const Color(0xff845EC2).withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          day.day.toString(),
-                        ),
-                      );
-                    }
-                    return null; // 기본 빌더 사용
+                    //   if (day.weekday == DateTime.sunday) {
+                    //     return Container(
+                    //       margin: const EdgeInsets.all(4.0),
+                    //       alignment: Alignment.center,
+                    //       decoration: BoxDecoration(
+                    //         color: const Color(0xff845EC2).withOpacity(0.7),
+                    //         shape: BoxShape.circle,
+                    //       ),
+                    //       child: Text(
+                    //         day.day.toString(),
+                    //         // style: const TextStyle(color : Colors.white),
+                    //       ),
+                    //     );
+                    //   } else if (day.weekday == DateTime.wednesday) {
+                    //       return Container(
+                    //       margin: const EdgeInsets.all(4.0),
+                    //       alignment: Alignment.center,
+                    //       decoration: BoxDecoration(
+                    //         color: const Color(0xffF9F871).withOpacity(0.8),
+                    //         shape: BoxShape.circle,
+                    //       ),
+                    //       child: Text(
+                    //         day.day.toString(),
+                    //       ),
+                    //       );
+                    //   }
+
+                    //   return null; // 기본 빌더 사용
+                    // },
+// Random 클래스를 사용하여 랜덤 인덱스 생성
+                    final randomIndex = Random().nextInt(colors.length);
+                    // 생성된 랜덤 인덱스를 사용하여 색상 선택
+                    final color = colors[randomIndex];
+
+                    return Container(
+                      margin: const EdgeInsets.all(4.0),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.7), // 랜덤 색상 적용
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        day.day.toString(),
+                        // style: TextStyle(color: color, fontSize: 24),
+                      ),
+                    );
+                  },
+                  todayBuilder: (context, day, focusedDay) {
+                    // 오늘 날짜에 대한 커스텀 디자인
+                    return Container(
+                      margin: const EdgeInsets.all(4.0),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent, // 배경을 투명하게 설정
+                        border: Border.all(
+                            color: const Color.fromARGB(
+                                255, 240, 105, 161)), // 검은색 테두리
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        day.day.toString(),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ), // 텍스트 색상을 검은색으로 설정
+                      ),
+                    );
                   },
                 ),
               ),
             ),
-            // 색상 설명 추가
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: RichText(
-                text: const TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "●",
-                      style: TextStyle(color: Colors.blue), // '●'에 파란색 적용
-                    ),
-                    TextSpan(
-                      text: " : 기쁨, ",
-                      style: TextStyle(color: Colors.black), // '기쁨'에 흰색 적용
-                    ),
-                    TextSpan(
-                      text: "●",
-                      style: TextStyle(color: Colors.green), // '○'에 녹색 적용
-                    ),
-                    TextSpan(
-                      text: " : 슬픔",
-                      style: TextStyle(color: Colors.black), // '슬픔'에 흰색 적용
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // 색상 설명 추가(토글로..)
+            const ColorLegendToggle(), // 토글 위젯 추가
           ],
         ),
       ),

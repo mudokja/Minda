@@ -26,10 +26,10 @@ public class S3Service {
         String originalFilename = multipartFile.getOriginalFilename();
         String type = originalFilename.substring(originalFilename.lastIndexOf("."));
 
-        // 파일이 이미 S3에 업로드되어 있는지 확인
-        if (isFileExists(originalFilename)) {
-            return getExistingFileUrl(originalFilename);
-        }
+//        // 파일이 이미 S3에 업로드되어 있는지 확인
+//        if (isFileExists(originalFilename)) {
+//            return getExistingFileUrl(originalFilename);
+//        }
 
         UUID uuid = UUID.randomUUID();
         ObjectMetadata metadata = new ObjectMetadata();
@@ -44,13 +44,13 @@ public class S3Service {
         amazonS3.deleteObject(bucket, originalFilename);
     }
 
-    // 파일이 이미 S3에 존재하는지 확인
-    private boolean isFileExists(String originalFilename) {
-        return amazonS3.doesObjectExist(bucket, originalFilename);
-    }
-
-    // 이미 S3에 업로드된 파일의 URL을 반환
-    private String getExistingFileUrl(String originalFilename) {
-        return amazonS3.getUrl(bucket, originalFilename).toString();
-    }
+//    // 파일이 이미 S3에 존재하는지 확인
+//    private boolean isFileExists(String originalFilename) {
+//        return amazonS3.doesObjectExist(bucket, originalFilename);
+//    }
+//
+//    // 이미 S3에 업로드된 파일의 URL을 반환
+//    private String getExistingFileUrl(String originalFilename) {
+//        return amazonS3.getUrl(bucket, originalFilename).toString();
+//    }
 }

@@ -2,18 +2,22 @@ package com.ssafy.diary.domain.diary.entity;
 
 
 import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
+//@EntityListeners(AuditingEntityListener.class)
 public class Diary extends BaseEntity {
 
     @Id
@@ -24,9 +28,8 @@ public class Diary extends BaseEntity {
     @Column(name = "member_index")
     private Long memberIndex;
 
-//    @CreatedDate
-//    @Column(name = "diary_set_date")
-//    private LocalDateTime diarySetDate;
+    @Column(name = "diary_set_date")
+    private LocalDateTime diarySetDate;
 
     @Column(name = "diary_title")
     private String diaryTitle;
@@ -57,8 +60,9 @@ public class Diary extends BaseEntity {
     private List<Image> imageList = new ArrayList<>();
 
     @Builder
-    public Diary (Long memberIndex, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diaryDisgust, Long diarySurprise, List<Image> imageList){
+    public Diary (Long memberIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diaryDisgust, Long diarySurprise, List<Image> imageList){
         this.memberIndex = memberIndex;
+        this.diarySetDate = diarySetDate;
         this.diaryTitle = diaryTitle;
         this.diaryContent = diaryContent;
         this.diaryHappiness = diaryHappiness;
@@ -70,16 +74,31 @@ public class Diary extends BaseEntity {
         this.imageList = imageList;
     }
 
-    public void update(DiaryRequestDto diaryUpdateRequestDto, List<Image> imageList) {
+    public DiaryResponseDto toDto() {
+        return DiaryResponseDto.builder()
+                .diaryIndex(diaryIndex)
+                .diarySetDate(diarySetDate)
+                .diaryTitle(diaryTitle)
+                .diaryContent(diaryContent)
+                .diaryHappiness(diaryHappiness)
+                .diarySadness(diarySadness)
+                .diaryFear(diaryFear)
+                .diaryAnger(diaryAnger)
+                .diaryDisgust(diaryDisgust)
+                .diarySurprise(diarySurprise)
+                .imageList(imageList)
+                .build();
+    }
+
+    public void update(DiaryRequestDto diaryUpdateRequestDto) {
         this.diaryTitle = diaryUpdateRequestDto.getDiaryTitle();
         this.diaryContent = diaryUpdateRequestDto.getDiaryContent();
-        this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();
-        this.diarySadness = diaryUpdateRequestDto.getDiarySadness();
-        this.diaryFear = diaryUpdateRequestDto.getDiaryFear();
-        this.diaryAnger = diaryUpdateRequestDto.getDiaryAnger();
-        this.diaryDisgust = diaryUpdateRequestDto.getDiaryDisgust();
-        this.diarySurprise = diaryUpdateRequestDto.getDiarySurprise();
-        this.imageList = imageList;
+//        this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();
+//        this.diarySadness = diaryUpdateRequestDto.getDiarySadness();
+//        this.diaryFear = diaryUpdateRequestDto.getDiaryFear();
+//        this.diaryAnger = diaryUpdateRequestDto.getDiaryAnger();
+//        this.diaryDisgust = diaryUpdateRequestDto.getDiaryDisgust();
+//        this.diarySurprise = diaryUpdateRequestDto.getDiarySurprise();
     }
 
 }

@@ -25,6 +25,7 @@ public class Image {
     @Column(name = "image_link")
     private String imageLink;
 
+    @Builder
     public Image(String imageName, String imageLink) {
         this.imageName = imageName;
         this.imageLink = imageLink;

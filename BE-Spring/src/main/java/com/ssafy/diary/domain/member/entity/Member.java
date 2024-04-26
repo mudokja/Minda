@@ -17,6 +17,9 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(name = "member",
+        uniqueConstraints = @UniqueConstraint(name = "UniqueIdAndPlatform", columnNames = { "member_id",
+                "member_platform" }))
 public class Member extends BaseEntity {
 
     @Id

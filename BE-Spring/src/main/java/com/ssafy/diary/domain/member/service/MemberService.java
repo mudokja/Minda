@@ -1,5 +1,7 @@
 package com.ssafy.diary.domain.member.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
+import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
 import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class MemberService {
     final private MemberRepository memberRepository;
     final private PasswordEncoder passwordEncoder;
+
     @Transactional
     public void registerMember(MemberRegisterRequestDto memberRegisterRequestDto) throws AlreadyExistsMemberException {
 
@@ -41,5 +44,15 @@ public class MemberService {
         return memberRepository.existsByIdAndPlatform(
                 memberId, AuthType.LOCAL
         );
+    }
+
+    public MemberInfoResponseDto getMemberInfo(Long memberIndex){
+        Member member = memberRepository.findByIndex(memberIndex).orElseThrow(()->new NotFoundException("member is not found"));
+
+        return MemberInfoResponseDto.builder()
+                .memberEmail(member.getEmail())
+                .memberNickName(member.getNickname())
+                .memberId(member.getId())
+                .build();
     }
 }

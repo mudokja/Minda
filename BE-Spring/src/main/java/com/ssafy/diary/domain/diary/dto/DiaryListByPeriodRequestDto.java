@@ -10,11 +10,13 @@ import java.time.LocalDateTime;
 @Setter
 public class DiaryListByPeriodRequestDto {
 
+    private Long memberIndex;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
     @Builder
-    public DiaryListByPeriodRequestDto(LocalDateTime startDate, LocalDateTime endDate) {
+    public DiaryListByPeriodRequestDto(Long memberIndex, LocalDateTime startDate, LocalDateTime endDate) {
+        this.memberIndex = memberIndex;
         this.startDate = startDate;
         this.endDate = endDate;
     }

@@ -27,14 +27,14 @@ public class DiaryService {
     private final S3Service s3Service;
 
     //일기 등록
-    public void addDiary(DiaryRequestDto diaryAddRequestDto, MultipartFile[] imageFiles) {
+    public void addDiary(DiaryRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
         List<Image> imageList = new ArrayList<>();
 
         if (imageFiles != null) {
             imageList = saveAndGetImageList(imageFiles);
         }
 
-        diaryRepository.save(diaryAddRequestDto.toEntity(imageList));
+        diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
     }
 
     //일기 조회
@@ -117,8 +117,8 @@ public class DiaryService {
     }
 
     //특정 기간동안의 일기 리스트 조회(통계 내기 위함)
-    public List<DiaryResponseDto> getDiaryListByPeriod(DiaryListByPeriodRequestDto diaryListByPeriodRequestDto, Long memberIndex) {
-        List<Diary> diaryList = diaryRepository.findByDiarySetDate(diaryListByPeriodRequestDto.getStartDate(), diaryListByPeriodRequestDto.getEndDate());
+    public List<DiaryResponseDto> getDiaryListByPeriod(Long memberIndex, DiaryListByPeriodRequestDto diaryListByPeriodRequestDto) {
+        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex, diaryListByPeriodRequestDto.getStartDate(), diaryListByPeriodRequestDto.getEndDate());
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for(Diary diary: diaryList) {
@@ -127,6 +127,17 @@ public class DiaryService {
         return responseDtoList;
     }
 
+    //제목으로 검색
+    public List<DiaryResponseDto> searchDiaryListByTitle(Long memberIndex, String keyword) {
+        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiaryTitleContaining(memberIndex, keyword);
+
+        List<DiaryResponseDto> diaryResponseDtoList = new ArrayList<>();
+        for(Diary diary: diaryList) {
+            diaryResponseDtoList.add(diary.toDto());
+        }
+
+        return diaryResponseDtoList;
+    }
 
     //이미지 s3에 저장하고 imageList 반환
     private List<Image> saveAndGetImageList(MultipartFile[] imageFiles) {

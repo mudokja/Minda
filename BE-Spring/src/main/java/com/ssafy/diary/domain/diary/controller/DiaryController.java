@@ -32,8 +32,7 @@ public class DiaryController {
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<Object> postDiary(@RequestPart DiaryRequestDto diaryAddRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();
-        diaryAddRequestDto.setMemberIndex(memberIndex);
-        diaryService.addDiary(diaryAddRequestDto, imageFiles);
+        diaryService.addDiary(diaryAddRequestDto, imageFiles, memberIndex);
         return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");
     }
 
@@ -71,8 +70,15 @@ public class DiaryController {
     @PostMapping("/list/period")
     public ResponseEntity<List<DiaryResponseDto>> getDiaryListByPeriod(@RequestBody DiaryListByPeriodRequestDto diaryListByPeriodRequestDto, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();
-        List<DiaryResponseDto> diaryList = diaryService.getDiaryListByPeriod(diaryListByPeriodRequestDto, memberIndex);
+        List<DiaryResponseDto> diaryList = diaryService.getDiaryListByPeriod(memberIndex, diaryListByPeriodRequestDto);
         return ResponseEntity.ok(diaryList);
     }
 
+    //일기 검색(제목)
+    @GetMapping
+    public ResponseEntity<List<DiaryResponseDto>> getDiaryListBySearch(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        List<DiaryResponseDto> diaryList = diaryService.searchDiaryListByTitle(memberIndex, keyword);
+        return ResponseEntity.ok(diaryList);
+    }
 }

@@ -12,6 +12,8 @@ import java.util.List;
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
     List<Diary> findByMemberIndex(Long memberIndex);
 
-    @Query("SELECT d FROM Diary d WHERE d.diarySetDate BETWEEN :startDate AND :endDate")
-    List<Diary> findByDiarySetDate(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    List<Diary> findByMemberIndexAndDiaryTitleContaining(Long memberIndex, String keyword);
+
+    @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex AND d.diarySetDate BETWEEN :startDate AND :endDate")
+    List<Diary> findByMemberIndexAndDiarySetDate(@Param("memberIndex") Long MemberIndex, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

@@ -91,6 +91,7 @@ def predict_emotion(predict_sentence):
                     test_eval.append("불안")
                 elif np.argmax(logits) == 6:
                     test_eval.append("행복")
-            return test_eval[0]
+            # return test_eval[0]   #가장 높은 하나의 값
+            return logits   #가중치 값
     except Exception as e:
         return "Error"+{str(e)}

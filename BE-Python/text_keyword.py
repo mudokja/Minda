@@ -13,9 +13,10 @@ def split_sentences(text):
 
 def get_keyword(texts):
     try:
+        # print(texts)
         keywords = summarize_with_keywords(texts, min_count=5, max_length=10,
             beta=0.85, max_iter=10, stopwords=None, verbose=True)  #min_count로 민감도 조절, 20보다 늘리면 에러
-        # print(keywords)
+        print(keywords)
         # krwordrank_cloud = WordCloud(
         #     font_path = "malgunbd.ttf",
         #     width = 800,

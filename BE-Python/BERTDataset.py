@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning, message=".*LAMB is overriding existing optimizer.*")
 import numpy as np
 import gluonnlp as nlp
 from torch.utils.data import Dataset

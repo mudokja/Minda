@@ -44,7 +44,7 @@ public class EmailUtil {
         }
     }
 
-    public String generateCode() {
+    public static String generateCode() {
         StringBuilder sb = new StringBuilder();
         SecureRandom random = new SecureRandom();
         for (int i = 0; i < 10; i++) {

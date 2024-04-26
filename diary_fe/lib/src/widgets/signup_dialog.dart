@@ -1,7 +1,12 @@
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/screens/pages.dart';
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/widgets/login_dialog.dart';
+import 'package:diary_fe/src/widgets/signup_success.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SignUpModal extends StatefulWidget {
   const SignUpModal({super.key});
@@ -11,6 +16,7 @@ class SignUpModal extends StatefulWidget {
 }
 
 class _SignUpModalState extends State<SignUpModal> {
+  final storage = const FlutterSecureStorage();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
@@ -33,7 +39,94 @@ class _SignUpModalState extends State<SignUpModal> {
     }
   }
 
-  void login() {}
+  void signUp() async {
+    try {
+      ApiService apiService = ApiService();
+      Response response = await apiService.post(
+        '/api/member/register',
+        data: {
+          "id": _idController.text,
+          "password": _pwController.text,
+          "nickname": _nicknameController.text,
+          "email": _emailController.text,
+        },
+      );
+      print(response.statusCode);
+
+      if (response.statusCode == 201) {
+        login();
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          barrierColor: Colors.transparent,
+          builder: (BuildContext context) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                dialogBackgroundColor: const Color(0xFFFFFFFF),
+                dialogTheme: const DialogTheme(elevation: 0),
+              ),
+              child: const SignUpSuccess(),
+            );
+          },
+        );
+      } else {
+        // // 회원가입 실패 처리
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('회원가입 실패: ${response.data['message']}'),
+        //   ),
+        // );
+      }
+    } catch (e) {
+      print(e);
+      // 네트워크 오류 등의 예외 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('회원가입 중 오류가 발생했습니다.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> login() async {
+    try {
+      ApiService apiService = ApiService();
+      Response response = await apiService.post('/api/auth/login',
+          data: {"id": _idController.text, "password": _pwController.text});
+
+      if (response.statusCode == 200) {
+        // 가정: 200이 성공 응답 코드
+        Map<String, dynamic> responseMap = response.data;
+        await storage.write(
+            key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
+        await storage.write(
+            key: "REFRESH_TOKEN", value: responseMap["refreshToken"]);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Pages(),
+          ),
+        );
+      } else {
+        // 로그인 실패 처리
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('로그인 실패: ${response.data['message']}'),
+          ),
+        );
+      }
+    } catch (e) {
+      print(e);
+      // 로그인 과정 중 예외 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인 중 오류가 발생했습니다.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +227,7 @@ class _SignUpModalState extends State<SignUpModal> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            login();
+                            signUp();
                           }
                         },
                         style: ElevatedButton.styleFrom(

@@ -1,9 +1,15 @@
 import 'dart:developer';
 
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/services/api_services.dart';
+import 'package:diary_fe/src/screens/pages.dart';
+import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 
 class LoginModal extends StatefulWidget {
   const LoginModal({super.key});
@@ -15,6 +21,45 @@ class LoginModal extends StatefulWidget {
 class _LoginModalState extends State<LoginModal> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
+  final storage = const FlutterSecureStorage();
+  Future<void> login() async {
+    if (_idController.text.isEmpty || _pwController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('알림'),
+            content: const Text('아이디와 비밀번호를 모두 입력해야 해요.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('확인'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+    ApiService apiService = ApiService();
+    Response response = await apiService.post('/api/auth/login',
+        data: {"id": _idController.text, "password": _pwController.text});
+    Map<String, dynamic> responseMap = response.data;
+    await storage.write(key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
+    await storage.write(
+      key: "REFRESH_TOKEN",
+      value: responseMap["refreshToken"],
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Pages(),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -28,6 +73,12 @@ class _LoginModalState extends State<LoginModal> {
     String password = _pwController.text;
 
     log('Email: $email, Password: $password');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Pages(),
+      ),
+    );
   }
 
   @override
@@ -65,7 +116,7 @@ class _LoginModalState extends State<LoginModal> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _login,
+                      onPressed: login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColors.color1, // 버튼 색상
                         shape: RoundedRectangleBorder(

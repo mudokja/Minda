@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/services/api_services.dart';
+import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
 import 'package:dio/dio.dart';
@@ -41,13 +42,22 @@ class _LoginModalState extends State<LoginModal> {
       return;
     }
     ApiService apiService = ApiService();
-    Response response = await apiService.post('api/auth/login',
+    Response response = await apiService.post('/api/auth/login',
         data: {"id": _idController.text, "password": _pwController.text});
     Map<String, dynamic> responseMap = response.data;
     await storage.write(key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
     await storage.write(
-        key: "REFRESH_TOKEN", value: responseMap["refreshToken"]);
-    // Navigator.push(context, MaterialPageRoute(builder:(context)=> ))
+      key: "REFRESH_TOKEN",
+      value: responseMap["refreshToken"],
+    );
+    print(responseMap["accessToken"]);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Pages(),
+      ),
+    );
   }
 
   @override
@@ -62,6 +72,12 @@ class _LoginModalState extends State<LoginModal> {
     String password = _pwController.text;
 
     log('Email: $email, Password: $password');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Pages(),
+      ),
+    );
   }
 
   @override
@@ -99,7 +115,7 @@ class _LoginModalState extends State<LoginModal> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _login,
+                      onPressed: login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColors.color1, // 버튼 색상
                         shape: RoundedRectangleBorder(

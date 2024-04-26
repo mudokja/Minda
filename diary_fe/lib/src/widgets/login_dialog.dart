@@ -3,11 +3,13 @@ import 'dart:developer';
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/screens/pages.dart';
+import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 
 class LoginModal extends StatefulWidget {
   const LoginModal({super.key});
@@ -50,7 +52,6 @@ class _LoginModalState extends State<LoginModal> {
       key: "REFRESH_TOKEN",
       value: responseMap["refreshToken"],
     );
-    print(responseMap["accessToken"]);
 
     Navigator.push(
       context,

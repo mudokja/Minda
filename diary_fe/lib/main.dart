@@ -1,7 +1,10 @@
 import 'package:diary_fe/src/screens/intro_page.dart';
+import 'package:diary_fe/src/screens/pages.dart';
+import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,21 +15,35 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<UserProvider>(
+          create: (context) => UserProvider()..fetchUserData(),
+        ),
+        ChangeNotifierProvider<UserProvider>(
+          create: (context) => UserProvider()..checkLoginStatus(),
+        ),
       ],
-      supportedLocales: [
-        Locale('ko', 'KR'),
-      ],
-      home: Scaffold(
-        body: Stack(
-          children: <Widget>[
-            Background(),
-            IntroPage(),
-          ],
+      child: MaterialApp(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ko', 'KR'),
+        ],
+        home: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Scaffold(
+              body: Stack(
+                children: <Widget>[
+                  const Background(),
+                  userProvider.isLoggedIn ? const Pages() : const IntroPage(),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

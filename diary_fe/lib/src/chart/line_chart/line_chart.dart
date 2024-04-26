@@ -48,23 +48,23 @@ class _LineChartTestState extends State<LineChartTest> {
     return LineChart(
       curve: Curves.linear,
       LineChartData(
-        lineTouchData: LineTouchData(
+        lineTouchData: const LineTouchData(
           enabled: true,
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-              return touchedBarSpots.map((barSpot) {
-                const textStyle = TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                );
-                return LineTooltipItem(
-                  '${dateFormat.format(_dates[barSpot.x.toInt()])}\n${labels[barSpot.barIndex]}: ${barSpot.y}',
-                  textStyle,
-                );
-              }).toList();
-            },
-          ),
+          // touchTooltipData: LineTouchTooltipData(
+          //   getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+          //     return touchedBarSpots.map((barSpot) {
+          //       const textStyle = TextStyle(
+          //         color: Colors.black,
+          //         fontWeight: FontWeight.bold,
+          //         fontSize: 14,
+          //       );
+          //       return LineTooltipItem(
+          //         '${dateFormat.format(_dates[barSpot.x.toInt()])}\n${labels[barSpot.barIndex]}: ${barSpot.y}',
+          //         textStyle,
+          //       );
+          //     }).toList();
+          //   },
+          // ),
         ),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),

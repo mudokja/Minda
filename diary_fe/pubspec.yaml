@@ -36,6 +36,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
+  table_calendar: ^3.1.1 # 여기에 실제 최신 버전 번호를 사용하세요.
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +62,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/gifs/thinking_face.gif
+    - assets/icon/white_calendar.png
     # - assets/images
   #   - images/a_dot_ham.jpeg
 

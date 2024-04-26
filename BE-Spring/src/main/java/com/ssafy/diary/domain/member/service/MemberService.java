@@ -40,6 +40,7 @@ public class MemberService {
             throw new AlreadyExistsMemberException("member ID "+memberRegisterRequestDto.getId()+ " is exists");
         }
     }
+    @Transactional
     public boolean checkExistMemberId(String memberId){
         return memberRepository.existsByIdAndPlatform(
                 memberId, AuthType.LOCAL

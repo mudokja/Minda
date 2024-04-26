@@ -7,7 +7,7 @@ class ApiService {
   String baseUrl = 'https://k10b205.p.ssafy.io';
   final storage = const FlutterSecureStorage();
   ApiService() {
-    bool refresh = true;
+    // bool refresh = true;
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {

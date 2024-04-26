@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Document(collection = "analyze")
@@ -16,5 +17,6 @@ public class Analyze {
     @Id
     @Field(name="diary_index")
     private Long diaryIndex;
-    private List<String> emotion;
+    private HashMap<String,Double[]> emotion;
+    private HashMap<String,Double> keyword;
 }

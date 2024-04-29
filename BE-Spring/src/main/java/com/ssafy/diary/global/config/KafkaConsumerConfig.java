@@ -9,6 +9,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,14 +17,16 @@ import java.util.Map;
 @EnableKafka
 @Configuration
 public class KafkaConsumerConfig {
-    @Value("spring.kafka.consumer.bootstrap-servers")
+    @Value("${spring.kafka.consumer.bootstrap-servers}")
     private String bootstrapAddress;
-    @Value("spring.kafka.consumer.group-id")
+    @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
     @Bean
     public Map<String, Object> consumerProps() {
 
         Map<String, Object> props = new HashMap<>();
+        JsonDeserializer<Object> deserializer=new JsonDeserializer<>();
+        deserializer.addTrustedPackages("com.ssafy.diary.*");
         props.put(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 bootstrapAddress);
@@ -35,20 +38,20 @@ public class KafkaConsumerConfig {
                 StringDeserializer.class);
         props.put(
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
+                deserializer.getClass());
         return props;
     }
 
     @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
+    public ConsumerFactory<String, Object> consumerFactory() {
 
         return new DefaultKafkaConsumerFactory<>(this.consumerProps());
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String>
+    public ConcurrentKafkaListenerContainerFactory<String, Object>
     kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;

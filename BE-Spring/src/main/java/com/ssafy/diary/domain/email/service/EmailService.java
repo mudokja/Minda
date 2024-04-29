@@ -15,6 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class EmailService {
     private final String verificationTopics = "diary.email.verification";
     private final VerificationRepository verificationRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final EmailUtil emailUtil;
     private final ObjectMapper objectMapper;
     public CodeVerificationResponseDto sendKafkaEmailAuthMessage(CodeVerificationRequestDto verificationRequestDto) throws JsonProcessingException {
@@ -32,33 +33,38 @@ public class EmailService {
         verificationRepository.save(VerificationCode.builder()
                 .verificationId(uuid)
                 .code(code)
+                .email(verificationRequestDto.getEmail())
                 .expireTime(60L*5+5)
                 .build()
         );
-        kafkaTemplate.send(verificationTopics, objectMapper.writeValueAsString(KafkaEmailAuthDto.builder()
+        kafkaTemplate.send(verificationTopics, KafkaEmailAuthDto.builder()
                 .verificationId(uuid)
                 .email(verificationRequestDto.getEmail())
                 .code(code)
-                .build()));
+                .build());
         return CodeVerificationResponseDto.builder()
                 .verificationId(uuid)
                 .build();
     }
 
-//    @KafkaListener(topics = verificationTopics, groupId = "diary_consumer_01")
-//    public void sendAuthEmail(Message message) throws JsonProcessingException {
-//        log.debug("이메일 메시지 수신 : {}",message.toString());
-//        KafkaEmailAuthDto kafkaEmailAuthDto =objectMapper.readValue(message.toString(),KafkaEmailAuthDto.class);
-//        emailUtil.sendMail(kafkaEmailAuthDto.getEmail(),"[Mirror Diary]이메일 인증 메일입니다.", "인증번호 : "+kafkaEmailAuthDto.getCode());
-//    }
+    @KafkaListener(topics = verificationTopics, groupId = "diary_consumer_01", properties = {"spring.json.value.default.type:com.ssafy.diary.domain.email.dto.KafkaEmailAuthDto"})
+    public void sendAuthEmail(KafkaEmailAuthDto message) throws JsonProcessingException {
+        log.debug("이메일 메시지 수신 : {}",message.toString());
+        KafkaEmailAuthDto kafkaEmailAuthDto =message;
+        emailUtil.sendMail(kafkaEmailAuthDto.getEmail(),"[Mirror Diary]이메일 인증 메일입니다.", "인증번호 : "+kafkaEmailAuthDto.getCode());
+    }
 
     public EmailAuthResponseDto checkAuthEmail(EmailAuthRequestDto emailAuthRequestDto){
         VerificationCode verificationCode =verificationRepository.findById(emailAuthRequestDto.getVerificationId())
-                .orElseThrow(()->new RuntimeException("email auth failed"));
+                .orElse(null);
+        if(Objects.requireNonNull(verificationCode).getCode().equals(emailAuthRequestDto.getCode())) {
+            return EmailAuthResponseDto.builder()
+                    .resultMessage("success")
+                    .authTime(LocalDateTime.now())
+                    .email(verificationCode.getEmail())
+                    .build();
+        }
+            return null;
 
-        return EmailAuthResponseDto.builder()
-                .authTime(LocalDateTime.now())
-                .email(verificationCode.getEmail())
-                .build();
     }
 }

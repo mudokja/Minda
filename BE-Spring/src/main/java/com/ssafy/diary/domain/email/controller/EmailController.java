@@ -22,6 +22,11 @@ public class EmailController {
 
     @PostMapping("/auth")
     public ResponseEntity<EmailAuthResponseDto> sendVerificationEmail(@RequestBody EmailAuthRequestDto emailAuthRequestDto){
-        return ResponseEntity.ok().body(emailService.checkAuthEmail(emailAuthRequestDto));
+        EmailAuthResponseDto result = emailService.checkAuthEmail(emailAuthRequestDto);
+        if(result != null){
+        return ResponseEntity.ok().body(result);
+
+        }
+        return ResponseEntity.badRequest().build();
     }
 }

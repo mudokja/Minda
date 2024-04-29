@@ -17,6 +17,7 @@ public class Analyze {
     @Id
     @Field(name="diary_index")
     private Long diaryIndex;
+    private String[] sentence;
     private HashMap<String,Double[]> emotion;
     private HashMap<String,Double> keyword;
 }

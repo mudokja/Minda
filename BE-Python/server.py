@@ -44,7 +44,7 @@ def analyze_text(diary_index:int, diary_content:str):
         dict['diary_index'] = diary_index
         dict['emotion'] = emotion
         mongo_util.mongo_insert(mongo_collection,dict)
-        return emotion
+        return "success"
     except Exception as e:
         return {str(e)}
 

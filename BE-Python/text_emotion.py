@@ -76,7 +76,7 @@ def predict_emotion(predict_sentence):
             for i in out: # out = model(token_ids, valid_length, segment_ids)
                 logits = i
                 logits = logits.detach().cpu().numpy()
-                print(logits)
+                # print(logits)
                 if np.argmax(logits) == 0:
                     test_eval.append("중립")
                 elif np.argmax(logits) == 1:

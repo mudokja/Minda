@@ -80,17 +80,15 @@ def predict_emotion(predict_sentence):
                 if np.argmax(logits) == 0:
                     test_eval.append("중립")
                 elif np.argmax(logits) == 1:
-                    test_eval.append("분노")
+                    test_eval.append("분노, 혐오")
                 elif np.argmax(logits) == 2:
-                    test_eval.append("슬픔")
+                    test_eval.append("슬픔, 상처")
                 elif np.argmax(logits) == 3:
-                    test_eval.append("상처")
+                    test_eval.append("놀람, 당황")
                 elif np.argmax(logits) == 4:
-                    test_eval.append("놀람")
+                    test_eval.append("불안, 공포")
                 elif np.argmax(logits) == 5:
-                    test_eval.append("불안")
-                elif np.argmax(logits) == 6:
-                    test_eval.append("행복")
+                    test_eval.append("행복, 기쁨")
             # return test_eval[0]   #가장 높은 하나의 값
             return logits   #가중치 값
     except Exception as e:

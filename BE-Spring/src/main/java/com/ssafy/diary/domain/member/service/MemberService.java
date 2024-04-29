@@ -2,6 +2,7 @@ package com.ssafy.diary.domain.member.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
+import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
 import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
@@ -10,6 +11,8 @@ import com.ssafy.diary.global.constant.Role;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,25 @@ import org.springframework.stereotype.Service;
 public class MemberService {
     final private MemberRepository memberRepository;
     final private PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public void updateMemberPassword(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws BadRequestException {
+        Member member= getMemberCheck(memberIndex);
+        if(!passwordEncoder.matches(member.getPassword(),memberModifyRequestDto.getMemberOldPassword()))
+        {
+            throw new BadRequestException("member password incorrect");
+        }
+        member.setPassword(memberModifyRequestDto.getMemberNewPassword());
+    } 
+    public void updateMemberInfo(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws NotFoundException {
+        Member member= getMemberCheck(memberIndex);
+        member.setNickname(member.getNickname());
+    }
+
+    private Member getMemberCheck(Long memberIndex) {
+        return memberRepository.findByIndex(memberIndex)
+                .orElseThrow(() -> new UsernameNotFoundException("member not found"));
+    }
 
     @Transactional
     public void registerMember(MemberRegisterRequestDto memberRegisterRequestDto) throws AlreadyExistsMemberException {
@@ -48,7 +70,7 @@ public class MemberService {
     }
 
     public MemberInfoResponseDto getMemberInfo(Long memberIndex){
-        Member member = memberRepository.findByIndex(memberIndex).orElseThrow(()->new NotFoundException("member is not found"));
+        Member member = getMemberCheck(memberIndex);
 
         return MemberInfoResponseDto.builder()
                 .memberEmail(member.getEmail())
@@ -56,4 +78,5 @@ public class MemberService {
                 .memberId(member.getId())
                 .build();
     }
+    
 }

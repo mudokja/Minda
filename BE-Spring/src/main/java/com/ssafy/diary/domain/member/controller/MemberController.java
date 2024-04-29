@@ -2,10 +2,12 @@ package com.ssafy.diary.domain.member.controller;
 
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
+import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
 import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,5 +37,19 @@ public class MemberController {
     public ResponseEntity<MemberInfoResponseDto> memberInfo(@AuthenticationPrincipal PrincipalMember principalMember) {
 
         return ResponseEntity.ok().body(memberService.getMemberInfo(principalMember.getIndex()));
+    }
+    @PutMapping("/auth")
+    public ResponseEntity<String> memberPasswordUpdate(@AuthenticationPrincipal PrincipalMember principalMember, MemberModifyRequestDto memberModifyRequestDto) throws BadRequestException {
+        if(!memberModifyRequestDto.getMemberNewPassword().isEmpty() &&!memberModifyRequestDto.getMemberOldPassword().isEmpty()) {
+            memberService.updateMemberPassword(principalMember.getIndex(), memberModifyRequestDto);
+
+            return ResponseEntity.ok().body("member password updated successfully");
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("password is empty");
+    }
+    @PutMapping("/")
+    public ResponseEntity<String> memberInfoUpdate(@AuthenticationPrincipal PrincipalMember principalMember, MemberModifyRequestDto memberModifyRequestDto) throws BadRequestException {
+            memberService.updateMemberInfo(principalMember.getIndex(), memberModifyRequestDto);
+            return ResponseEntity.ok().body("member info updated successfully");
     }
 }

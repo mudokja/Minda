@@ -25,7 +25,7 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private static final List<String> allowUrlList=List.of("/api/auth/refresh","/api/member/register","/api/auth/login","/api/member/check");
+    private static final List<String> allowUrlList=List.of("/api/auth/refresh","/api/member/register","/api/auth/login","/api/member/check","/api/email/auth","/api/email/verification");
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         if(allowUrlList.contains(request.getRequestURI())){

@@ -49,7 +49,7 @@ public class Member extends BaseEntity {
     private String nickname;
 
     @Setter
-    @Column(name = "member_email")
+    @Column(name = "member_email", nullable = false, unique = true)
     private String email;
 
     @Setter

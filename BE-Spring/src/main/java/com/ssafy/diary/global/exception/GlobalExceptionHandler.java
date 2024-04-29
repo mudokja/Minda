@@ -2,8 +2,10 @@ package com.ssafy.diary.global.exception;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -31,5 +33,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNotFoundException(RuntimeException exception) {
         log.error("NotFoundException: ", exception);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+    }
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<String> handleUsernameNotFoundException(RuntimeException exception) {
+        log.error("UsernameNotFoundException: ", exception);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+    }
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<String> handleBadRequestException(RuntimeException exception) {
+        log.error("BadRequestException: ", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
     }
 }

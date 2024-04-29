@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,5 +16,5 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     List<Diary> findByMemberIndexAndDiaryTitleContaining(Long memberIndex, String keyword);
 
     @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex AND d.diarySetDate BETWEEN :startDate AND :endDate")
-    List<Diary> findByMemberIndexAndDiarySetDate(@Param("memberIndex") Long MemberIndex, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    List<Diary> findByMemberIndexAndDiarySetDate(@Param("memberIndex") Long MemberIndex, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

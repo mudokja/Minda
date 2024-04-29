@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class DiaryResponseDto {
 
     private Long diaryIndex;
 
-    private LocalDateTime diarySetDate;
+    private LocalDate diarySetDate;
 
     private String diaryTitle;
 
@@ -39,7 +40,7 @@ public class DiaryResponseDto {
     private List<String> hashtagList;
 
     @Builder
-    public DiaryResponseDto(Long diaryIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList, List<String> hashtagList) {
+    public DiaryResponseDto(Long diaryIndex, LocalDate diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList, List<String> hashtagList) {
         this.diaryIndex = diaryIndex;
         this.diarySetDate = diarySetDate;
         this.diaryTitle = diaryTitle;

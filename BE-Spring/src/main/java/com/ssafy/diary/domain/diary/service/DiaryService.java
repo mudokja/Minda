@@ -11,10 +11,12 @@ import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.domain.diary.repository.ImageRepository;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -31,6 +33,7 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DiaryHashtagRepository diaryHashtagRepository;
     private final S3Service s3Service;
+//    private final WebClient webClient;
 
     //더미데이터 생성
     public void createDummyData(Long memberIndex) {
@@ -40,8 +43,6 @@ public class DiaryService {
 
         for (long i = 0; i <= daysBetween; i++) {
             LocalDate currentDate = startDate.plusDays(i);
-            LocalDateTime dateTime = currentDate.atStartOfDay(); // LocalDate를 LocalDateTime으로 변환 (시간은 00:00)
-            LocalDateTime adjustedDateTime = dateTime.minusHours(9); // -9시간 조정
             List<Image> imageList = new ArrayList<>();
             imageList.add(Image.builder()
                     .imageName("Dummy")
@@ -50,7 +51,7 @@ public class DiaryService {
 
             Diary diary = Diary.builder()
                     .memberIndex(memberIndex)
-                    .diarySetDate(adjustedDateTime) // 현재 날짜로 설정 후 -9시간 조정
+                    .diarySetDate(currentDate) // 현재 날짜로 설정 후 -9시간 조정
                     .diaryTitle("Dummy Title " + i)
                     .diaryContent("Dummy Content " + i)
                     .diaryHappiness((long) (Math.random() * 101))
@@ -60,7 +61,11 @@ public class DiaryService {
                     .diarySurprise((long) (Math.random() * 101))
                     .imageList(imageList)
                     .build();
-            diaryRepository.save(diary);
+            Diary addedDiary = diaryRepository.save(diary);
+            diaryHashtagRepository.save(DiaryHashtag.builder()
+                    .diaryIndex(addedDiary.getDiaryIndex())
+                    .hashtagList(List.of(new String[]{"hashtag1", "tashtag2"}))
+                    .build());
         }
     }
 
@@ -139,13 +144,11 @@ public class DiaryService {
         // Diary 엔티티 저장
         diaryRepository.save(diary);
 
-        // 해쉬태그 수정
+        // 해시태그 수정
         DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
         System.out.println(diaryHashtag);
         diaryHashtag.setHashtagList(diaryUpdateRequestDto.getHashtagList());
-        diaryHashtagRepository.save(diaryHashtag);
-
-
+//        diaryHashtagRepository.save(diaryHashtag);
     }
 
     //일기 삭제
@@ -243,6 +246,18 @@ public class DiaryService {
             }
         }
     }
+
+//    //Fast API로 요청 보내기
+//    public void fetchDataFromExternalAPI() {
+//        webClient.get()
+//                .uri("/your-endpoint")
+//                .retrieve()
+//                .bodyToMono(String.class)
+//                .subscribe(body -> {
+//                    System.out.println("Response from External API: " + body);
+//                    // 여기서 받은 데이터를 처리하는 로직을 추가할 수 있습니다.
+//                });
+//    }
 
 }
 

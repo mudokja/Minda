@@ -10,6 +10,7 @@ import org.springframework.cglib.core.Local;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class Diary extends BaseEntity {
     private Long memberIndex;
 
     @Column(name = "diary_set_date")
-    private LocalDateTime diarySetDate;
+    private LocalDate diarySetDate;
 
     @Column(name = "diary_title")
     private String diaryTitle;
@@ -60,7 +61,7 @@ public class Diary extends BaseEntity {
     private List<Image> imageList = new ArrayList<>();
 
     @Builder
-    public Diary (Long memberIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList){
+    public Diary (Long memberIndex, LocalDate diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList){
         this.memberIndex = memberIndex;
         this.diarySetDate = diarySetDate;
         this.diaryTitle = diaryTitle;

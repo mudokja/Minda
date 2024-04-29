@@ -4,19 +4,18 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 public class DiaryListByPeriodRequestDto {
 
-    private Long memberIndex;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     @Builder
-    public DiaryListByPeriodRequestDto(Long memberIndex, LocalDateTime startDate, LocalDateTime endDate) {
-        this.memberIndex = memberIndex;
+    public DiaryListByPeriodRequestDto(LocalDate startDate, LocalDate endDate) {
         this.startDate = startDate;
         this.endDate = endDate;
     }

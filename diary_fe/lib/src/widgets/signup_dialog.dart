@@ -26,7 +26,6 @@ class _SignUpModalState extends State<SignUpModal> {
   void verify() {
     if (_formKey.currentState!.validate()) {
       // 유효한 이메일 주소인 경우 인증 로직 수행
-      print("이메일 인증 로직 실행");
     } else {
       // 유효하지 않은 이메일 주소인 경우 경고 메시지 표시
       ScaffoldMessenger.of(context).showSnackBar(

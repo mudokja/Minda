@@ -53,6 +53,7 @@ class _LoginModalState extends State<LoginModal> {
       value: responseMap["refreshToken"],
     );
 
+    Provider.of<UserProvider>(context, listen: false).fetchUserData();
     Navigator.push(
       context,
       MaterialPageRoute(

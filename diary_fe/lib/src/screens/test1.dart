@@ -10,7 +10,8 @@ class DiaryListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeColors themeColors = ThemeColors();
-    var user = Provider.of<UserProvider>(context);
+    var userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: themeColors.color1,
@@ -20,7 +21,8 @@ class DiaryListPage extends StatelessWidget {
         const Background(),
         Center(
           child: Text(
-            user.user.nickname ?? '익명의 유저',
+            userProvider.user.nickname ??
+                '익명의 유저', // UserProvider에서 관리하는 데이터 사용
             style: const TextStyle(fontSize: 24),
           ),
         ),

@@ -43,7 +43,7 @@ public class SecurityConfig {
     ).toArray(String[]::new);
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10+new SecureRandom().nextInt(21-10));
+        return new BCryptPasswordEncoder(8+new SecureRandom().nextInt(3));
     }
 
     @Bean

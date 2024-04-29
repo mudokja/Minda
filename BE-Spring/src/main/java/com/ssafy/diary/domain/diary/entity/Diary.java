@@ -49,8 +49,8 @@ public class Diary extends BaseEntity {
     @Column(name = "diary_anger")
     private Long diaryAnger;
 
-    @Column(name = "diary_disgust")
-    private Long diaryDisgust;
+//    @Column(name = "diary_disgust")
+//    private Long diaryDisgust;
 
     @Column(name = "diary_surprise")
     private Long diarySurprise;
@@ -60,7 +60,7 @@ public class Diary extends BaseEntity {
     private List<Image> imageList = new ArrayList<>();
 
     @Builder
-    public Diary (Long memberIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diaryDisgust, Long diarySurprise, List<Image> imageList){
+    public Diary (Long memberIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList){
         this.memberIndex = memberIndex;
         this.diarySetDate = diarySetDate;
         this.diaryTitle = diaryTitle;
@@ -69,7 +69,7 @@ public class Diary extends BaseEntity {
         this.diarySadness = diarySadness;
         this.diaryFear = diaryFear;
         this.diaryAnger = diaryAnger;
-        this.diaryDisgust = diaryDisgust;
+//        this.diaryDisgust = diaryDisgust;
         this.diarySurprise = diarySurprise;
         this.imageList = imageList;
     }
@@ -84,9 +84,10 @@ public class Diary extends BaseEntity {
                 .diarySadness(diarySadness)
                 .diaryFear(diaryFear)
                 .diaryAnger(diaryAnger)
-                .diaryDisgust(diaryDisgust)
+//                .diaryDisgust(diaryDisgust)
                 .diarySurprise(diarySurprise)
                 .imageList(imageList)
+//                .hashtagList(hashtagList)
                 .build();
     }
 

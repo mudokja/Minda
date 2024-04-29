@@ -30,14 +30,16 @@ public class DiaryResponseDto {
 
     private Long diaryAnger;
 
-    private Long diaryDisgust;
+//    private Long diaryDisgust;
 
     private Long diarySurprise;
 
     private List<Image> imageList;
 
+    private List<String> hashtagList;
+
     @Builder
-    public DiaryResponseDto(Long diaryIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diaryDisgust, Long diarySurprise, List<Image> imageList) {
+    public DiaryResponseDto(Long diaryIndex, LocalDateTime diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList, List<String> hashtagList) {
         this.diaryIndex = diaryIndex;
         this.diarySetDate = diarySetDate;
         this.diaryTitle = diaryTitle;
@@ -46,8 +48,9 @@ public class DiaryResponseDto {
         this.diarySadness = diarySadness;
         this.diaryFear = diaryFear;
         this.diaryAnger = diaryAnger;
-        this.diaryDisgust = diaryDisgust;
+//        this.diaryDisgust = diaryDisgust;
         this.diarySurprise = diarySurprise;
         this.imageList = imageList;
+        this.hashtagList = hashtagList;
     }
 }

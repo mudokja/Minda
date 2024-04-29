@@ -10,6 +10,7 @@ import com.ssafy.diary.global.constant.AuthType;
 import com.ssafy.diary.global.constant.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.redis.core.index.Indexed;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "member",
+@Table(name = "member",indexes=@Index(columnList = "member_id"),
         uniqueConstraints = @UniqueConstraint(name = "UniqueIdAndPlatform", columnNames = { "member_id",
                 "member_platform" }))
 public class Member extends BaseEntity {

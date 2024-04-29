@@ -2,14 +2,36 @@ from krwordrank.word import summarize_with_keywords
 import re
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+from konlpy.tag import Okt 
 
 print("호출: text_keyword.py")
 
 def split_sentences(text):
-    sentences = re.split(r'(?<!\d)\.(?!\d)(?=\s)|(?<=[?!])', text)
-    # 각 문장 앞뒤의 공백 제거
-    sentences = [sentence.strip() for sentence in sentences if sentence.strip() != '']
-    return sentences
+    try:
+        sentences = re.split(r'(?<!\d)\.(?!\d)(?=\s)|(?<=[?!])', text)
+        # 각 문장 앞뒤의 공백 제거
+        sentences = [sentence.strip() for sentence in sentences if sentence.strip() != '']
+        return sentences
+    except Exception as e:
+        print ({str(e)})
+
+def noun_sentences(sentences):
+    try:
+        okt = Okt()
+        noun_sentences = []
+
+        for sentence in sentences:
+            if len(sentence) == 0:
+                continue
+            sentence_pos = okt.pos(sentence, stem=True)
+            nouns = [word for word, pos in sentence_pos if pos == 'Noun']
+            if len(nouns) == 1:
+                continue
+            noun_sentences.append(' '.join(nouns) + '.')
+
+        return noun_sentences
+    except Exception as e:
+        print ({str(e)})
 
 def get_keyword(texts):
     try:

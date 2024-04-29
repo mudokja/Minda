@@ -4,6 +4,8 @@ import com.ssafy.diary.domain.auth.service.CustomOAuth2UserService;
 import com.ssafy.diary.domain.auth.service.JwtService;
 import com.ssafy.diary.domain.auth.service.OAuth2LoginFailHandler;
 import com.ssafy.diary.domain.auth.service.OAuth2LoginSuccessHandler;
+import com.ssafy.diary.global.exception.CustomAccessDeniedHandler;
+import com.ssafy.diary.global.exception.CustomAuthenticationEntryPoint;
 import com.ssafy.diary.global.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,9 +59,9 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_PATTERNS).permitAll()
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**","/").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/member/check").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/member/register", "/api/auth/refresh", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/member/register", "/api/auth/refresh", "/api/auth/login","/api/email/verification","/api/email/auth").permitAll()
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -71,8 +73,11 @@ public class SecurityConfig {
                                 userInfoEndpoint
                                         .userService(customOAuth2UserService)
                         )
-                        .loginPage("/")
                 )
+                .exceptionHandling(exceptionHandle->{
+                    exceptionHandle.accessDeniedHandler(new CustomAccessDeniedHandler())
+                            .authenticationEntryPoint(new CustomAuthenticationEntryPoint());
+                })
 
                 .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
 

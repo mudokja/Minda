@@ -1,5 +1,6 @@
 package com.ssafy.diary.global.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ import java.security.SecureRandom;
 import java.util.Properties;
 
 @Component
+@Slf4j
 public class EmailUtil {
     private String type = "text/html; charset=utf-8";
 
@@ -42,13 +44,20 @@ public class EmailUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        for (int i = 0; i < 10; i++) {
+        log.debug("테스트{}: {}",i,generateCode().toString());
+
+        }
     }
 
     public static String generateCode() {
+        String charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        int stringLength = 8;
         StringBuilder sb = new StringBuilder();
         SecureRandom random = new SecureRandom();
-        for (int i = 0; i < 10; i++) {
-            sb.append((char) ((int) (random.nextDouble() * 57) + 65));
+        for (int i = 0; i < stringLength; i++) {
+            int randomIndex = random.nextInt(charSet.length());
+            sb.append( charSet.charAt(randomIndex));
         }
         return sb.toString();
     }

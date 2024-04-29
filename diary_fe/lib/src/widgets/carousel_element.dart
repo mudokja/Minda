@@ -30,6 +30,8 @@ class CarouselElement extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 20,
                 color: Colors.white,
+                decoration: TextDecoration.none,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],

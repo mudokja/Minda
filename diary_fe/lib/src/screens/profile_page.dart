@@ -1,11 +1,35 @@
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/screens/intro_page.dart';
+import 'package:diary_fe/src/services/api_services.dart';
+import 'package:diary_fe/src/services/delete_storage.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  ApiService apiService = ApiService();
+  final storage = const FlutterSecureStorage();
+  DeleteStorage deleteStorage = DeleteStorage();
+  void logout() async {
+    String? refreshToken = await storage.read(key: "REFRESH_TOKEN");
+    await apiService.delete('/api/auth/logout?refreshToken=$refreshToken');
+    deleteStorage.deleteAll();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const IntroPage(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +154,9 @@ class ProfilePage extends StatelessWidget {
                       width: buttonWidth,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          logout();
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: themeColors.color2,
                           shape: RoundedRectangleBorder(

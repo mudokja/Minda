@@ -29,4 +29,5 @@ public class AdviceController {
         AdviceResponseDto advice = adviceService.getAdviceByPeriod(memberIndex, adviceRequestDto);
         return ResponseEntity.ok(advice);
     }
+
 }

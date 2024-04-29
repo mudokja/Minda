@@ -5,6 +5,8 @@ import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.entity.Image;
+import com.ssafy.diary.domain.diary.model.DiaryHashtag;
+import com.ssafy.diary.domain.diary.repository.DiaryHashtagRepository;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.domain.diary.repository.ImageRepository;
 import com.ssafy.diary.domain.s3.service.S3Service;
@@ -15,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +29,40 @@ import java.util.Optional;
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
+    private final DiaryHashtagRepository diaryHashtagRepository;
     private final S3Service s3Service;
+
+    //더미데이터 생성
+    public void createDummyData(Long memberIndex) {
+        LocalDate startDate = LocalDate.of(2024, 1, 1); // 시작 날짜
+        LocalDate endDate = LocalDate.of(2024, 4, 29); // 종료 날짜
+        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate); // 시작과 종료 사이의 일수 계산
+
+        for (long i = 0; i <= daysBetween; i++) {
+            LocalDate currentDate = startDate.plusDays(i);
+            LocalDateTime dateTime = currentDate.atStartOfDay(); // LocalDate를 LocalDateTime으로 변환 (시간은 00:00)
+            LocalDateTime adjustedDateTime = dateTime.minusHours(9); // -9시간 조정
+            List<Image> imageList = new ArrayList<>();
+            imageList.add(Image.builder()
+                    .imageName("Dummy")
+                    .imageLink("https://ssafy-stella-bucket.s3.ap-northeast-2.amazonaws.com/bd629bbc-4063-4a41-bb59-7fa04cff4c8d.jpg")
+                    .build());
+
+            Diary diary = Diary.builder()
+                    .memberIndex(memberIndex)
+                    .diarySetDate(adjustedDateTime) // 현재 날짜로 설정 후 -9시간 조정
+                    .diaryTitle("Dummy Title " + i)
+                    .diaryContent("Dummy Content " + i)
+                    .diaryHappiness((long) (Math.random() * 101))
+                    .diarySadness((long) (Math.random() * 101))
+                    .diaryFear((long) (Math.random() * 101))
+                    .diaryAnger((long) (Math.random() * 101))
+                    .diarySurprise((long) (Math.random() * 101))
+                    .imageList(imageList)
+                    .build();
+            diaryRepository.save(diary);
+        }
+    }
 
     //일기 등록
     public void addDiary(DiaryRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
@@ -34,14 +72,22 @@ public class DiaryService {
             imageList = saveAndGetImageList(imageFiles);
         }
 
-        diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
+        Diary diary = diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
+        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex()));
     }
 
     //일기 조회
     public DiaryResponseDto getDiary(Long diaryIndex) {
         Diary diary = diaryRepository.findById(diaryIndex)
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
-        return diary.toDto();
+        DiaryResponseDto diaryResponseDto = diary.toDto();
+
+        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
+
+        if (diaryHashtag != null) {
+            diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+        }
+        return diaryResponseDto;
     }
 
 //    //일기 수정
@@ -73,8 +119,9 @@ public class DiaryService {
     @Transactional
     public void updateDiary(DiaryRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles) {
 
-        Optional<Diary> optionalDiary = diaryRepository.findById(diaryUpdateRequestDto.getDiaryIndex());
+        Long diaryIndex = diaryUpdateRequestDto.getDiaryIndex();
 
+        Optional<Diary> optionalDiary = diaryRepository.findById(diaryIndex);
         Diary diary = optionalDiary.orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryUpdateRequestDto.getDiaryIndex()));
 
         diary.update(diaryUpdateRequestDto);
@@ -92,6 +139,13 @@ public class DiaryService {
         // Diary 엔티티 저장
         diaryRepository.save(diary);
 
+        // 해쉬태그 수정
+        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
+        System.out.println(diaryHashtag);
+        diaryHashtag.setHashtagList(diaryUpdateRequestDto.getHashtagList());
+        diaryHashtagRepository.save(diaryHashtag);
+
+
     }
 
     //일기 삭제
@@ -101,6 +155,7 @@ public class DiaryService {
         Diary diary = diaryRepository.findById(diaryIndex).orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
 
         deleteImageFromS3(diary.getImageList());
+        diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
         diaryRepository.deleteById(diaryIndex);
     }
 
@@ -110,9 +165,15 @@ public class DiaryService {
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for (Diary diary : diaryList) {
-            responseDtoList.add(diary.toDto());
-        }
+            DiaryResponseDto diaryResponseDto = diary.toDto();
 
+            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+
+            if (diaryHashtag != null) {
+                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+            }
+            responseDtoList.add(diaryResponseDto);
+        }
         return responseDtoList;
     }
 
@@ -122,7 +183,14 @@ public class DiaryService {
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for(Diary diary: diaryList) {
-            responseDtoList.add(diary.toDto());
+            DiaryResponseDto diaryResponseDto = diary.toDto();
+
+            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+
+            if (diaryHashtag != null) {
+                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+            }
+            responseDtoList.add(diaryResponseDto);
         }
         return responseDtoList;
     }
@@ -131,12 +199,18 @@ public class DiaryService {
     public List<DiaryResponseDto> searchDiaryListByTitle(Long memberIndex, String keyword) {
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiaryTitleContaining(memberIndex, keyword);
 
-        List<DiaryResponseDto> diaryResponseDtoList = new ArrayList<>();
-        for(Diary diary: diaryList) {
-            diaryResponseDtoList.add(diary.toDto());
-        }
+        List<DiaryResponseDto> responseDtoList = new ArrayList<>();
+        for (Diary diary : diaryList) {
+            DiaryResponseDto diaryResponseDto = diary.toDto();
 
-        return diaryResponseDtoList;
+            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+
+            if (diaryHashtag != null) {
+                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+            }
+            responseDtoList.add(diaryResponseDto);
+        }
+        return responseDtoList;
     }
 
     //이미지 s3에 저장하고 imageList 반환
@@ -171,4 +245,5 @@ public class DiaryService {
     }
 
 }
+
 

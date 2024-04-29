@@ -2,6 +2,7 @@ package com.ssafy.diary.domain.diary.dto;
 
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.entity.Image;
+import com.ssafy.diary.domain.diary.model.DiaryHashtag;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,13 +16,13 @@ public class DiaryRequestDto {
 
     private Long diaryIndex;
 
-//    private Long memberIndex;
-
     private LocalDateTime diarySetDate;
 
     private String diaryTitle;
 
     private String diaryContent;
+
+    private List<String> hashtagList;
 
 
     public Diary toEntity(List<Image> imageList, Long memberIndex) {
@@ -31,6 +32,13 @@ public class DiaryRequestDto {
                 .diaryTitle(diaryTitle)
                 .diaryContent(diaryContent)
                 .imageList(imageList)
+                .build();
+    }
+
+    public DiaryHashtag hashtagToDocument(Long diaryIndex) {
+        return DiaryHashtag.builder()
+                .diaryIndex(diaryIndex)
+                .hashtagList(hashtagList)
                 .build();
     }
 

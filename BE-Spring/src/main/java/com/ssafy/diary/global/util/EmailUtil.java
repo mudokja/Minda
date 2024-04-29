@@ -12,7 +12,7 @@ import java.util.Properties;
 @Component
 @Slf4j
 public class EmailUtil {
-    private String type = "text/html; charset=utf-8";
+    private final String type = "text/html; charset=utf-8";
 
     @Value("${email.address}")
     private String emailAddress;
@@ -43,10 +43,6 @@ public class EmailUtil {
             Transport.send(message);
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        for (int i = 0; i < 10; i++) {
-        log.debug("테스트{}: {}",i,generateCode().toString());
-
         }
     }
 

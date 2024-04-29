@@ -1,4 +1,5 @@
 import 'package:diary_fe/src/screens/diary_list_page.dart';
+import 'package:diary_fe/src/screens/profile_page.dart';
 import 'package:diary_fe/src/screens/test2.dart';
 import 'package:diary_fe/src/screens/test3.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
@@ -22,7 +23,7 @@ class _PagesState extends State<Pages> {
       const DiaryListPage(),
       const DiaryListPage2(),
       const DiaryListPage3(),
-      const DiaryListPage3(),
+      const ProfilePage(),
     ];
   }
 

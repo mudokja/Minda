@@ -3,8 +3,10 @@ package com.ssafy.diary.domain.member.controller;
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
 import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
+import com.ssafy.diary.domain.member.dto.MemberOauthRegisterRequestDto;
 import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.service.MemberService;
+import com.ssafy.diary.global.constant.AuthType;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
@@ -21,7 +23,7 @@ public class MemberController {
 
     @GetMapping("/check")
     public ResponseEntity<String> checkMemberId(@RequestParam("id") String id) {
-        if (memberService.checkExistMemberId(id)) {
+        if (memberService.checkExistMemberId(id, AuthType.LOCAL)) {
             throw new AlreadyExistsMemberException("member ID " + id + " is exists");
         }
         return ResponseEntity.ok().build();
@@ -46,6 +48,11 @@ public class MemberController {
             return ResponseEntity.ok().body("member password updated successfully");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("password is empty");
+    }
+    @PostMapping("/oauth2/register")
+    public ResponseEntity<String> memberOauth2Register(MemberOauthRegisterRequestDto memberOauthRegisterRequestDto) {
+        memberService.registerOauth2Member(memberOauthRegisterRequestDto);
+        return ResponseEntity.ok().body("oauth2 login successfully");
     }
     @PutMapping("/")
     public ResponseEntity<String> memberInfoUpdate(@AuthenticationPrincipal PrincipalMember principalMember, MemberModifyRequestDto memberModifyRequestDto) throws BadRequestException {

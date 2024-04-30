@@ -39,7 +39,7 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final CorsConfig corsConfig;
     private static final String[] PERMIT_PATTERNS = List.of(
-            "/login"
+            "/login","/favicon.ico"
     ).toArray(String[]::new);
     @Bean
     public PasswordEncoder passwordEncoder() {

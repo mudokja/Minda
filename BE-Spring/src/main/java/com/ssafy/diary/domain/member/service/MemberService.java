@@ -3,6 +3,7 @@ package com.ssafy.diary.domain.member.service;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
 import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
+import com.ssafy.diary.domain.member.dto.MemberOauthRegisterRequestDto;
 import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
@@ -29,7 +30,7 @@ public class MemberService {
         {
             throw new BadRequestException("member password incorrect");
         }
-        member.setPassword(memberModifyRequestDto.getMemberNewPassword());
+        member.setPassword(passwordEncoder.encode(memberModifyRequestDto.getMemberNewPassword()));
     } 
     public void updateMemberInfo(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws NotFoundException {
         Member member= getMemberCheck(memberIndex);
@@ -40,11 +41,30 @@ public class MemberService {
         return memberRepository.findByIndex(memberIndex)
                 .orElseThrow(() -> new UsernameNotFoundException("member not found"));
     }
+    @Transactional
+    public void registerOauth2Member(MemberOauthRegisterRequestDto memberOauthRegisterRequestDto) throws AlreadyExistsMemberException {
 
+        boolean isExistsMember = checkExistMemberId(memberOauthRegisterRequestDto.getId(), AuthType.KAKAO);
+
+        if (!isExistsMember) {
+            memberRepository.save(
+                    Member.builder()
+                            .id(memberOauthRegisterRequestDto.getId())
+                            .role(Role.USER)
+                            .platform(memberOauthRegisterRequestDto.getPlatform())
+                            .nickname(memberOauthRegisterRequestDto.getNickname())
+                            .email(memberOauthRegisterRequestDto.getEmail())
+                            .build()
+            );
+        }
+        if(isExistsMember){
+            throw new AlreadyExistsMemberException(memberOauthRegisterRequestDto.getPlatform().toString()+" ID is exists");
+        }
+    }
     @Transactional
     public void registerMember(MemberRegisterRequestDto memberRegisterRequestDto) throws AlreadyExistsMemberException {
 
-        boolean isExistsMember = checkExistMemberId(memberRegisterRequestDto.getId());
+        boolean isExistsMember = checkExistMemberId(memberRegisterRequestDto.getId(), AuthType.LOCAL);
 
         if (!isExistsMember) {
             memberRepository.save(
@@ -63,9 +83,9 @@ public class MemberService {
         }
     }
     @Transactional
-    public boolean checkExistMemberId(String memberId){
+    public boolean checkExistMemberId(String memberId, AuthType platform){
         return memberRepository.existsByIdAndPlatform(
-                memberId, AuthType.LOCAL
+                memberId, platform
         );
     }
 
@@ -74,7 +94,7 @@ public class MemberService {
 
         return MemberInfoResponseDto.builder()
                 .memberEmail(member.getEmail())
-                .memberNickName(member.getNickname())
+                .memberNickname(member.getNickname())
                 .memberId(member.getId())
                 .build();
     }

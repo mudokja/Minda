@@ -1,4 +1,3 @@
-import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';

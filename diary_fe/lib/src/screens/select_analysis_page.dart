@@ -33,7 +33,6 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
@@ -79,7 +78,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                   '${date.year.toString()}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
                   style: const TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -125,12 +124,18 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
               SizedBox(
                 width: screenWidth / 2.5,
                 height: 200,
-                child: const BarChartTest(),
+                child: BarChartTest(
+                  startDate: date,
+                  endDate: date,
+                ),
               ),
               SizedBox(
                 width: screenWidth / 2.5,
                 height: 200,
-                child: const RadarChartTest(),
+                child: RadarChartTest(
+                  startDate: date,
+                  endDate: date,
+                ),
               )
             ],
           ),
@@ -292,7 +297,49 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
             width: 300,
             height: 300,
             child: LineChartTest(),
-          )
+          ),
+          const SizedBox(
+            height: 50,
+          ),
+          const Text(
+            '주간일기 분석',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(
+            height: 50,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                flex: 1,
+                child: Image.asset(
+                  'assets/gifs/thinking_face.gif',
+                  width: 100,
+                  height: 100,
+                ),
+              ),
+              const Expanded(
+                flex: 1,
+                child: SizedBox(),
+              ),
+              const Expanded(
+                flex: 5,
+                child: SizedBox(
+                  child: Text(
+                    '안녕하세요…',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
         ],
       ),
     );

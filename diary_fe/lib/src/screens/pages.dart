@@ -1,10 +1,8 @@
 import 'package:diary_fe/src/screens/analysis_page.dart';
 import 'package:diary_fe/src/screens/diary_list_page.dart';
-import 'package:diary_fe/src/screens/test1.dart';
+import 'package:diary_fe/src/screens/profile_page.dart';
 import 'package:diary_fe/src/screens/test2.dart';
-import 'package:diary_fe/src/screens/test3.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
-
 import 'package:diary_fe/src/widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
 
@@ -23,9 +21,9 @@ class _PagesState extends State<Pages> {
   void addWidgets() {
     widgetOptions = [
       const DiaryListPage2(),
-      const DiaryListPage3(),
+      const DiaryListPage(),
       const AnalysisPage(),
-      const DiaryListPage3(),
+      const ProfilePage(),
     ];
   }
 

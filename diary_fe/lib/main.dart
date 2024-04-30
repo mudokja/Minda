@@ -20,10 +20,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<UserProvider>(
-          create: (context) => UserProvider()..fetchUserData(),
-        ),
-        ChangeNotifierProvider<UserProvider>(
-          create: (context) => UserProvider()..checkLoginStatus(),
+          create: (context) => UserProvider(),
         ),
       ],
       child: MaterialApp(
@@ -37,13 +34,9 @@ class MyApp extends StatelessWidget {
         ],
         home: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
+            // 로그인 상태에 따라 다른 페이지 렌더링
             return Scaffold(
-              body: Stack(
-                children: <Widget>[
-                  const Background(),
-                  userProvider.isLoggedIn ? const Pages() : const IntroPage(),
-                ],
-              ),
+              body: userProvider.isLoggedIn ? const Pages() : const IntroPage(),
             );
           },
         ),

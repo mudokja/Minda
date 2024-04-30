@@ -1,4 +1,5 @@
 import 'package:diary_fe/src/screens/select_analysis_page.dart';
+import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/single_choice_button.dart';
 import 'package:flutter/material.dart';
 
@@ -37,35 +38,42 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-          horizontal: 20,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(35),
-          ),
-          child: Center(
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 20,
+    return Scaffold(
+      body: Stack(
+        children: <Widget>[
+          const Background(),
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 30,
+                horizontal: 20,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(35),
                 ),
-                SingleChoice(
-                  onUpdateCalendarView: updateCalendarView,
-                  initialCalendar: calendarView,
+                child: Center(
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      SingleChoice(
+                        onUpdateCalendarView: updateCalendarView,
+                        initialCalendar: calendarView,
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      buildAnalysisPage(),
+                    ],
+                  ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                buildAnalysisPage(),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

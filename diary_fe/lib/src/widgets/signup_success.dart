@@ -1,13 +1,6 @@
-import 'dart:developer';
-
 import 'package:diary_fe/constants.dart';
-import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/screens/pages.dart';
-import 'package:diary_fe/src/widgets/signup_dialog.dart';
-import 'package:diary_fe/src/widgets/textform.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SignUpSuccess extends StatefulWidget {
   const SignUpSuccess({super.key});

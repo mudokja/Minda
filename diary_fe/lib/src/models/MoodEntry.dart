@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class MoodEntry {
   final DateTime date;
   final String? diary_happiness; // 기쁨
@@ -21,7 +20,6 @@ class MoodEntry {
   });
 }
 
-
 Color getColorFromMood(String? mood) {
   switch (mood) {
     case '기쁨':
@@ -38,8 +36,5 @@ Color getColorFromMood(String? mood) {
       return const Color(0xFFFC819E); // 분홍
     default:
       return Colors.transparent; // 기본 색상
-
-
   }
 }
-

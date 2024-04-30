@@ -57,21 +57,17 @@ class _PagesState extends State<Pages> {
   Widget build(BuildContext context) {
     addWidgets();
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          // const Background(),
-          PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(
-                () {
-                  _selectedIndex = index;
-                },
-              );
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(
+            () {
+              _selectedIndex = index;
             },
-            children: widgetOptions,
-          ),
-        ],
+          );
+        },
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: widgetOptions,
       ),
       floatingActionButton: SizedBox(
         width: 80,
@@ -99,11 +95,7 @@ class _PagesState extends State<Pages> {
     setState(() {
       _selectedIndex = index;
     });
-    // _pageController.animateToPage(
-    //   index,
-    //   duration: const Duration(milliseconds: 300), // 애니메이션 지속 시간
-    //   curve: Curves.easeInOut, // 애니메이션 효과
-    // );
+
     _pageController.jumpToPage(index);
   }
 }

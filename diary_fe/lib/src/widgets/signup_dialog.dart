@@ -64,12 +64,6 @@ class _SignUpModalState extends State<SignUpModal> {
     }
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   void startTimer() {
     setState(() {
       _remainingTime = 300; // 초 단위, 5분
@@ -117,7 +111,7 @@ class _SignUpModalState extends State<SignUpModal> {
       print(response.statusCode);
 
       if (response.statusCode == 201) {
-        login();
+        await login();
         Navigator.pop(context);
         showDialog(
           context: context,
@@ -154,23 +148,16 @@ class _SignUpModalState extends State<SignUpModal> {
 
   Future<void> login() async {
     try {
+      _timer?.cancel();
       ApiService apiService = ApiService();
       Response response = await apiService.post('/api/auth/login',
           data: {"id": _idController.text, "password": _pwController.text});
-
       Map<String, dynamic> responseMap = response.data;
-      print(response.data);
       await storage.write(
           key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
       await storage.write(
           key: "REFRESH_TOKEN", value: responseMap["refreshToken"]);
       Provider.of<UserProvider>(context, listen: false).fetchUserData();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const Pages(),
-        ),
-      );
     } catch (e) {
       print(e);
       // 로그인 과정 중 예외 처리

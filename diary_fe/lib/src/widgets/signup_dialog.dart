@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/api_services.dart';
+import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/login_dialog.dart';
 import 'package:diary_fe/src/widgets/signup_success.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 
 class SignUpModal extends StatefulWidget {
   const SignUpModal({super.key});
@@ -23,18 +29,70 @@ class _SignUpModalState extends State<SignUpModal> {
   final TextEditingController _pw2Controller = TextEditingController();
   final TextEditingController _nicknameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  void verify() {
-    if (_formKey.currentState!.validate()) {
-      // 유효한 이메일 주소인 경우 인증 로직 수행
-    } else {
-      // 유효하지 않은 이메일 주소인 경우 경고 메시지 표시
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "유효한 이메일 주소를 입력해주세요.",
-          ),
-        ),
+  final TextEditingController _verificationCodeController =
+      TextEditingController();
+  bool _isVerified = false; // 이메일 인증 성공 여부
+  Timer? _timer; // 타이머
+  int _remainingTime = 300; // 초 단위, 5분
+  bool _isCodeSent = false;
+  String verificationId = '';
+  void verifyEmail() async {
+    try {
+      // 인증 코드 발송 요청 로직 구현
+      // 예제는 서버에 요청하는 로직이 들어가야 합니다.
+      ApiService apiService = ApiService();
+      Response response = await apiService.post(
+        '/api/email/verification',
+        data: {
+          "email": _emailController.text,
+        },
       );
+
+      if (response.statusCode == 200) {
+        _timer?.cancel();
+        setState(() {
+          _isCodeSent = true;
+          verificationId = response.data["verificationId"];
+          startTimer();
+        });
+        // 인증 코드 발송 성공 메시지 또는 로직
+      } else {
+        // 인증 코드 발송 실패 처리
+      }
+    } catch (e) {
+      // 에러 처리
+    }
+  }
+
+  void startTimer() {
+    setState(() {
+      _remainingTime = 300; // 초 단위, 5분
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingTime > 0) {
+        setState(() => _remainingTime--);
+      } else {
+        _timer?.cancel();
+        const Text('시간이 초과되었습니다.');
+      }
+    });
+  }
+
+  void confirmVerification() async {
+    // 인증 코드 확인 로직
+    ApiService apiService = ApiService();
+    Response response = await apiService.post(
+      '/api/email/auth',
+      data: {
+        "verificationId": verificationId,
+        "code": _verificationCodeController.text
+      },
+    );
+    if (response.statusCode == 200) {
+      _timer?.cancel();
+      setState(() {
+        _isVerified = true;
+      });
     }
   }
 
@@ -53,7 +111,7 @@ class _SignUpModalState extends State<SignUpModal> {
       print(response.statusCode);
 
       if (response.statusCode == 201) {
-        login();
+        await login();
         Navigator.pop(context);
         showDialog(
           context: context,
@@ -90,32 +148,16 @@ class _SignUpModalState extends State<SignUpModal> {
 
   Future<void> login() async {
     try {
+      _timer?.cancel();
       ApiService apiService = ApiService();
       Response response = await apiService.post('/api/auth/login',
           data: {"id": _idController.text, "password": _pwController.text});
-
-      if (response.statusCode == 200) {
-        // 가정: 200이 성공 응답 코드
-        Map<String, dynamic> responseMap = response.data;
-        await storage.write(
-            key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
-        await storage.write(
-            key: "REFRESH_TOKEN", value: responseMap["refreshToken"]);
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const Pages(),
-          ),
-        );
-      } else {
-        // 로그인 실패 처리
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('로그인 실패: ${response.data['message']}'),
-          ),
-        );
-      }
+      Map<String, dynamic> responseMap = response.data;
+      await storage.write(
+          key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
+      await storage.write(
+          key: "REFRESH_TOKEN", value: responseMap["refreshToken"]);
+      Provider.of<UserProvider>(context, listen: false).fetchUserData();
     } catch (e) {
       print(e);
       // 로그인 과정 중 예외 처리
@@ -171,9 +213,17 @@ class _SignUpModalState extends State<SignUpModal> {
                     TextForm(
                       title: '이메일',
                       controller: _emailController,
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            _isVerified == false) {
+                          return '이메일 인증을 진행해주세요';
+                        }
+                        return null;
+                      },
                       suffix: IconButton(
                         onPressed: () {
-                          // verify();
+                          verifyEmail();
                         },
                         icon: Text(
                           '인증하기',
@@ -181,6 +231,55 @@ class _SignUpModalState extends State<SignUpModal> {
                         ),
                       ),
                     ),
+                    if (_isCodeSent) ...[
+                      Column(
+                        children: [
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: TextForm(
+                                  title: '이메일 인증 코드',
+                                  controller: _verificationCodeController,
+                                  suffix: IconButton(
+                                    onPressed: confirmVerification,
+                                    icon: Text(
+                                      '확인',
+                                      style:
+                                          TextStyle(color: themeColors.color1),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 30,
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: _isVerified
+                                    ? const Text(
+                                        '확인되었습니다.',
+                                        style: TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 8,
+                                        ),
+                                      )
+                                    : Text(
+                                        "${(_remainingTime / 60).floor().toString().padLeft(2, '0')}:${(_remainingTime % 60).toString().padLeft(2, '0')}"),
+                              ),
+                            ],
+                          ),
+                          // if (_isVerified)
+                          //   const Text(
+                          //     '확인되었습니다.',
+                          //     style: TextStyle(color: Colors.green),
+                          //   ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     TextForm(
                       title: '비밀번호',
@@ -225,7 +324,8 @@ class _SignUpModalState extends State<SignUpModal> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          if (_formKey.currentState!.validate()) {
+                          if (_formKey.currentState!.validate() &&
+                              _isVerified) {
                             signUp();
                           }
                         },

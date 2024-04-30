@@ -1,11 +1,8 @@
 import 'package:diary_fe/src/screens/intro_page.dart';
 import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
-import 'package:diary_fe/src/widgets/background.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:diary_fe/src/screens/diary_list_page.dart';
-import 'package:diary_fe/src/models/MoodEntry.dart'; // MoodEntry를 import 해야합니다.
 import 'package:provider/provider.dart';
 
 void main() {

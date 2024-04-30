@@ -43,15 +43,6 @@ class _LoginModalState extends State<LoginModal> {
       );
       return;
     }
-    ApiService apiService = ApiService();
-    Response response = await apiService.post('/api/auth/login',
-        data: {"id": _idController.text, "password": _pwController.text});
-    Map<String, dynamic> responseMap = response.data;
-    await storage.write(key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
-    await storage.write(
-      key: "REFRESH_TOKEN",
-      value: responseMap["refreshToken"],
-    );
 
     Provider.of<UserProvider>(context, listen: false).fetchUserData();
     Navigator.push(
@@ -223,7 +214,28 @@ class _LoginModalState extends State<LoginModal> {
                   const SizedBox(
                     height: 30,
                   ),
-                  const Text('카카오 로그인 들어갈 자리'),
+                  Card(
+                    elevation: 18,
+                    clipBehavior: Clip.antiAlias,
+                    child: Ink.image(
+                      image:
+                      const AssetImage('assets/images/kakao.png'),
+                      fit: BoxFit.cover, // 이미지 채우기 방식 지정
+                      width: 300,
+                      height: 60,
+                      child: InkWell(
+                        onTap: () {
+                          Provider.of<UserProvider>(context, listen: false).kakaoLogin();
+                        },
+
+                        // InkWell이 꽉 찬 영역에 반응하도록 Container 등으로 감싸거나 크기를 지정
+                        child: const SizedBox(
+                          width: 500, // InkWell의 크기를 지정
+                          height: 60,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

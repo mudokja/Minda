@@ -3,22 +3,24 @@ package com.ssafy.diary.domain.member.service;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
 import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
-import com.ssafy.diary.domain.member.dto.MemberOauthRegisterRequestDto;
+import com.ssafy.diary.domain.member.dto.MemberOauth2RegisterRequestDto;
 import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
 import com.ssafy.diary.global.constant.AuthType;
 import com.ssafy.diary.global.constant.Role;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberService {
     final private MemberRepository memberRepository;
     final private PasswordEncoder passwordEncoder;
@@ -31,35 +33,37 @@ public class MemberService {
             throw new BadRequestException("member password incorrect");
         }
         member.setPassword(passwordEncoder.encode(memberModifyRequestDto.getMemberNewPassword()));
-    } 
+    }
+
     public void updateMemberInfo(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws NotFoundException {
         Member member= getMemberCheck(memberIndex);
         member.setNickname(member.getNickname());
     }
-
-    private Member getMemberCheck(Long memberIndex) {
+    @Transactional(readOnly = true)
+    public Member getMemberCheck(Long memberIndex) {
         return memberRepository.findByIndex(memberIndex)
                 .orElseThrow(() -> new UsernameNotFoundException("member not found"));
     }
-    @Transactional
-    public void registerOauth2Member(MemberOauthRegisterRequestDto memberOauthRegisterRequestDto) throws AlreadyExistsMemberException {
 
-        boolean isExistsMember = checkExistMemberId(memberOauthRegisterRequestDto.getId(), AuthType.KAKAO);
+    @Transactional
+    public Member registerOauth2Member(MemberOauth2RegisterRequestDto memberOauth2RegisterRequestDto) throws AlreadyExistsMemberException {
+
+        boolean isExistsMember = checkExistMemberId(memberOauth2RegisterRequestDto.getId(), AuthType.KAKAO);
 
         if (!isExistsMember) {
-            memberRepository.save(
+            Member member=memberRepository.save(
                     Member.builder()
-                            .id(memberOauthRegisterRequestDto.getId())
+                            .id(memberOauth2RegisterRequestDto.getId())
                             .role(Role.USER)
-                            .platform(memberOauthRegisterRequestDto.getPlatform())
-                            .nickname(memberOauthRegisterRequestDto.getNickname())
-                            .email(memberOauthRegisterRequestDto.getEmail())
+                            .platform(memberOauth2RegisterRequestDto.getPlatform())
+                            .nickname(memberOauth2RegisterRequestDto.getNickname())
+                            .email(memberOauth2RegisterRequestDto.getEmail())
                             .build()
             );
+            log.debug("등록 결과 {}",member.getIndex());
+            return member;
         }
-        if(isExistsMember){
-            throw new AlreadyExistsMemberException(memberOauthRegisterRequestDto.getPlatform().toString()+" ID is exists");
-        }
+            return memberRepository.findById(memberOauth2RegisterRequestDto.getId()).orElseThrow();
     }
     @Transactional
     public void registerMember(MemberRegisterRequestDto memberRegisterRequestDto) throws AlreadyExistsMemberException {
@@ -82,7 +86,7 @@ public class MemberService {
             throw new AlreadyExistsMemberException("member ID "+memberRegisterRequestDto.getId()+ " is exists");
         }
     }
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean checkExistMemberId(String memberId, AuthType platform){
         return memberRepository.existsByIdAndPlatform(
                 memberId, platform

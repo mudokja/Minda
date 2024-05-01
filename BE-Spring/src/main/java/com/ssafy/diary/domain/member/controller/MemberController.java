@@ -3,7 +3,7 @@ package com.ssafy.diary.domain.member.controller;
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
 import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
-import com.ssafy.diary.domain.member.dto.MemberOauthRegisterRequestDto;
+import com.ssafy.diary.domain.member.dto.MemberOauth2RegisterRequestDto;
 import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.global.constant.AuthType;
@@ -49,9 +49,9 @@ public class MemberController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("password is empty");
     }
-    @PostMapping("/oauth2/register")
-    public ResponseEntity<String> memberOauth2Register(MemberOauthRegisterRequestDto memberOauthRegisterRequestDto) {
-        memberService.registerOauth2Member(memberOauthRegisterRequestDto);
+    @PostMapping("/oauth2/login")
+    public ResponseEntity<String> memberOauth2Register(MemberOauth2RegisterRequestDto memberOauth2RegisterRequestDto) {
+        memberService.registerOauth2Member(memberOauth2RegisterRequestDto);
         return ResponseEntity.ok().body("oauth2 login successfully");
     }
     @PutMapping("/")

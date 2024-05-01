@@ -68,7 +68,7 @@ public class JwtService {
         roles.add(new SimpleGrantedAuthority(member.getRole().toString()));
         String accessToken= createAccessToken(member.getIndex(),roles,member.getPlatform());
 
-        String refreshToken= createRefreshToken(String.valueOf(member.getIndex()));
+        String refreshToken= createAndSaveRefreshToken(member);
 
         return TokenInfoDto.builder()
                 .accessToken(accessToken)

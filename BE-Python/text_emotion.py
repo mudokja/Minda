@@ -76,7 +76,6 @@ def predict_emotion(predict_sentence):
             for i in out: # out = model(token_ids, valid_length, segment_ids)
                 logits = i
                 logits = logits.detach().cpu().numpy()
-                # print(logits)
                 if np.argmax(logits) == 0:
                     test_eval.append("중립")
                 elif np.argmax(logits) == 1:
@@ -90,6 +89,18 @@ def predict_emotion(predict_sentence):
                 elif np.argmax(logits) == 5:
                     test_eval.append("행복, 기쁨")
             # return test_eval[0]   #가장 높은 하나의 값
-            return logits   #가중치 값
+            return scale_logits(logits)   #가중치 값
     except Exception as e:
         return "Error"+{str(e)}
+    
+def scale_logits(logits, new_min=0, new_max=10): #Min Max 스케일링
+    logits = np.array(logits)  # 변환된 logits를 numpy 배열로 변환
+    min_logit = np.min(logits)
+    max_logit = np.max(logits)
+
+    # Min-Max Scaling
+    scaled_logits = (logits - min_logit) / (max_logit - min_logit)
+
+    # 새로운 범위로 스케일 조정
+    scaled_logits = scaled_logits * (new_max - new_min) + new_min
+    return scaled_logits

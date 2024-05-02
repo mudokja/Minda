@@ -22,17 +22,13 @@ class _IntroPageState extends State<IntroPage> {
   final CarouselController _controller = CarouselController();
   final List<Widget> imageSliders = [
     const CarouselElement(
-        imagePath: 'assets/gifs/thinking_face.gif',
-        displayText: 'displayText,'),
+        imagePath: 'assets/gifs/thinking_face.gif', displayText: '테스트 텍스트 1'),
     const CarouselElement(
-        imagePath: 'assets/gifs/thinking_face.gif',
-        displayText: 'displayText,'),
+        imagePath: 'assets/gifs/chart.gif', displayText: '테스트 텍스트 2'),
     const CarouselElement(
-        imagePath: 'assets/gifs/thinking_face.gif',
-        displayText: 'displayText,'),
+        imagePath: 'assets/gifs/clap.gif', displayText: '테스트 텍스트 3'),
     const CarouselElement(
-        imagePath: 'assets/gifs/thinking_face.gif',
-        displayText: 'displayText,'),
+        imagePath: 'assets/gifs/eyes.gif', displayText: '테스트 텍스트 4'),
   ];
 
   @override

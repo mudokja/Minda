@@ -1,10 +1,7 @@
 package com.ssafy.diary.domain.member.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
-import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
-import com.ssafy.diary.domain.member.dto.MemberOauth2RegisterRequestDto;
-import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
+import com.ssafy.diary.domain.member.dto.*;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
 import com.ssafy.diary.global.constant.AuthType;
@@ -26,18 +23,19 @@ public class MemberService {
     final private PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void updateMemberPassword(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws BadRequestException {
+    public void updateMemberPassword(Long memberIndex, MemberUpdatePasswordRequestDto memberUpdatePasswordRequestDto) throws BadRequestException {
         Member member= getMemberCheck(memberIndex);
-        if(!passwordEncoder.matches(member.getPassword(),memberModifyRequestDto.getMemberOldPassword()))
+        if(!passwordEncoder.matches(member.getPassword(), memberUpdatePasswordRequestDto.getMemberOldPassword()))
         {
             throw new BadRequestException("member password incorrect");
         }
-        member.setPassword(passwordEncoder.encode(memberModifyRequestDto.getMemberNewPassword()));
+        member.setPassword(passwordEncoder.encode(memberUpdatePasswordRequestDto.getMemberNewPassword()));
     }
 
-    public void updateMemberInfo(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws NotFoundException {
+    public void updateMemberInfo(Long memberIndex, MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) throws NotFoundException {
         Member member= getMemberCheck(memberIndex);
-        member.setNickname(member.getNickname());
+        member.setNickname(memberInfoUpdateRequestDto.getMemberNickname());
+
     }
     @Transactional(readOnly = true)
     public Member getMemberCheck(Long memberIndex) {

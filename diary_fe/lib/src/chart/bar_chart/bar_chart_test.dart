@@ -3,13 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 
 class BarChartTest extends StatefulWidget {
   final List<int> emotions;
-  final DateTime startDate;
-  final DateTime endDate;
 
   const BarChartTest({
     super.key,
-    required this.startDate,
-    required this.endDate,
     required this.emotions,
   });
 

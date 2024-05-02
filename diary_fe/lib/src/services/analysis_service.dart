@@ -39,7 +39,7 @@ class AnalysisService {
             dailyEmotions[4] += model.diarySurprise;
           }
         }
-        print(emotions);
+
         return {
           'emotions': emotions,
           'titles': jsonData.map((m) => m['diaryTitle']).toList(),

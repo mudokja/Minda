@@ -16,7 +16,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/pyswagger", StaticFiles(directory="pyswagger"), name="pyswagger")
 
 origins = ["*"]
 
@@ -39,7 +39,7 @@ def read_root():
 
 @app.get("/custom/docs", include_in_schema=False)
 async def custom_swagger_ui():
-    html_content = open('static/swagger.html', 'r').read()
+    html_content = open('pyswagger/swagger.html', 'r').read()
     return HTMLResponse(content=html_content)
 
 @app.post("/api/ai/emotion")

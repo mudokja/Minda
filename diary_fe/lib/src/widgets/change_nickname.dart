@@ -26,7 +26,7 @@ class _ChangeNicknameState extends State<ChangeNickname> {
   void updateNickname() async {
     ApiService apiService = ApiService();
     await apiService.put(
-      '/api/member/',
+      '/api/member',
       data: {
         "memberNickname": _nicknameController.text,
       },

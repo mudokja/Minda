@@ -1,38 +1,117 @@
+import 'package:diary_fe/src/models/analysis_model.dart';
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class BarChartTest extends StatefulWidget {
-  const BarChartTest({super.key});
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const BarChartTest({
+    super.key,
+    required this.startDate,
+    required this.endDate,
+  });
 
   @override
   State<BarChartTest> createState() => _BarChartTestState();
 }
 
 class _BarChartTestState extends State<BarChartTest> {
-  late final List<BarChartGroupData> _barGroups;
+  List<BarChartGroupData> _barGroups = [];
+  final ApiService _apiService = ApiService();
+
+  String formatDate(DateTime dateTime) {
+    String formattedDate =
+        '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    return formattedDate;
+  }
 
   @override
   void initState() {
     super.initState();
-    _barGroups = _createBarGroups();
+    _initializeChartData();
+    fetchData();
   }
 
-  List<BarChartGroupData> _createBarGroups() {
-    // 명시적으로 double 타입으로 값을 정의
-    const values = <double>[29, 5, 8, 40.13, 12, 38];
+  void _initializeChartData() {
+    List<int> initialEmotions = [0, 0, 0, 0, 0];
+    _barGroups = _createBarGroups(initialEmotions);
+  }
+
+  @override
+  void didUpdateWidget(BarChartTest oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.startDate != oldWidget.startDate ||
+        widget.endDate != oldWidget.endDate) {
+      fetchData();
+    }
+  }
+
+  void fetchData() async {
+    String formStartDate = formatDate(widget.startDate);
+    String formEndDate = formatDate(widget.endDate);
+    try {
+      var response = await _apiService.post('/api/diary/list/period', data: {
+        "startDate": formStartDate,
+        "endDate": formEndDate,
+      });
+
+      var jsonData = response.data;
+
+      List<int> emotions = [];
+
+      if (jsonData is List) {
+        var modelList = jsonData.map((item) {
+          if (item is Map<String, dynamic>) {
+            return AnalysisModel.fromJson(item);
+          } else {
+            debugPrint('Item is not a Map: $item');
+            throw Exception("Item is not a Map");
+          }
+        }).toList();
+        if (modelList.isNotEmpty) {
+          emotions = [
+            modelList.map((m) => m.diaryHappiness).reduce((a, b) => a + b) ~/
+                modelList.length,
+            modelList.map((m) => m.diarySadness).reduce((a, b) => a + b) ~/
+                modelList.length,
+            modelList.map((m) => m.diaryFear).reduce((a, b) => a + b) ~/
+                modelList.length,
+            modelList.map((m) => m.diaryAnger).reduce((a, b) => a + b) ~/
+                modelList.length,
+            modelList.map((m) => m.diarySurprise).reduce((a, b) => a + b) ~/
+                modelList.length,
+          ];
+        } else {
+          emotions = [0, 0, 0, 0, 0]; // 모든 감정값을 0으로 초기화
+        }
+      } else {
+        debugPrint('Data is not a list: $jsonData');
+        throw Exception("Received data is neither a Map nor a List");
+      }
+
+      _barGroups = _createBarGroups(emotions);
+
+      setState(() {});
+    } catch (e) {
+      debugPrint('Error fetching data: $e');
+    }
+  }
+
+  List<BarChartGroupData> _createBarGroups(List<int> values) {
     const colors = [
       Color(0xff845EC2),
       Color(0xffD65DB1),
       Color(0xffFF6F91),
       Color(0xffFF9671),
       Color(0xffFFC75F),
-      Color(0xffF9F871),
     ];
 
     return List.generate(values.length, (index) {
       return BarChartGroupData(x: index, barRods: [
         BarChartRodData(
-          toY: values[index],
+          toY: values[index].toDouble(),
           color: colors[index],
           width: 20,
           borderRadius: BorderRadius.zero,
@@ -52,14 +131,16 @@ class _BarChartTestState extends State<BarChartTest> {
               '슬픔',
               '불안',
               '분노',
-              '상처',
               '놀람',
             ];
             final label = labels[group.x.toInt()];
             final value = rod.toY.toStringAsFixed(2);
             return BarTooltipItem(
               '$label: $value',
-              TextStyle(color: rod.color, fontWeight: FontWeight.bold),
+              TextStyle(
+                color: rod.color,
+                fontWeight: FontWeight.bold,
+              ),
             );
           },
         ),
@@ -73,11 +154,12 @@ class _BarChartTestState extends State<BarChartTest> {
         borderData: FlBorderData(
           show: false,
         ),
-        barGroups: _barGroups,
+        barGroups: _barGroups.isNotEmpty ? _barGroups : [],
         barTouchData: _createBarTouchData(),
         titlesData: const FlTitlesData(show: false),
       ),
-      swapAnimationDuration: const Duration(milliseconds: 250),
+      swapAnimationDuration: const Duration(milliseconds: 500),
+      swapAnimationCurve: Curves.linear,
     );
   }
 }

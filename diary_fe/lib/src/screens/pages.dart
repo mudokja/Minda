@@ -1,5 +1,6 @@
 import 'package:diary_fe/src/screens/analysis_page.dart';
 import 'package:diary_fe/src/screens/diary_list_page.dart';
+import 'package:diary_fe/src/screens/main_page.dart';
 import 'package:diary_fe/src/screens/profile_page.dart';
 import 'package:diary_fe/src/screens/test2.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
@@ -20,7 +21,7 @@ class _PagesState extends State<Pages> {
 
   void addWidgets() {
     widgetOptions = [
-      const DiaryListPage2(),
+      const MainPage(),
       const DiaryListPage(),
       const AnalysisPage(),
       const ProfilePage(),
@@ -57,21 +58,17 @@ class _PagesState extends State<Pages> {
   Widget build(BuildContext context) {
     addWidgets();
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          // const Background(),
-          PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(
-                () {
-                  _selectedIndex = index;
-                },
-              );
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(
+            () {
+              _selectedIndex = index;
             },
-            children: widgetOptions,
-          ),
-        ],
+          );
+        },
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: widgetOptions,
       ),
       floatingActionButton: SizedBox(
         width: 80,
@@ -99,11 +96,7 @@ class _PagesState extends State<Pages> {
     setState(() {
       _selectedIndex = index;
     });
-    // _pageController.animateToPage(
-    //   index,
-    //   duration: const Duration(milliseconds: 300), // 애니메이션 지속 시간
-    //   curve: Curves.easeInOut, // 애니메이션 효과
-    // );
+
     _pageController.jumpToPage(index);
   }
 }

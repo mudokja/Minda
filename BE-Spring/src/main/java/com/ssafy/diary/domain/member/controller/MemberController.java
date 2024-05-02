@@ -69,4 +69,9 @@ public class MemberController {
             memberService.updateMemberInfo(principalMember.getIndex(), memberInfoUpdateRequestDto);
             return ResponseEntity.ok().body("member info updated successfully");
     }
+    @DeleteMapping
+    public ResponseEntity<String> memberDelete(@AuthenticationPrincipal PrincipalMember principalMember) {
+        memberService.deleteMember(principalMember.getIndex());
+        return ResponseEntity.ok().body("member delete successfully");
+    }
 }

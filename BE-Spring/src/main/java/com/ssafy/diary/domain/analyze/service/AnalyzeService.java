@@ -51,13 +51,13 @@ public class AnalyzeService {
     //Fast API로 요청 보내기
     public Mono<String> requestAnalyzeToFastAPI(AnalyzeRequestDto analyzeRequestDto) {
         return webClient.post()
-//                .uri("/analyze")
-                .uri(uriBuilder -> uriBuilder
-                        .path("/analyze")
-                        .queryParam("diary_index", analyzeRequestDto.getDiaryIndex())
-                        .queryParam("diary_content", analyzeRequestDto.getDiaryContent())
-                        .build())
-//                .bodyValue(analyzeRequestDto)
+                .uri("/analyze")
+//                .uri(uriBuilder -> uriBuilder
+//                        .path("/analyze")
+//                        .queryParam("diary_index", analyzeRequestDto.getDiaryIndex())
+//                        .queryParam("diary_content", analyzeRequestDto.getDiaryContent())
+//                        .build())
+                .bodyValue(analyzeRequestDto)
                 .retrieve()
 //                .bodyToMono(AnalyzeResponseDto.class)
                 .bodyToMono(String.class)

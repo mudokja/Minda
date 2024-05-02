@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +40,15 @@ public class DiaryController {
         diaryService.addDiary(diaryAddRequestDto, imageFiles, memberIndex);
         return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");
     }
+
+//    //일기 등록
+//    @Operation(summary = "일기 등록", description = "일기 등록. diarySetDate, diaryTitle, diaryContent 필수")
+//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<Object> postDiary(@ModelAttribute DiaryAddRequestDto diaryAddRequestDto, @AuthenticationPrincipal PrincipalMember principalMember) {
+//        Long memberIndex = principalMember.getIndex();
+//        diaryService.addDiary(diaryAddRequestDto, memberIndex);
+//        return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");
+//    }
 
     //일기 조회
     @Operation(summary = "일기 하나 조회", description = "일기 하나 조회")

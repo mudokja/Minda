@@ -89,6 +89,27 @@ public class DiaryService {
         });
     }
 
+//    //일기 등록
+//    public void addDiary(DiaryAddRequestDto diaryAddRequestDto, Long memberIndex) {
+//        List<Image> imageList = new ArrayList<>();
+//
+//        if (diaryAddRequestDto.getImageFiles() != null) {
+//            imageList = saveAndGetImageList(diaryAddRequestDto.getImageFiles());
+//        }
+//
+//        Diary diary = diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
+//        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex()));
+//
+//        AnalyzeRequestDto analyzeRequestDto = AnalyzeRequestDto.builder()
+//                .diaryIndex(diary.getDiaryIndex())
+//                .diaryContent(diary.getDiaryContent())
+//                .build();
+//
+//        analyzeService.addAnalyze(analyzeRequestDto).subscribe(body -> {
+//            //감정 수치 조정해서 postgreSQL에 저장하는 메서드 호출
+//        });
+//    }
+
     //일기 조회
     public DiaryResponseDto getDiary(Long diaryIndex) {
         Diary diary = diaryRepository.findById(diaryIndex)
@@ -238,6 +259,25 @@ public class DiaryService {
         }
         return responseDtoList;
     }
+
+//    //이미지 s3에 저장하고 imageList 반환
+//    private List<Image> saveAndGetImageList(MultipartFile[] imageFiles) {
+//        List<Image> imageList = new ArrayList<>();
+//        for (MultipartFile imageFile : imageFiles) {
+//            try {
+//                String imageLink = s3Service.saveFile(imageFile);
+//                imageList.add(Image.builder()
+//                        .imageName(imageFile.getOriginalFilename())
+//                        .imageLink(imageLink)
+//                        .build());
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//        }
+//
+//        return imageList;
+//    }
 
     //이미지 s3에 저장하고 imageList 반환
     private List<Image> saveAndGetImageList(MultipartFile[] imageFiles) {

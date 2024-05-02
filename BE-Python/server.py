@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import text_emotion
 import text_keyword
@@ -54,8 +54,12 @@ def get_keyword(diary_index:int, diary_content:str):
         return {str(e)}
     
 @app.post("/api/ai/analyze") #메인 기능
-def analyze_diary(diary_index:int, diary_content:str):
+async def analyze_diary(request: Request):
     try:
+        body = await request.json()
+        diary_index = body['diary_index']
+        diary_content = body['diary_content']
+    
         analyze_dict = {} #몽고DB 저장 용 딕셔너리
         emotion_dict = {} #문장 별 감정 저장 용 딕셔터리
         diary_sentences = text_keyword.split_sentences(diary_content)   #문장 별 분리

@@ -16,14 +16,18 @@ public class DiaryHashtag {
     @Id
     private String hashtagIndex;
 
+    private Long memberIndex;
+
     private Long diaryIndex;
 
     private List<String> hashtagList;
 
     @Builder
-    public DiaryHashtag(String hashtagIndex, Long diaryIndex, List<String> hashtagList) {
+    public DiaryHashtag(String hashtagIndex, Long memberIndex, Long diaryIndex, List<String> hashtagList) {
         this.hashtagIndex = hashtagIndex;
+        this.memberIndex = memberIndex;
         this.diaryIndex = diaryIndex;
         this.hashtagList = hashtagList;
     }
+
 }

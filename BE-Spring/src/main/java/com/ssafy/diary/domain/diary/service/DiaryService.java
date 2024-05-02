@@ -1,5 +1,7 @@
 package com.ssafy.diary.domain.diary.service;
 
+import com.ssafy.diary.domain.analyze.dto.AnalyzeRequestDto;
+import com.ssafy.diary.domain.analyze.service.AnalyzeService;
 import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
@@ -33,7 +35,7 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DiaryHashtagRepository diaryHashtagRepository;
     private final S3Service s3Service;
-//    private final WebClient webClient;
+    private final AnalyzeService analyzeService;
 
     //더미데이터 생성
     public void createDummyData(Long memberIndex) {
@@ -79,6 +81,15 @@ public class DiaryService {
 
         Diary diary = diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
         diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex()));
+
+        AnalyzeRequestDto analyzeRequestDto = AnalyzeRequestDto.builder()
+                .diaryIndex(diary.getDiaryIndex())
+                .diaryContent(diary.getDiaryContent())
+                .build();
+
+        analyzeService.addAnalyze(analyzeRequestDto).subscribe(body -> {
+            //감정 수치 조정해서 postgreSQL에 저장하는 메서드 호출
+        });
     }
 
     //일기 조회
@@ -148,7 +159,7 @@ public class DiaryService {
         DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
         System.out.println(diaryHashtag);
         diaryHashtag.setHashtagList(diaryUpdateRequestDto.getHashtagList());
-//        diaryHashtagRepository.save(diaryHashtag);
+        diaryHashtagRepository.save(diaryHashtag);
     }
 
     //일기 삭제
@@ -216,6 +227,21 @@ public class DiaryService {
         return responseDtoList;
     }
 
+    //해시태그로 검색
+    public List<DiaryResponseDto> searchDiaryListByHashtag(Long memberIndex, String keyword) {
+        List<DiaryHashtag> diaryHashtagList = diaryHashtagRepository.findByMemberIndexAndHashtagListContaining(memberIndex, keyword);
+
+        List<DiaryResponseDto> responseDtoList = new ArrayList<>();
+        for (DiaryHashtag diaryHashtag : diaryHashtagList) {
+            Diary diary = diaryRepository.findById(diaryHashtag.getDiaryIndex()).orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryHashtag.getDiaryIndex()));
+            DiaryResponseDto diaryResponseDto = diary.toDto();
+
+            diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+            responseDtoList.add(diaryResponseDto);
+        }
+        return responseDtoList;
+    }
+
     //이미지 s3에 저장하고 imageList 반환
     private List<Image> saveAndGetImageList(MultipartFile[] imageFiles) {
         List<Image> imageList = new ArrayList<>();
@@ -246,18 +272,6 @@ public class DiaryService {
             }
         }
     }
-
-//    //Fast API로 요청 보내기
-//    public void fetchDataFromExternalAPI() {
-//        webClient.get()
-//                .uri("/your-endpoint")
-//                .retrieve()
-//                .bodyToMono(String.class)
-//                .subscribe(body -> {
-//                    System.out.println("Response from External API: " + body);
-//                    // 여기서 받은 데이터를 처리하는 로직을 추가할 수 있습니다.
-//                });
-//    }
 
 }
 

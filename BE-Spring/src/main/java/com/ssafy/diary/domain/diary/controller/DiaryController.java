@@ -84,9 +84,17 @@ public class DiaryController {
 
     //일기 검색(제목)
     @GetMapping("search/title")
-    public ResponseEntity<List<DiaryResponseDto>> getDiaryListBySearch(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
+    public ResponseEntity<List<DiaryResponseDto>> getDiaryListByTitle(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();
         List<DiaryResponseDto> diaryList = diaryService.searchDiaryListByTitle(memberIndex, keyword);
+        return ResponseEntity.ok(diaryList);
+    }
+
+    //일기 검색(해시태그)
+    @GetMapping("search/hashtag")
+    public ResponseEntity<List<DiaryResponseDto>> getDiaryListByHashTag(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        List<DiaryResponseDto> diaryList = diaryService.searchDiaryListByHashtag(memberIndex, keyword);
         return ResponseEntity.ok(diaryList);
     }
 

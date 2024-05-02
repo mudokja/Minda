@@ -12,6 +12,7 @@ import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdviceService {
 
     private final DiaryRepository diaryRepository;
@@ -33,7 +35,7 @@ public class AdviceService {
         Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex,singleAdviceRequestDto.getDate())
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
         Long diaryIndex = diary.getDiaryIndex();
-        Analyze analyze = analyzeRepository.findById(diaryIndex)
+        Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
                 .orElseThrow(()-> new IllegalStateException("분석 결과가 없습니다."));
 
         HashMap<String,Double[]> emotion = analyze.getEmotion();

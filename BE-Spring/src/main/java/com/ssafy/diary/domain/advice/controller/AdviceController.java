@@ -7,6 +7,8 @@ import com.ssafy.diary.domain.advice.dto.SingleAdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceResponseDto;
 import com.ssafy.diary.domain.advice.service.AdviceService;
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,11 +22,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/advice")
 @RequiredArgsConstructor
+@Tag(name = "Advice", description = "조언 API")
 public class AdviceController {
 
     private final AdviceService adviceService;
 
-
+    @Operation(summary = "일별 분석", description = "일기 하나(하루)에 대한 분석")
     @GetMapping("single")
     public ResponseEntity<SingleAdviceResponseDto> getAdvice(@ModelAttribute SingleAdviceRequestDto singleAdviceRequestDto, @AuthenticationPrincipal PrincipalMember principalMember){
         Long memberIndex = principalMember.getIndex();

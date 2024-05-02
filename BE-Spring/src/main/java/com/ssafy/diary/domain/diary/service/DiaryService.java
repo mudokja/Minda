@@ -53,7 +53,7 @@ public class DiaryService {
 
             Diary diary = Diary.builder()
                     .memberIndex(memberIndex)
-                    .diarySetDate(currentDate) // 현재 날짜로 설정 후 -9시간 조정
+                    .diarySetDate(currentDate)
                     .diaryTitle("Dummy Title " + i)
                     .diaryContent("Dummy Content " + i)
                     .diaryHappiness((long) (Math.random() * 101))
@@ -66,7 +66,7 @@ public class DiaryService {
             Diary addedDiary = diaryRepository.save(diary);
             diaryHashtagRepository.save(DiaryHashtag.builder()
                     .diaryIndex(addedDiary.getDiaryIndex())
-                    .hashtagList(List.of(new String[]{"hashtag1", "tashtag2"}))
+                    .hashtagList(List.of(new String[]{"hashtag1", "hashtag2"}))
                     .build());
         }
     }

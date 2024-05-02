@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Member", description = "회원 API")
+@Tag(name = "Email", description = "이메일 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/email")

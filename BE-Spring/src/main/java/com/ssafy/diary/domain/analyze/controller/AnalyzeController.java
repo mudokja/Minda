@@ -33,21 +33,22 @@ public class AnalyzeController {
     }
 
 
-    @GetMapping("add")
-    public String test(){
-//        analyzeService.addAnalyze();
-        return "success";
-    }
+//    @GetMapping("add")
+//    public String test(){
+////        analyzeService.addAnalyze();
+//        return "success";
+//    }
 //    @GetMapping("get")
 //    public String addTest(@RequestParam Long diaryIndex){
 //        return  analyzeService.getAnalyze(diaryIndex).toString();
 //    }
+//
+//    @GetMapping("get")
+//    public ResponseEntity<String> getTest(@RequestParam Long diaryIndex){
+//        return  ResponseEntity.ok(analyzeService.getAnalyze(diaryIndex).toString());
+//    }
 
-    @GetMapping("get")
-    public ResponseEntity<String> getTest(@RequestParam Long diaryIndex){
-        return  ResponseEntity.ok(analyzeService.getAnalyze(diaryIndex).toString());
-    }
-
+    @Operation(summary = "모든 분석 결과 리스트 조회", description = "모든 분석 결과 리스트 조회")
     @GetMapping("all")
     public List<Analyze> allTest(){
         return analyzeRepository.findAll();

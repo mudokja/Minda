@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class MoodEntry {
   final DateTime date;
   final String? diary_happiness; // 기쁨
@@ -19,8 +18,19 @@ class MoodEntry {
     this.diary_disgust,
     this.diary_surprise,
   });
-}
 
+  factory MoodEntry.fromJson(Map<String, dynamic> json) {
+    return MoodEntry(
+      date: DateTime.parse(json['date']),
+      diary_happiness: json['diary_happiness'] as String?,
+      diary_sadness: json['diary_sadness'] as String?,
+      diary_fear: json['diary_fear'] as String?,
+      diary_anger: json['diary_anger'] as String?,
+      diary_disgust: json['diary_disgust'] as String?,
+      diary_surprise: json['diary_surprise'] as String?,
+    );
+  }
+}
 
 Color getColorFromMood(String? mood) {
   switch (mood) {
@@ -38,8 +48,5 @@ Color getColorFromMood(String? mood) {
       return const Color(0xFFFC819E); // 분홍
     default:
       return Colors.transparent; // 기본 색상
-
-
   }
 }
-

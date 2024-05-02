@@ -21,7 +21,7 @@ class _PagesState extends State<Pages> {
   void addWidgets() {
     widgetOptions = [
       const DiaryListPage2(),
-      const DiaryListPage(),
+      const DiaryList(),
       const AnalysisPage(),
       const ProfilePage(),
     ];

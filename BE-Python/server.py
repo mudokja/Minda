@@ -73,13 +73,13 @@ async def analyze_diary(entry: DiaryEntry):
         analyze_dict = {} #몽고DB 저장 용 딕셔너리
         emotion_dict = {} #문장 별 감정 저장 용 딕셔터리
         diary_sentences = text_keyword.split_sentences(entry.diary_content)   #문장 별 분리
-        diary_noun_sentences = text_keyword.noun_sentences(diary_sentences) #키워드 추출 용 어간 추출
+        # diary_noun_sentences = text_keyword.noun_sentences(diary_sentences) #키워드 추출 용 어간 추출
         for index, sentence in enumerate(diary_sentences):  
             emotion_dict[str(index)] = text_emotion.predict_emotion(sentence).tolist()  #감정 분석
         analyze_dict['diary_index'] = entry.diary_index
         analyze_dict['sentence'] = diary_sentences  #분리된 문장 리스트
         analyze_dict['emotion'] = emotion_dict  #문장 별 감정 수치
-        analyze_dict['keyword'] = await text_keyword.get_keyword(diary_noun_sentences)    #키워드는 어간 추출 리스트 기반
+        analyze_dict['keyword'] = await text_keyword.get_keyword(diary_sentences)    #키워드는 어간 추출 리스트 기반
         mongo_util.mongo_insert(mongo_collection,analyze_dict)
         return str(analyze_dict)
     except Exception as e:

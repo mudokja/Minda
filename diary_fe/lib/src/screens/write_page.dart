@@ -1,5 +1,7 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:convert';
+
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
@@ -93,19 +95,32 @@ class _WriteState extends State<Write> {
   Future<void> sendContent() async {
     ApiService apiService = ApiService();
     FormData formData = FormData();
+
     String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
 
     String title = titleController.text.isNotEmpty
         ? titleController.text
-        : DateFormat('yyyy년 M월 d일의 일기').format(selectedDate); // 제목이 비었을 때의 로직
+        : DateFormat('yyyy년 M월 d일의 일기').format(selectedDate);
 
-    // FormData 필드 추가
-    formData.fields.add(MapEntry("diarySetDate", formattedDate));
-    formData.fields.add(MapEntry("diaryTitle", title));
-    formData.fields.add(MapEntry("diaryContent", diaryController.text));
+    // diaryAddRequestDto 객체 생성
+    var diaryData = {
+      "diarySetDate": formattedDate,
+      "diaryTitle": title,
+      "diaryContent": diaryController.text,
+      "hashtagList": [
+        "exampleTag1", // 예시 태그, 실제 사용 시 적절한 데이터로 교체
+      ]
+    };
+    // diaryAddRequestDto JSON 객체를 FormData에 추가
+    formData.fields.add(MapEntry("diaryAddRequestDto", json.encode(diaryData)));
 
-    print(formData.fields);
-    await apiService.post('/api/diary', data: formData);
+    formData.fields.add(const MapEntry("imageFiles", "string"));
+
+    // API 호출
+    Response response = await apiService.post('/api/diary', data: formData);
+    print(response.statusCode);
+
+    Navigator.pop(context);
   }
 
   @override

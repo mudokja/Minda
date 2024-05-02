@@ -55,7 +55,7 @@ public class AdviceService {
         if(diary.getDiaryHappiness() == null){
             double[] sumArray = new double[5];
             for(Double[] value:emotion.values()){
-                for(int i=1;i<value.length-1;i++){
+                for(int i=1;i<value.length;i++){
                     sumArray[i-1] += value[i];
                 }
             }

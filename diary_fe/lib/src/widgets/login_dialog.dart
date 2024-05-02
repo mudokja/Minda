@@ -44,7 +44,7 @@ class _LoginModalState extends State<LoginModal> {
       return;
     }
 
-    Provider.of<UserProvider>(context, listen: false).fetchUserData();
+    await Provider.of<UserProvider>(context, listen: false).fetchUserData();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -215,17 +215,24 @@ class _LoginModalState extends State<LoginModal> {
                     height: 30,
                   ),
                   Card(
-                    elevation: 18,
+                    elevation: 0,
                     clipBehavior: Clip.antiAlias,
                     child: Ink.image(
                       image:
                       const AssetImage('assets/images/kakao.png'),
                       fit: BoxFit.cover, // 이미지 채우기 방식 지정
-                      width: 300,
-                      height: 60,
+                      width: 200,
+                      height: 40,
                       child: InkWell(
-                        onTap: () {
-                          Provider.of<UserProvider>(context, listen: false).kakaoLogin();
+                        onTap: () async {
+                          await Provider.of<UserProvider>(context, listen: false).kakaoLogin();
+                          await Provider.of<UserProvider>(context, listen: false).fetchUserData();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Pages(),
+                            ),
+                          );
                         },
 
                         // InkWell이 꽉 찬 영역에 반응하도록 Container 등으로 감싸거나 크기를 지정

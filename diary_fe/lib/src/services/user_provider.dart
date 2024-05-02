@@ -25,70 +25,106 @@ class UserProvider with ChangeNotifier {
   }
   Future<void> login(String id, String pw) async {
 
-    ApiService apiService = ApiService();
     Response response = await apiService.post('/api/auth/login',
         data: {"id": id, "password": pw});
     Map<String, dynamic> responseMap = response.data;
+    _fetchTokenInfo(responseMap);
+
+  }
+  Future<void> kakaoLogin() async {
+    bool talkInstalled = await isKakaoTalkInstalled();
+    debugPrint("호출 카카오");
+    try{
+      if(kIsWeb){
+        //웹 방식 로그인은 문제가 발생하지 않으면 별도로 구현하지 않을예정
+        if (talkInstalled) {
+          try {
+            await UserApi.instance.loginWithKakaoTalk();
+            Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+            await _fetchTokenInfo(response);
+          } catch (error) {
+            print('카카오톡으로 로그인 실패 $error');
+
+            // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
+            // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
+            if (error is PlatformException && error.code == 'CANCELED') {
+              return;
+            }
+            try {
+              await UserApi.instance.loginWithKakaoAccount();
+                Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+                await _fetchTokenInfo(response);
+            } catch (error) {
+              print('카카오계정으로 로그인 실패 $error');
+            }
+          }
+        }else{
+          try {
+            await UserApi.instance.loginWithKakaoAccount();
+            Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+            await _fetchTokenInfo(response);
+          } catch (error) {
+            debugPrint('카카오계정으로 로그인 실패 $error');
+          }
+        }
+      }else{
+        if(Platform.isAndroid || Platform.isIOS ){
+          if (talkInstalled) {
+            try {
+              await UserApi.instance.loginWithKakaoTalk();
+              Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+              await _fetchTokenInfo(response);
+            } catch (error) {
+              print('카카오톡으로 로그인 실패 $error');
+
+              // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
+              // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
+              if (error is PlatformException && error.code == 'CANCELED') {
+                return;
+              }
+              // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인
+              try {
+                await UserApi.instance.loginWithKakaoAccount();
+                Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+                await _fetchTokenInfo(response);
+              } catch (error) {
+                print('카카오계정으로 로그인 실패 $error');
+              }
+            }
+          }else{
+            try {
+              await UserApi.instance.loginWithKakaoAccount();
+              Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+              await _fetchTokenInfo(response);
+            } catch (error) {
+              debugPrint('카카오계정으로 로그인 실패 $error');
+            }
+          }
+        }
+      }
+    }catch (error){
+      print('카카오계정으로 로그인 실패 $error');
+    }
+
+  }
+  Future<Map<String, dynamic>> _requestOauth2KakaoLogin() async {
+    kakaoUser =await UserApi.instance.me();
+    Response response = await apiService.post("/api/auth/oauth2/login",
+        data: {
+          "platform": "KAKAO",
+          "id": kakaoUser?.id,
+          "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
+          "email": kakaoUser?.kakaoAccount?.email
+        });
+    return response.data;
+  }
+  Future<void> _fetchTokenInfo(Map<String,dynamic> responseMap) async {
     await storage.write(key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
     await storage.write(
       key: "REFRESH_TOKEN",
       value: responseMap["refreshToken"],
     );
-
   }
-  Future<void> kakaoLogin() async {
-    debugPrint("호출 카카오");
-    try{
-
-    }catch (error){
-
-    }
-    if(kIsWeb || Platform.isAndroid || Platform.isIOS ){
-      if (await isKakaoTalkInstalled()) {
-        try {
-          await UserApi.instance.loginWithKakaoTalk();
-          print('카카오톡으로 로그인 성공');
-          try {
-            kakaoUser =await UserApi.instance.me();
-            debugPrint('사용자 정보 요청 성공'
-                '\n회원번호: ${kakaoUser?.id}'
-                '\n닉네임: ${kakaoUser?.kakaoAccount?.profile?.nickname}'
-                '\n이메일: ${kakaoUser?.kakaoAccount?.email}');
-          } catch (error) {
-            print('사용자 정보 요청 실패 $error');
-          }
-        } catch (error) {
-          print('카카오톡으로 로그인 실패 $error');
-
-          // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
-          // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
-          if (error is PlatformException && error.code == 'CANCELED') {
-            return;
-          }
-          // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인
-          try {
-            await UserApi.instance.loginWithKakaoAccount();
-            kakaoUser =await UserApi.instance.me();
-            print('사용자 정보 요청 성공'
-                '\n회원번호: ${kakaoUser?.id}'
-                '\n닉네임: ${kakaoUser?.kakaoAccount?.profile?.nickname}'
-                '\n이메일: ${kakaoUser?.kakaoAccount?.email}');
-            print('카카오계정으로 로그인 성공');
-          } catch (error) {
-            print('카카오계정으로 로그인 실패 $error');
-          }
-        }
-    }else{
-        try {
-          await UserApi.instance.loginWithKakaoAccount();
-          kakaoUser =await UserApi.instance.me();
-        } catch (error) {
-          print('카카오계정으로 로그인 실패 $error');
-        }
-    }
-    }
-  }
-
   Future<void> checkInitialLogin() async {
     String? accessToken = await storage.read(key: "ACCESS_TOKEN");
     if (accessToken != null) {

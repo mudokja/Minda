@@ -4,6 +4,7 @@ import com.ssafy.diary.domain.openAI.dto.ChatGPTRequest;
 import com.ssafy.diary.domain.openAI.dto.ChatGPTResponse;
 import com.ssafy.diary.domain.openAI.dto.DallERequest;
 import com.ssafy.diary.domain.openAI.dto.ImageClient;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+@Tag(name = "OpenAI", description = "GPT API")
 @RestController
 @RequestMapping("api/openAI")
 public class OpenAIController {

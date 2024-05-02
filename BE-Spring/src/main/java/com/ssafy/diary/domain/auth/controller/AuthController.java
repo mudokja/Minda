@@ -7,6 +7,8 @@ import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.domain.refreshToken.entity.RefreshToken;
 import com.ssafy.diary.domain.refreshToken.repository.RefreshTokenRepository;
 import com.ssafy.diary.global.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Auth", description = "인증 API")
 @RestController
 @Slf4j
 @RequestMapping("/api/auth")
@@ -35,6 +38,7 @@ public class AuthController {
 
 //
 
+    @Operation(summary = "로그인", description = "로그인")
     @PostMapping("/login")
     public ResponseEntity<TokenInfoDto> authLogin(@RequestBody LocalLoginRequestDto loginRequestDto, HttpServletResponse response) {
         log.debug("인증 시작");
@@ -53,12 +57,15 @@ public class AuthController {
 
 
 
+    @Operation(summary = "로그아웃", description = "로그아웃")
     @DeleteMapping("/logout")
     public ResponseEntity<?> logout(@RequestParam String refreshToken) {
         refreshTokenRepository.delete(RefreshToken.builder().refreshToken(refreshToken).build());
         return ResponseEntity.ok().build();
     }
 
+
+    @Operation(summary = "액세스 토큰 재발급", description = "액세스 토큰 재발급")
     @PostMapping("/refresh")
     public ResponseEntity<?> requestAccessToken(HttpServletResponse response, HttpServletRequest request,@RequestBody RefreshTokenRequestDto refreshTokenDto) {
         log.debug("엑세스토큰 재발급");

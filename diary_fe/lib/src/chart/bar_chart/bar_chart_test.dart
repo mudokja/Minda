@@ -1,16 +1,12 @@
-import 'package:diary_fe/src/models/analysis_model.dart';
-import 'package:diary_fe/src/services/api_services.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class BarChartTest extends StatefulWidget {
-  final DateTime startDate;
-  final DateTime endDate;
+  final List<int> emotions;
 
   const BarChartTest({
     super.key,
-    required this.startDate,
-    required this.endDate,
+    required this.emotions,
   });
 
   @override
@@ -18,84 +14,19 @@ class BarChartTest extends StatefulWidget {
 }
 
 class _BarChartTestState extends State<BarChartTest> {
-  List<BarChartGroupData> _barGroups = [];
-  final ApiService _apiService = ApiService();
-
-  String formatDate(DateTime dateTime) {
-    String formattedDate =
-        '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-    return formattedDate;
-  }
+  late List<BarChartGroupData> _barGroups;
 
   @override
   void initState() {
     super.initState();
-    _initializeChartData();
-    fetchData();
-  }
-
-  void _initializeChartData() {
-    List<int> initialEmotions = [0, 0, 0, 0, 0];
-    _barGroups = _createBarGroups(initialEmotions);
+    _barGroups = _createBarGroups(widget.emotions);
   }
 
   @override
-  void didUpdateWidget(BarChartTest oldWidget) {
+  void didUpdateWidget(covariant BarChartTest oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.startDate != oldWidget.startDate ||
-        widget.endDate != oldWidget.endDate) {
-      fetchData();
-    }
-  }
-
-  void fetchData() async {
-    String formStartDate = formatDate(widget.startDate);
-    String formEndDate = formatDate(widget.endDate);
-    try {
-      var response = await _apiService.post('/api/diary/list/period', data: {
-        "startDate": formStartDate,
-        "endDate": formEndDate,
-      });
-
-      var jsonData = response.data;
-
-      List<int> emotions = [];
-
-      if (jsonData is List) {
-        var modelList = jsonData.map((item) {
-          if (item is Map<String, dynamic>) {
-            return AnalysisModel.fromJson(item);
-          } else {
-            debugPrint('Item is not a Map: $item');
-            throw Exception("Item is not a Map");
-          }
-        }).toList();
-        if (modelList.isNotEmpty) {
-          emotions = [
-            modelList.map((m) => m.diaryHappiness).reduce((a, b) => a + b) ~/
-                modelList.length,
-            modelList.map((m) => m.diarySadness).reduce((a, b) => a + b) ~/
-                modelList.length,
-            modelList.map((m) => m.diaryFear).reduce((a, b) => a + b) ~/
-                modelList.length,
-            modelList.map((m) => m.diaryAnger).reduce((a, b) => a + b) ~/
-                modelList.length,
-            modelList.map((m) => m.diarySurprise).reduce((a, b) => a + b) ~/
-                modelList.length,
-          ];
-        } else {
-          emotions = [0, 0, 0, 0, 0]; // 모든 감정값을 0으로 초기화
-        }
-      } else {
-        debugPrint('Data is not a list: $jsonData');
-        throw Exception("Received data is neither a Map nor a List");
-      }
-
-      _barGroups = _createBarGroups(emotions);
-
-      setState(() {});
-    } catch (e) {
-      debugPrint('Error fetching data: $e');
+    if (widget.emotions != oldWidget.emotions) {
+      _barGroups = _createBarGroups(widget.emotions);
     }
   }
 
@@ -151,9 +82,7 @@ class _BarChartTestState extends State<BarChartTest> {
     return BarChart(
       BarChartData(
         gridData: const FlGridData(show: false),
-        borderData: FlBorderData(
-          show: false,
-        ),
+        borderData: FlBorderData(show: false),
         barGroups: _barGroups.isNotEmpty ? _barGroups : [],
         barTouchData: _createBarTouchData(),
         titlesData: const FlTitlesData(show: false),

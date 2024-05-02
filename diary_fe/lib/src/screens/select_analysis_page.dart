@@ -1,6 +1,8 @@
 import 'package:diary_fe/src/chart/bar_chart/bar_chart_test.dart';
 import 'package:diary_fe/src/chart/line_chart/line_chart.dart';
 import 'package:diary_fe/src/chart/radar_chart/radar_chart_test.dart';
+import 'package:diary_fe/src/services/analysis_service.dart';
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:flutter/material.dart';
 import 'package:mat_month_picker_dialog/mat_month_picker_dialog.dart';
 
@@ -13,6 +15,26 @@ class DayAnalysisPage extends StatefulWidget {
 
 class _DayAnalysisPageState extends State<DayAnalysisPage> {
   DateTime date = DateTime.now();
+  late AnalysisService _analysisService;
+  Map<String, dynamic> analysisData = {};
+  String formatDate(DateTime dateTime) {
+    return '${dateTime.year.toString().padLeft(4, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _analysisService = AnalysisService();
+    fetchAnalysisData();
+  }
+
+  void fetchAnalysisData() async {
+    var data = await _analysisService.fetchData(date, date);
+
+    setState(() {
+      analysisData = data;
+    });
+  }
 
   void onChangeDate(int num) {
     setState(() {
@@ -27,7 +49,13 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
       } else if (num < 0) {
         date = date.subtract(Duration(days: (-num)));
       }
+      fetchAnalysisData();
     });
+  }
+
+  void fetchDummyData() async {
+    final ApiService apiService = ApiService();
+    await apiService.get('/api/diary/dummy');
   }
 
   @override
@@ -56,6 +84,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                   if (dateTime != null) {
                     setState(() {
                       date = dateTime;
+                      fetchAnalysisData();
                     });
                   }
                 },
@@ -92,20 +121,46 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
           SizedBox(
             width: screenWidth,
             height: 250,
-            child: Container(
-              color: Colors.transparent,
-              child: const Text(
-                '안녕하세요?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  color: Colors.transparent,
+                  child: Text(
+                    analysisData['titles'] != null &&
+                            analysisData['titles'].isNotEmpty
+                        ? '${analysisData['titles'][0]}'
+                        : '현재 작성된 일기가 없습니다!',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
                 ),
-              ),
+                Container(
+                  color: Colors.transparent,
+                  child: Text(
+                    analysisData['contents'] != null &&
+                            analysisData['contents'].isNotEmpty
+                        ? '${analysisData['contents'][0]}'
+                        : '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(
+          SizedBox(
             height: 18,
+            child: TextButton(
+              onPressed: fetchDummyData,
+              child: const Text('더미 데이터 생성'),
+            ),
           ),
           const Text(
             '일기 분석',
@@ -125,8 +180,10 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                 width: screenWidth / 2.5,
                 height: 200,
                 child: BarChartTest(
-                  startDate: date,
-                  endDate: date,
+                  emotions: analysisData['emotions'] != null &&
+                          analysisData['emotions'].containsKey(formatDate(date))
+                      ? analysisData['emotions'][formatDate(date)]
+                      : [0, 0, 0, 0, 0],
                 ),
               ),
               SizedBox(
@@ -135,6 +192,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                 child: RadarChartTest(
                   startDate: date,
                   endDate: date,
+                  // emotions: analysisData['emotions'] ?? [],
                 ),
               )
             ],
@@ -185,34 +243,46 @@ class WeekAnalysisPage extends StatefulWidget {
 
 class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
   DateTimeRange? dateRange;
-  DateTime date = DateTime.now().subtract(const Duration(days: 6));
+  DateTime startDate = DateTime.now().subtract(const Duration(days: 6));
+  DateTime endDate = DateTime.now();
+  late AnalysisService _analysisService;
+  Map<String, dynamic> analysisData = {};
 
   @override
   void initState() {
     super.initState();
+    _analysisService = AnalysisService();
     dateRange = DateTimeRange(
-      start: date,
-      end: DateTime.now(),
+      start: startDate,
+      end: endDate,
     );
+    fetchAnalysisData();
+  }
+
+  void fetchAnalysisData() async {
+    var data = await _analysisService.fetchData(startDate, endDate);
+
+    setState(() {
+      analysisData = data;
+    });
   }
 
   void onChangeDate(int numWeeks) {
     setState(() {
       if (numWeeks > 0) {
-        DateTime newDate = date.add(Duration(days: 7 * numWeeks));
+        DateTime newDate = startDate.add(Duration(days: 7 * numWeeks));
         if (newDate.isBefore(DateTime.now())) {
-          date = newDate.isBefore(DateTime.now()) ||
-                  newDate.isAtSameMomentAs(DateTime.now())
-              ? newDate
-              : DateTime.now();
+          startDate =
+              newDate.isBefore(DateTime.now()) ? newDate : DateTime.now();
         }
       } else if (numWeeks < 0) {
-        date = date.subtract(Duration(days: 7 * (-numWeeks)));
+        startDate = startDate.subtract(Duration(days: 7 * (-numWeeks)));
       }
+      endDate = startDate.add(const Duration(days: 6));
 
-      dateRange =
-          DateTimeRange(start: date, end: date.add(const Duration(days: 6)));
+      dateRange = DateTimeRange(start: startDate, end: endDate);
     });
+    fetchAnalysisData();
   }
 
   void selectWeek(BuildContext context) async {
@@ -226,7 +296,10 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
     if (newDateRange != null && newDateRange.duration.inDays == 6) {
       setState(() {
         dateRange = newDateRange;
+        startDate = dateRange!.start;
+        endDate = dateRange!.end;
       });
+      fetchAnalysisData();
     }
     // else {
     //   showDialog(
@@ -249,6 +322,7 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
@@ -294,9 +368,14 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
             ],
           ),
           const SizedBox(
-            width: 300,
-            height: 300,
-            child: LineChartTest(),
+            height: 50,
+          ),
+          SizedBox(
+            width: screenWidth,
+            height: 200,
+            child: LineChartTest(
+              emotionsData: analysisData['emotions'] ?? {},
+            ),
           ),
           const SizedBox(
             height: 50,
@@ -327,12 +406,12 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                 flex: 1,
                 child: SizedBox(),
               ),
-              const Expanded(
+              Expanded(
                 flex: 5,
                 child: SizedBox(
                   child: Text(
-                    '안녕하세요…',
-                    style: TextStyle(
+                    '${analysisData['emotions']}',
+                    style: const TextStyle(
                       color: Colors.white,
                     ),
                   ),
@@ -355,21 +434,32 @@ class MonthAnalysisPage extends StatefulWidget {
 
 class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
   DateTime date = DateTime.now();
+  late AnalysisService _analysisService;
+  Map<String, dynamic> analysisData = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _analysisService = AnalysisService();
+  }
+
+  void fetchAnalysisData() async {
+    DateTime startDate = DateTime(date.year, date.month, 1);
+    DateTime endDate = DateTime(date.year, date.month + 1, 0);
+
+    if (date.month == DateTime.now().month &&
+        date.year == DateTime.now().year) {
+      endDate = DateTime.now();
+    }
+
+    var data = await _analysisService.fetchData(startDate, endDate);
+
+    setState(() {
+      analysisData = data;
+    });
+  }
 
   void onChangeDate(int numMonths) {
-    // setState(() {
-    //   DateTime newDate = DateTime(date.year, date.month + numMonths, date.day);
-    //   if (newDate.month != (date.month + numMonths) % 12 &&
-    //       newDate.month != 1) {
-    //     newDate = DateTime(newDate.year, newDate.month, 0);
-    //   }
-
-    //   if (newDate.isAfter(DateTime.now())) {
-    //     newDate = DateTime.now();
-    //   }
-
-    //   date = newDate;
-    // });
     setState(() {
       int newYear = date.year;
       int newMonth = date.month + numMonths;
@@ -382,11 +472,7 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
         newMonth = 12 + (newMonth % 12);
       }
 
-      DateTime newDate = DateTime(newYear, newMonth, date.day);
-
-      if (newDate.month != newMonth) {
-        newDate = DateTime(newYear, newMonth, 0);
-      }
+      DateTime newDate = DateTime(newYear, newMonth, 1);
 
       if (newDate.isAfter(DateTime.now())) {
         newDate = DateTime.now();
@@ -394,6 +480,7 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
 
       date = newDate;
     });
+    fetchAnalysisData();
   }
 
   void selectMonth(BuildContext context) async {
@@ -404,15 +491,17 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
       lastDate: DateTime.now(),
     );
 
-    if (dateTime != null) {
+    if (dateTime != null && dateTime != date) {
       setState(() {
-        date = dateTime;
+        date = DateTime(dateTime.year, dateTime.month);
+        fetchAnalysisData();
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
@@ -457,7 +546,16 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
               ),
             ],
           ),
-          Text('선택된 월: ${date.year}-${date.month.toString().padLeft(2, '0')}'),
+          const SizedBox(
+            height: 50,
+          ),
+          SizedBox(
+            width: screenWidth,
+            height: 200,
+            child: LineChartTest(
+              emotionsData: analysisData['emotions'] ?? {},
+            ),
+          ),
         ],
       ),
     );
@@ -473,6 +571,25 @@ class CustomAnalysisPage extends StatefulWidget {
 
 class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
   DateTimeRange? dateRange;
+  late AnalysisService _analysisService;
+  Map<String, dynamic> analysisData = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _analysisService = AnalysisService();
+  }
+
+  void fetchAnalysisData() async {
+    if (dateRange == null) return;
+
+    var data =
+        await _analysisService.fetchData(dateRange!.start, dateRange!.end);
+
+    setState(() {
+      analysisData = data;
+    });
+  }
 
   void selectCustomRange(BuildContext context) async {
     final DateTimeRange? newDateRange = await showDateRangePicker(
@@ -482,10 +599,11 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
       lastDate: DateTime.now(),
       saveText: '확인',
     );
-    if (newDateRange != null) {
+    if (newDateRange != null && newDateRange != dateRange) {
       setState(() {
         dateRange = newDateRange;
       });
+      fetchAnalysisData();
     }
   }
 
@@ -532,11 +650,16 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
           // if (dateRange != null)
           //   Text(
           //       '선택된 범위: ${dateRange!.start.toString()} - ${dateRange!.end.toString()}'),
-          Text(
-            dateRange == null
-                ? '날짜 범위를 선택해주세요.'
-                : '선택된 범위: ${dateRange!.start.toString()} - ${dateRange!.end.toString()}',
-          )
+          const SizedBox(
+            height: 50,
+          ),
+          SizedBox(
+            width: screenWidth,
+            height: 200,
+            child: LineChartTest(
+              emotionsData: analysisData['emotions'] ?? {},
+            ),
+          ),
         ],
       ),
     );

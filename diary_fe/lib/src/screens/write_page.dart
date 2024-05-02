@@ -118,7 +118,6 @@ class _WriteState extends State<Write> {
 
     // API 호출
     Response response = await apiService.post('/api/diary', data: formData);
-    print(response.statusCode);
 
     Navigator.pop(context);
   }

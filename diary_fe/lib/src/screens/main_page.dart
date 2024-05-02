@@ -35,6 +35,7 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -49,9 +50,6 @@ class MainPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const SizedBox(
-                      height: 50,
-                    ),
                     SizedBox(
                       height: 200,
                       width: 200,
@@ -98,7 +96,7 @@ class MainPage extends StatelessWidget {
                                 ),
                               )),
                           const SizedBox(
-                            height: 120,
+                            height: 100,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,

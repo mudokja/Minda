@@ -8,12 +8,12 @@ import lombok.Setter;
 @Getter
 public class AnalyzeRequestDto {
 
-    private Long diary_index;
-    private String diary_content;
+    private Long diaryIndex;
+    private String diaryContent;
 
     @Builder
     public AnalyzeRequestDto(Long diaryIndex, String diaryContent) {
-        this.diary_index = diaryIndex;
-        this.diary_content = diaryContent;
+        this.diaryIndex = diaryIndex;
+        this.diaryContent = diaryContent;
     }
 }

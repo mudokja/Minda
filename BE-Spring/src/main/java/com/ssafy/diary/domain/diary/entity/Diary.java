@@ -1,17 +1,13 @@
 package com.ssafy.diary.domain.diary.entity;
 
 
-import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryUpdateRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.cglib.core.Local;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,7 +88,7 @@ public class Diary extends BaseEntity {
                 .build();
     }
 
-    public void update(DiaryRequestDto diaryUpdateRequestDto) {
+    public void update(DiaryUpdateRequestDto diaryUpdateRequestDto) {
         this.diaryTitle = diaryUpdateRequestDto.getDiaryTitle();
         this.diaryContent = diaryUpdateRequestDto.getDiaryContent();
 //        this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();

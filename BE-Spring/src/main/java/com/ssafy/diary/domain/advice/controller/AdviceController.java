@@ -3,6 +3,8 @@ package com.ssafy.diary.domain.advice.controller;
 import com.amazonaws.Response;
 import com.ssafy.diary.domain.advice.dto.AdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.AdviceResponseDto;
+import com.ssafy.diary.domain.advice.dto.SingleAdviceRequestDto;
+import com.ssafy.diary.domain.advice.dto.SingleAdviceResponseDto;
 import com.ssafy.diary.domain.advice.service.AdviceService;
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,13 @@ import java.util.List;
 public class AdviceController {
 
     private final AdviceService adviceService;
+
+
+    @GetMapping("single")
+    public ResponseEntity<SingleAdviceResponseDto> getAdvice(@ModelAttribute SingleAdviceRequestDto singleAdviceRequestDto, @AuthenticationPrincipal PrincipalMember principalMember){
+        Long memberIndex = principalMember.getIndex();
+        return ResponseEntity.ok(adviceService.getAdvice(memberIndex,singleAdviceRequestDto));
+    }
 
     @GetMapping
     //특정 기간의 조언 요청

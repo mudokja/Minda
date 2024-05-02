@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.auth.service;
 
+import com.ssafy.diary.domain.auth.dto.MemberInfoDto;
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.auth.dto.TokenInfoDto;
 import com.ssafy.diary.domain.member.entity.Member;
@@ -68,7 +69,7 @@ public class JwtService {
         roles.add(new SimpleGrantedAuthority(member.getRole().toString()));
         String accessToken= createAccessToken(member.getIndex(),roles,member.getPlatform());
 
-        String refreshToken= createAndSaveRefreshToken(member);
+        String refreshToken= createAndSaveRefreshToken(member.toMemberInfoDto());
 
         return TokenInfoDto.builder()
                 .accessToken(accessToken)
@@ -224,7 +225,7 @@ public class JwtService {
     }
 
 
-    public String createAndSaveRefreshToken(Member member) {
+    public String createAndSaveRefreshToken(MemberInfoDto member) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of(TIME_ZONE));
         LocalDateTime expireTime=now.plusSeconds(refreshTokenExpiredTime);
         String refreshToken= Jwts.builder()

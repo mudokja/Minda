@@ -3,6 +3,7 @@ package com.ssafy.diary.domain.auth.controller;
 import com.ssafy.diary.domain.auth.dto.*;
 import com.ssafy.diary.domain.auth.service.AuthService;
 import com.ssafy.diary.domain.auth.service.JwtService;
+import com.ssafy.diary.domain.member.dto.MemberOauth2RegisterRequestDto;
 import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.domain.refreshToken.entity.RefreshToken;
 import com.ssafy.diary.domain.refreshToken.repository.RefreshTokenRepository;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +68,12 @@ public class AuthController {
 
 
     @Operation(summary = "액세스 토큰 재발급", description = "액세스 토큰 재발급")
+    @PostMapping("/oauth2/login")
+    public ResponseEntity<TokenInfoDto> authOauth2Login(@RequestBody Oauth2LoginRequestDto oauth2LoginRequestDto) throws BadRequestException {
+
+        return ResponseEntity.ok().body(authService.oauth2Login(oauth2LoginRequestDto));
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<?> requestAccessToken(HttpServletResponse response, HttpServletRequest request,@RequestBody RefreshTokenRequestDto refreshTokenDto) {
         log.debug("엑세스토큰 재발급");

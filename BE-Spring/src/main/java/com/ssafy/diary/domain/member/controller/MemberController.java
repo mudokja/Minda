@@ -53,11 +53,7 @@ public class MemberController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("password is empty");
     }
-    @PostMapping("/oauth2/login")
-    public ResponseEntity<String> memberOauth2Register(MemberOauth2RegisterRequestDto memberOauth2RegisterRequestDto) {
-        memberService.registerOauth2Member(memberOauth2RegisterRequestDto);
-        return ResponseEntity.ok().body("oauth2 login successfully");
-    }
+
     @PutMapping("/")
     public ResponseEntity<String> memberInfoUpdate(@AuthenticationPrincipal PrincipalMember principalMember, MemberModifyRequestDto memberModifyRequestDto) throws BadRequestException {
             memberService.updateMemberInfo(principalMember.getIndex(), memberModifyRequestDto);

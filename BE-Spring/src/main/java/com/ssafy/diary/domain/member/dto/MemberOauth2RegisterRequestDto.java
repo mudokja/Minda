@@ -3,8 +3,10 @@ package com.ssafy.diary.domain.member.dto;
 import com.ssafy.diary.global.constant.AuthType;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class MemberOauth2RegisterRequestDto {
     private AuthType platform;
     private String id;

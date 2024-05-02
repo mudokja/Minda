@@ -1,6 +1,7 @@
 package com.ssafy.diary.domain.member.entity;
 
 import com.ssafy.diary.domain.advice.entity.Advice;
+import com.ssafy.diary.domain.auth.dto.MemberInfoDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
@@ -74,5 +75,16 @@ public class Member extends BaseEntity {
         this.platform = platform;
         this.nickname = nickname;
         this.profileImage = profileImage;
+    }
+    public MemberInfoDto toMemberInfoDto() {
+        return MemberInfoDto.builder()
+                .index(this.index)
+                .id(this.id)
+                .role(this.role)
+                .platform(this.platform)
+                .nickname(this.nickname)
+                .email(this.email)
+                .profileImage(this.profileImage)
+                .build();
     }
 }

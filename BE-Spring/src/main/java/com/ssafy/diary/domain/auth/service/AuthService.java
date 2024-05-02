@@ -6,11 +6,13 @@ import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.auth.dto.TokenInfoDto;
 import com.ssafy.diary.domain.member.dto.MemberOauth2RegisterRequestDto;
 import com.ssafy.diary.domain.member.entity.Member;
+import com.ssafy.diary.domain.member.repository.MemberRepository;
 import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.global.constant.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,25 +36,25 @@ public class AuthService {
     private final JwtService jwtService;
     private final MemberService memberService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final MemberRepository memberRepository;
 
     public TokenInfoDto login(LocalLoginRequestDto loginRequestDto) {
         return createAuthenticationToken(loginRequestDto.getId(), loginRequestDto.getPassword());
     }
-    @Transactional
-    public TokenInfoDto oauth2Login(Oauth2LoginRequestDto oauth2LoginRequestDto){
-        boolean memberExist =memberService.checkExistMemberId(oauth2LoginRequestDto.getId(),oauth2LoginRequestDto.getPlatform());
-        Member member=null;
-        Long memberIndex=-1L;
-        if(!memberExist){
-            member=memberService.registerOauth2Member(MemberOauth2RegisterRequestDto.builder()
+
+    public TokenInfoDto oauth2Login(Oauth2LoginRequestDto oauth2LoginRequestDto) throws BadRequestException {
+        Optional<Member> memberEntity =memberRepository.findByIdAndPlatform(oauth2LoginRequestDto.getId(),oauth2LoginRequestDto.getPlatform());
+        Member member = null;
+        if(memberEntity.isEmpty()){
+            member =memberService.registerOauth2Member(MemberOauth2RegisterRequestDto.builder()
                             .id(oauth2LoginRequestDto.getId())
                             .platform(oauth2LoginRequestDto.getPlatform())
                             .nickname(oauth2LoginRequestDto.getNickname())
                             .email(oauth2LoginRequestDto.getEmail())
                     .build());
         }else{
-        member =memberService.getMemberCheck(memberIndex);
 
+        member=memberEntity.get();
         }
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(member.getRole().toString().split(","))

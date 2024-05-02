@@ -46,7 +46,7 @@ public class MemberService {
     }
 
     @Transactional
-    public Member registerOauth2Member(MemberOauth2RegisterRequestDto memberOauth2RegisterRequestDto) throws AlreadyExistsMemberException {
+    public Member registerOauth2Member(MemberOauth2RegisterRequestDto memberOauth2RegisterRequestDto) throws AlreadyExistsMemberException, BadRequestException {
 
         boolean isExistsMember = checkExistMemberId(memberOauth2RegisterRequestDto.getId(), AuthType.KAKAO);
 
@@ -60,10 +60,11 @@ public class MemberService {
                             .email(memberOauth2RegisterRequestDto.getEmail())
                             .build()
             );
-            log.debug("등록 결과 {}",member.getIndex());
+            if(member==null)
+                throw new BadRequestException("register failed");
             return member;
         }
-            return memberRepository.findById(memberOauth2RegisterRequestDto.getId()).orElseThrow();
+            return memberRepository.findByIdAndPlatform(memberOauth2RegisterRequestDto.getId(),memberOauth2RegisterRequestDto.getPlatform()).orElseThrow();
     }
     @Transactional
     public void registerMember(MemberRegisterRequestDto memberRegisterRequestDto) throws AlreadyExistsMemberException {

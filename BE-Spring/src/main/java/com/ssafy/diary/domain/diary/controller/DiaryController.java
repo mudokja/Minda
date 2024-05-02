@@ -1,19 +1,10 @@
 package com.ssafy.diary.domain.diary.controller;
 
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
-import com.ssafy.diary.domain.auth.service.JwtService;
-import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;
-import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
-import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
-import com.ssafy.diary.domain.diary.dto.ImageUploadDto;
-import com.ssafy.diary.domain.diary.entity.Diary;
+import com.ssafy.diary.domain.diary.dto.*;
 import com.ssafy.diary.domain.diary.service.DiaryService;
-import com.ssafy.diary.domain.member.entity.Member;
-import com.ssafy.diary.global.util.JwtUtil;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +32,9 @@ public class DiaryController {
     }
 
     //일기 등록
-    @Operation(summary = "일기 등록", description = "일기 등록. diaryIndex는 보내지 마세요. diarySetDate, diaryTitle, diaryContent 필수")
+    @Operation(summary = "일기 등록", description = "일기 등록. diarySetDate, diaryTitle, diaryContent 필수")
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<Object> postDiary(@RequestPart DiaryRequestDto diaryAddRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
+    public ResponseEntity<Object> postDiary(@RequestPart DiaryAddRequestDto diaryAddRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();
         diaryService.addDiary(diaryAddRequestDto, imageFiles, memberIndex);
         return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");
@@ -60,7 +51,7 @@ public class DiaryController {
     //일기 수정
     @Operation(summary = "일기 수정", description = "일기 수정. diaryIndex, diarySetDate, diaryTitle, diaryContent 필수")
     @PutMapping(consumes = "multipart/form-data")
-    public ResponseEntity<Object> putDiary(@RequestPart DiaryRequestDto diaryUpdateRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles) {
+    public ResponseEntity<Object> putDiary(@RequestPart DiaryUpdateRequestDto diaryUpdateRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles) {
         diaryService.updateDiary(diaryUpdateRequestDto, imageFiles);
         return ResponseEntity.ok("diary updating succeeded");
     }
@@ -102,7 +93,7 @@ public class DiaryController {
     }
 
     //일기 검색(해시태그)
-    @Operation(summary = "일기 검색(해시태그)", description = "예를 들어 '싸피'를 검색했을 때 정확하게 '싸피'라는 해시태그가 있는 일기만 검색되어야 하는지, '싸피데이'같이 '싸피'라는 키워드를 포함하는 해시태그가 존재하는 일기도 함께 검색되어야 하는지?")
+    @Operation(summary = "일기 검색(해시태그)", description = "미완성. 검색 방법 고민. 예를 들어 '싸피'를 검색했을 때 정확하게 '싸피'라는 해시태그가 있는 일기만 검색되어야 하는지, '싸피데이'같이 '싸피'라는 키워드를 포함하는 해시태그가 존재하는 일기도 함께 검색되어야 하는지?")
     @GetMapping("search/hashtag")
     public ResponseEntity<List<DiaryResponseDto>> getDiaryListByHashTag(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();

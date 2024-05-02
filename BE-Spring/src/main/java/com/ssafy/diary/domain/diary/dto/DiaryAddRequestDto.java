@@ -5,17 +5,13 @@ import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.model.DiaryHashtag;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
-public class DiaryRequestDto {
-
-    private Long diaryIndex;
+public class DiaryAddRequestDto {
 
     private LocalDate diarySetDate;
 

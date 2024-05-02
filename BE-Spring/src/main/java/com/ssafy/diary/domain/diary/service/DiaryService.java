@@ -2,27 +2,24 @@ package com.ssafy.diary.domain.diary.service;
 
 import com.ssafy.diary.domain.analyze.dto.AnalyzeRequestDto;
 import com.ssafy.diary.domain.analyze.service.AnalyzeService;
+import com.ssafy.diary.domain.diary.dto.DiaryAddRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;
-import com.ssafy.diary.domain.diary.dto.DiaryRequestDto;
+import com.ssafy.diary.domain.diary.dto.DiaryUpdateRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryResponseDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.model.DiaryHashtag;
 import com.ssafy.diary.domain.diary.repository.DiaryHashtagRepository;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
-import com.ssafy.diary.domain.diary.repository.ImageRepository;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +50,7 @@ public class DiaryService {
 
             Diary diary = Diary.builder()
                     .memberIndex(memberIndex)
-                    .diarySetDate(currentDate) // 현재 날짜로 설정 후 -9시간 조정
+                    .diarySetDate(currentDate)
                     .diaryTitle("Dummy Title " + i)
                     .diaryContent("Dummy Content " + i)
                     .diaryHappiness((long) (Math.random() * 101))
@@ -66,13 +63,13 @@ public class DiaryService {
             Diary addedDiary = diaryRepository.save(diary);
             diaryHashtagRepository.save(DiaryHashtag.builder()
                     .diaryIndex(addedDiary.getDiaryIndex())
-                    .hashtagList(List.of(new String[]{"hashtag1", "tashtag2"}))
+                    .hashtagList(List.of(new String[]{"hashtag1", "hashtag2"}))
                     .build());
         }
     }
 
     //일기 등록
-    public void addDiary(DiaryRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
+    public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
         List<Image> imageList = new ArrayList<>();
 
         if (imageFiles != null) {
@@ -133,7 +130,7 @@ public class DiaryService {
 
     //일기 수정
     @Transactional
-    public void updateDiary(DiaryRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles) {
+    public void updateDiary(DiaryUpdateRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles) {
 
         Long diaryIndex = diaryUpdateRequestDto.getDiaryIndex();
 

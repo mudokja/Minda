@@ -54,8 +54,8 @@ public class AnalyzeService {
 //                .uri("/analyze")
                 .uri(uriBuilder -> uriBuilder
                         .path("/analyze")
-                        .queryParam("diary_index", analyzeRequestDto.getDiary_index())
-                        .queryParam("diary_content", analyzeRequestDto.getDiary_content())
+                        .queryParam("diary_index", analyzeRequestDto.getDiaryIndex())
+                        .queryParam("diary_content", analyzeRequestDto.getDiaryContent())
                         .build())
 //                .bodyValue(analyzeRequestDto)
                 .retrieve()

@@ -6,20 +6,26 @@ import com.ssafy.diary.domain.email.dto.CodeVerificationResponseDto;
 import com.ssafy.diary.domain.email.dto.EmailAuthRequestDto;
 import com.ssafy.diary.domain.email.dto.EmailAuthResponseDto;
 import com.ssafy.diary.domain.email.service.EmailService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Member", description = "회원 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/email")
 public class EmailController {
     private final EmailService emailService;
+
+    @Operation(summary = "이메일 인증 요청")
     @PostMapping("/verification")
     public ResponseEntity<CodeVerificationResponseDto> sendVerificationEmail(@RequestBody CodeVerificationRequestDto verificationRequestDto) throws JsonProcessingException {
         return ResponseEntity.ok().body(emailService.sendKafkaEmailAuthMessage(verificationRequestDto));
     }
 
+    @Operation(summary = "이메일 인증 코드 검사")
     @PostMapping("/auth")
     public ResponseEntity<EmailAuthResponseDto> sendVerificationEmail(@RequestBody EmailAuthRequestDto emailAuthRequestDto){
         EmailAuthResponseDto result = emailService.checkAuthEmail(emailAuthRequestDto);

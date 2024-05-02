@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:diary_fe/src/widgets/color_legend_toggle.dart';
 import 'dart:math';
-import 'package:diary_fe/src/screens/diary_list_page.dart';
+// import 'package:diary_fe/src/screens/diary_list_page.dart';
+import 'package:diary_fe/src/widgets/diary_detail_page.dart';
 
 
 import 'package:diary_fe/src/services/diary_provider.dart';
@@ -40,7 +41,7 @@ class CalendarDialog {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DiaryPage(selectedDay: selectedDay),
+                      builder: (context) => DiaryListPage(selectedDay: selectedDay),
                     ),
                   );
                 },

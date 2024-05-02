@@ -135,9 +135,7 @@ class _LoginModalState extends State<LoginModal> {
 
                   const SizedBox(height: 20), // 간격 추가
                   GestureDetector(
-                    onTap: () {
-                      // 회원가입 페이지로 이동
-                    },
+                    onTap: () {},
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

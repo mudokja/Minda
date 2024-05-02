@@ -1,6 +1,10 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/services/api_services.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 
 class Write extends StatefulWidget {
   const Write({super.key});
@@ -84,6 +88,24 @@ class _WriteState extends State<Write> {
     setState(() {
       showConfirmation = !showConfirmation;
     });
+  }
+
+  Future<void> sendContent() async {
+    ApiService apiService = ApiService();
+    FormData formData = FormData();
+    String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+
+    String title = titleController.text.isNotEmpty
+        ? titleController.text
+        : DateFormat('yyyy년 M월 d일의 일기').format(selectedDate); // 제목이 비었을 때의 로직
+
+    // FormData 필드 추가
+    formData.fields.add(MapEntry("diarySetDate", formattedDate));
+    formData.fields.add(MapEntry("diaryTitle", title));
+    formData.fields.add(MapEntry("diaryContent", diaryController.text));
+
+    print(formData.fields);
+    await apiService.post('/api/diary', data: formData);
   }
 
   @override
@@ -265,7 +287,7 @@ class _WriteState extends State<Write> {
                         Text(
                           titleController.text.isNotEmpty
                               ? titleController.text
-                              : '${DateTime.now().year}년 ${DateTime.now().month}월 ${DateTime.now().day}일의 일기',
+                              : '${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일의 일기',
                           style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -295,7 +317,7 @@ class _WriteState extends State<Write> {
         child: ElevatedButton(
           onPressed: diaryController.text.isNotEmpty
               ? () {
-                  print('ddd');
+                  sendContent();
                 }
               : null,
           style: ElevatedButton.styleFrom(

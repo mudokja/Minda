@@ -1,6 +1,7 @@
 package com.ssafy.diary.domain.auth.service;
 
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
+import com.ssafy.diary.domain.auth.dto.TokenInfoDto;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.global.util.JwtUtil;
 import jakarta.servlet.ServletException;
@@ -41,7 +42,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         try {
             Member oAuth2User = ((PrincipalMember) authentication.getPrincipal()).toEntity();
             log.debug(oAuth2User.toString());
-            loginSuccess(response, oAuth2User,authentication.getAuthorities()); // 로그인에 성공한 경우 access, refresh 토큰 생성
+            loginSuccess(response, authentication); // 로그인에 성공한 경우 access, refresh 토큰 생성
         } catch (Exception e) {
 
             log.debug("로그인 에러: {} 원인 :{}, {}",e.getMessage(),e.getCause(),e.getStackTrace());
@@ -51,26 +52,25 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     }
 
-    private void loginSuccess(HttpServletResponse response, Member oAuth2User, Collection<? extends GrantedAuthority> authorities) throws IOException, URISyntaxException {
-        String accessToken = jwtService.createAccessToken(oAuth2User.getIndex(), authorities, oAuth2User.getPlatform());
-        String refreshToken = jwtService.createAndSaveRefreshToken(oAuth2User);
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, JwtUtil.JWT_TYPE + accessToken);
+    private void loginSuccess(HttpServletResponse response, Authentication authentication) throws IOException, URISyntaxException {
+        TokenInfoDto tokenInfo = jwtService.createToken(authentication);
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, JwtUtil.JWT_TYPE + tokenInfo.getAccessToken());
 
         URI cookieDomain=new URI(frontendBaseurl);
 
-        Cookie cookie = new Cookie("refresh_token", refreshToken);
+        Cookie cookie = new Cookie("refresh_token", tokenInfo.getRefreshToken());
         cookie.setHttpOnly(true);
         cookie.setMaxAge(JwtUtil.getRefreshTokenExpiredTime());
         cookie.setPath("/");
         cookie.setDomain(cookieDomain.getHost());
         cookie.setSecure(true); // https가 아니므로 아직 안됨
         response.addCookie(cookie);
-        log.debug("토큰 :{}",accessToken);
+        log.debug("토큰 :{}",tokenInfo.getAccessToken());
         UriComponents uriComponent= UriComponentsBuilder.fromHttpUrl(frontendBaseurl)
                 .pathSegment("auth","login")
                 .queryParam("resultCode",200)
-                .queryParam("accessToken",accessToken)
-                .queryParam("refreshToken", refreshToken)
+                .queryParam("accessToken",tokenInfo.getAccessToken())
+                .queryParam("refreshToken", tokenInfo.getRefreshToken())
                 .encode()
                 .build();
         response.sendRedirect(uriComponent.toString());

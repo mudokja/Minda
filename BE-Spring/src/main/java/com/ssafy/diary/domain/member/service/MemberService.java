@@ -31,7 +31,7 @@ public class MemberService {
         }
         member.setPassword(passwordEncoder.encode(memberUpdatePasswordRequestDto.getMemberNewPassword()));
     }
-
+    @Transactional
     public void updateMemberInfo(Long memberIndex, MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) throws NotFoundException {
         Member member= getMemberCheck(memberIndex);
         member.setNickname(memberInfoUpdateRequestDto.getMemberNickname());

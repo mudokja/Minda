@@ -14,11 +14,9 @@ import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +29,7 @@ public class AdviceService {
 
     private String[] emotionArray = {"중립","분노","슬픔","놀람","불안","기쁨"};
 
+    @Transactional
     public SingleAdviceResponseDto getAdvice(Long memberIndex, SingleAdviceRequestDto singleAdviceRequestDto){
         Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex,singleAdviceRequestDto.getDate())
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
@@ -41,22 +40,46 @@ public class AdviceService {
         HashMap<String,Double[]> emotion = analyze.getEmotion();
         List<String> emotionList = new ArrayList<>();
 
-        for(Double[] key:emotion.values()){
+        for(Double[] value:emotion.values()){
             double max = -100;
             int maxIndex = -1;
-            for(int i=0;i<key.length;i++){
-                if(key[i]>max){
-                    max = key[i];
+            for(int i=0;i<value.length;i++){
+                if(value[i]>max){
+                    max = value[i];
                     maxIndex = i;
                 }
             }
             emotionList.add(emotionArray[maxIndex]);
         }
+        HashMap<String,Double> statusMap = new HashMap<>();
+        if(diary.getDiaryHappiness() == null){
+            double[] sumArray = new double[5];
+            for(Double[] value:emotion.values()){
+                for(int i=1;i<value.length-1;i++){
+                    sumArray[i-1] += value[i];
+                }
+            }
+            log.info("array={}", Arrays.toString(sumArray));
+            log.info("sentence={}",analyze.getSentence().length);
+            for(int i=0;i<sumArray.length;i++)
+                sumArray[i]/=analyze.getSentence().length;
+            diary.setDiaryAnger((long)sumArray[0]);
+            diary.setDiarySadness((long)sumArray[1]);
+            diary.setDiarySurprise((long)sumArray[2]);
+            diary.setDiaryFear((long)sumArray[3]);
+            diary.setDiaryHappiness((long)sumArray[4]);
+        }
+        statusMap.put("분노",(double)diary.getDiaryAnger());
+        statusMap.put("슬픔",(double)diary.getDiarySadness());
+        statusMap.put("놀람",(double)diary.getDiarySurprise());
+        statusMap.put("불안",(double)diary.getDiaryFear());
+        statusMap.put("기쁨",(double)diary.getDiaryHappiness());
 
         return SingleAdviceResponseDto.builder()
                 .sentence(analyze.getSentence())
                 .emotion(emotionList)
-                .adviceContent("null").build();
+                .adviceContent("null")
+                .status(statusMap).build();
     }
 
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {

@@ -38,21 +38,26 @@ public class Diary extends BaseEntity {
     @Column(name = "diary_content")
     private String diaryContent;
 
+    @Setter
     @Column(name = "diary_happiness")
     private Long diaryHappiness;
 
+    @Setter
     @Column(name = "diary_sadness")
     private Long diarySadness;
 
+    @Setter
     @Column(name = "diary_fear")
     private Long diaryFear;
 
+    @Setter
     @Column(name = "diary_anger")
     private Long diaryAnger;
 
 //    @Column(name = "diary_disgust")
 //    private Long diaryDisgust;
 
+    @Setter
     @Column(name = "diary_surprise")
     private Long diarySurprise;
 

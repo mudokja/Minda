@@ -44,6 +44,8 @@ class _LoginModalState extends State<LoginModal> {
       return;
     }
 
+    await Provider.of<UserProvider>(context, listen: false)
+        .login(_idController.text, _pwController.text);
     await Provider.of<UserProvider>(context, listen: false).fetchUserData();
     Navigator.push(
       context,
@@ -218,15 +220,18 @@ class _LoginModalState extends State<LoginModal> {
                     elevation: 0,
                     clipBehavior: Clip.antiAlias,
                     child: Ink.image(
-                      image:
-                      const AssetImage('assets/images/kakao.png'),
+                      image: const AssetImage('assets/images/kakao.png'),
                       fit: BoxFit.cover, // 이미지 채우기 방식 지정
                       width: 200,
                       height: 40,
                       child: InkWell(
                         onTap: () async {
-                          await Provider.of<UserProvider>(context, listen: false).kakaoLogin();
-                          await Provider.of<UserProvider>(context, listen: false).fetchUserData();
+                          await Provider.of<UserProvider>(context,
+                                  listen: false)
+                              .kakaoLogin();
+                          await Provider.of<UserProvider>(context,
+                                  listen: false)
+                              .fetchUserData();
                           Navigator.push(
                             context,
                             MaterialPageRoute(

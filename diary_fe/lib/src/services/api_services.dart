@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiService {
   Dio dio = Dio();
 
-  String baseUrl = 'http://localhost:8082';
+  String baseUrl = 'https://k10b205.p.ssafy.io';
   final storage = const FlutterSecureStorage();
   ApiService() {
     // bool refresh = true;

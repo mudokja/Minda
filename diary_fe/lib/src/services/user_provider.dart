@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io' show Platform;
 import 'package:diary_fe/src/models/user.dart';
 import 'package:diary_fe/src/services/api_services.dart';
@@ -8,9 +9,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 class UserProvider with ChangeNotifier {
   ApiService apiService = ApiService();
-  final Future<SharedPreferences> _sharedPreference = SharedPreferences.getInstance();
+  final Future<SharedPreferences> _sharedPreference =
+      SharedPreferences.getInstance();
   AppUser user = AppUser();
   late User? kakaoUser;
   final FlutterSecureStorage storage = const FlutterSecureStorage();
@@ -24,23 +27,25 @@ class UserProvider with ChangeNotifier {
     checkInitialLogin();
   }
   Future<void> login(String id, String pw) async {
-
-    Response response = await apiService.post('/api/auth/login',
-        data: {"id": id, "password": pw});
+    Response response = await apiService
+        .post('/api/auth/login', data: {"id": id, "password": pw});
     Map<String, dynamic> responseMap = response.data;
     _fetchTokenInfo(responseMap);
-
   }
+
   Future<void> kakaoLogin() async {
     bool talkInstalled = await isKakaoTalkInstalled();
+
+    var key = await KakaoSdk.origin;
+    log(key);
     debugPrint("호출 카카오");
-    try{
-      if(kIsWeb){
+    try {
+      if (kIsWeb) {
         //웹 방식 로그인은 문제가 발생하지 않으면 별도로 구현하지 않을예정
         if (talkInstalled) {
           try {
             await UserApi.instance.loginWithKakaoTalk();
-            Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+            Map<String, dynamic> response = await _requestOauth2KakaoLogin();
             await _fetchTokenInfo(response);
           } catch (error) {
             print('카카오톡으로 로그인 실패 $error');
@@ -52,27 +57,27 @@ class UserProvider with ChangeNotifier {
             }
             try {
               await UserApi.instance.loginWithKakaoAccount();
-                Map<String, dynamic> response= await _requestOauth2KakaoLogin();
-                await _fetchTokenInfo(response);
+              Map<String, dynamic> response = await _requestOauth2KakaoLogin();
+              await _fetchTokenInfo(response);
             } catch (error) {
               print('카카오계정으로 로그인 실패 $error');
             }
           }
-        }else{
+        } else {
           try {
             await UserApi.instance.loginWithKakaoAccount();
-            Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+            Map<String, dynamic> response = await _requestOauth2KakaoLogin();
             await _fetchTokenInfo(response);
           } catch (error) {
             debugPrint('카카오계정으로 로그인 실패 $error');
           }
         }
-      }else{
-        if(Platform.isAndroid || Platform.isIOS ){
+      } else {
+        if (Platform.isAndroid || Platform.isIOS) {
           if (talkInstalled) {
             try {
               await UserApi.instance.loginWithKakaoTalk();
-              Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+              Map<String, dynamic> response = await _requestOauth2KakaoLogin();
               await _fetchTokenInfo(response);
             } catch (error) {
               print('카카오톡으로 로그인 실패 $error');
@@ -85,16 +90,17 @@ class UserProvider with ChangeNotifier {
               // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인
               try {
                 await UserApi.instance.loginWithKakaoAccount();
-                Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+                Map<String, dynamic> response =
+                    await _requestOauth2KakaoLogin();
                 await _fetchTokenInfo(response);
               } catch (error) {
                 print('카카오계정으로 로그인 실패 $error');
               }
             }
-          }else{
+          } else {
             try {
               await UserApi.instance.loginWithKakaoAccount();
-              Map<String, dynamic> response= await _requestOauth2KakaoLogin();
+              Map<String, dynamic> response = await _requestOauth2KakaoLogin();
               await _fetchTokenInfo(response);
             } catch (error) {
               debugPrint('카카오계정으로 로그인 실패 $error');
@@ -102,29 +108,30 @@ class UserProvider with ChangeNotifier {
           }
         }
       }
-    }catch (error){
+    } catch (error) {
       print('카카오계정으로 로그인 실패 $error');
     }
-
   }
+
   Future<Map<String, dynamic>> _requestOauth2KakaoLogin() async {
-    kakaoUser =await UserApi.instance.me();
-    Response response = await apiService.post("/api/auth/oauth2/login",
-        data: {
-          "platform": "KAKAO",
-          "id": kakaoUser?.id,
-          "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
-          "email": kakaoUser?.kakaoAccount?.email
-        });
+    kakaoUser = await UserApi.instance.me();
+    Response response = await apiService.post("/api/auth/oauth2/login", data: {
+      "platform": "KAKAO",
+      "id": kakaoUser?.id,
+      "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
+      "email": kakaoUser?.kakaoAccount?.email
+    });
     return response.data;
   }
-  Future<void> _fetchTokenInfo(Map<String,dynamic> responseMap) async {
+
+  Future<void> _fetchTokenInfo(Map<String, dynamic> responseMap) async {
     await storage.write(key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
     await storage.write(
       key: "REFRESH_TOKEN",
       value: responseMap["refreshToken"],
     );
   }
+
   Future<void> checkInitialLogin() async {
     String? accessToken = await storage.read(key: "ACCESS_TOKEN");
     if (accessToken != null) {

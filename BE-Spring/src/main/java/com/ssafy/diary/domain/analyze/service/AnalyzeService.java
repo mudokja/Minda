@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 public class AnalyzeService {
     private final AnalyzeRepository analyzeRepository;
     private final WebClient webClient;
+    private final WebClient webClient2;
 
     public Mono<String> addAnalyze(AnalyzeRequestDto analyzeRequestDto){
         return requestAnalyzeToFastAPI(analyzeRequestDto);

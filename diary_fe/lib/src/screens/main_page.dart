@@ -35,6 +35,7 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
       body: Stack(
         children: <Widget>[

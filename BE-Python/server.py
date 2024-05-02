@@ -32,19 +32,16 @@ mongo_collection=mongo_db['analyze']
 def read_root(): 
     return {"Hello": "World"}
 
-@app.get("/api/ai/test")
-def test_api():
-    return "test success"
-
 @app.post("/api/ai/emotion")
 def analyze_text(diary_index:int, diary_content:str):
     try:
+        print(diary_content)
         emotion=text_emotion.predict_emotion(diary_content)
-        dict = {}
-        dict['diary_index'] = diary_index
-        dict['emotion'] = emotion
-        mongo_util.mongo_insert(mongo_collection,dict)
-        return "success"
+        # dict = {}
+        # dict['diary_index'] = diary_index
+        # dict['emotion'] = emotion
+        # mongo_util.mongo_insert(mongo_collection,dict)
+        return emotion
     except Exception as e:
         return {str(e)}
 

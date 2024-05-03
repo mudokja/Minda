@@ -3,14 +3,25 @@ import re
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from konlpy.tag import Okt 
+from kiwipiepy import Kiwi
 
 print("호출: text_keyword.py")
 
+# def split_sentences(text):  #정규표현식 
+#     try:
+#         sentences = re.split(r'(?<!\d)\.(?!\d)(?=\s)|(?<=[?!])', text)
+#         # 각 문장 앞뒤의 공백 제거
+#         sentences = [sentence.strip() for sentence in sentences if sentence.strip() != '']
+#         return sentences
+#     except Exception as e:
+#         print ({str(e)})
+
+kiwi=Kiwi()
+
 def split_sentences(text):
     try:
-        sentences = re.split(r'(?<!\d)\.(?!\d)(?=\s)|(?<=[?!])', text)
-        # 각 문장 앞뒤의 공백 제거
-        sentences = [sentence.strip() for sentence in sentences if sentence.strip() != '']
+        data = kiwi.split_into_sents(text)
+        sentences = [item[0] for item in data]
         return sentences
     except Exception as e:
         print ({str(e)})

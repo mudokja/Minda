@@ -35,7 +35,7 @@ public class DiaryController {
     //일기 등록
     @Operation(summary = "일기 등록", description = "일기 등록. diarySetDate, diaryTitle, diaryContent 필수")
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<Object> postDiary(@RequestPart DiaryAddRequestDto diaryAddRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
+    public ResponseEntity<Object> postDiary(@RequestPart(name = "data") DiaryAddRequestDto diaryAddRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();
         diaryService.addDiary(diaryAddRequestDto, imageFiles, memberIndex);
         return ResponseEntity.status(HttpStatus.CREATED).body("diary posting succeeded");

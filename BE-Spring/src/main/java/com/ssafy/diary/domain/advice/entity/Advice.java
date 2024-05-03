@@ -30,12 +30,12 @@ public class Advice extends BaseEntity {
     @Column(name = "advice_content")
     private String adviceContent;
 
-    public AdviceResponseDto toDto() {
-        return AdviceResponseDto.builder()
-                .adviceIndex(adviceIndex)
-                .adviceContent(adviceContent)
-                .startDate(startDate)
-                .endDate(endDate)
-                .build();
-    }
+//    public AdviceResponseDto toDto() {
+//        return AdviceResponseDto.builder()
+//                .adviceIndex(adviceIndex)
+//                .adviceContent(adviceContent)
+//                .startDate(startDate)
+//                .endDate(endDate)
+//                .build();
+//    }
 }

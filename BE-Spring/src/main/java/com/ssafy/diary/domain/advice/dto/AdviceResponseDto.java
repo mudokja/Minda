@@ -6,23 +6,17 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Getter
 @Setter
 public class AdviceResponseDto {
-    private Long adviceIndex;
-
-    private LocalDateTime startDate;
-
-    private LocalDateTime endDate;
-
     private String adviceContent;
+    private Map<String, Double> status;
 
     @Builder
-    public AdviceResponseDto(Long adviceIndex, LocalDateTime startDate, LocalDateTime endDate, String adviceContent) {
-        this.adviceIndex = adviceIndex;
-        this.startDate = startDate;
-        this.endDate = endDate;
+    public AdviceResponseDto(String adviceContent, Map<String, Double> status) {
         this.adviceContent = adviceContent;
+        this.status = status;
     }
 }

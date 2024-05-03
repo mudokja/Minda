@@ -36,33 +36,33 @@ public class Diary extends BaseEntity {
 
     @Setter
     @Column(name = "diary_happiness")
-    private Long diaryHappiness;
+    private Double diaryHappiness;
 
     @Setter
     @Column(name = "diary_sadness")
-    private Long diarySadness;
+    private Double diarySadness;
 
     @Setter
     @Column(name = "diary_fear")
-    private Long diaryFear;
+    private Double diaryFear;
 
     @Setter
     @Column(name = "diary_anger")
-    private Long diaryAnger;
+    private Double diaryAnger;
 
 //    @Column(name = "diary_disgust")
 //    private Long diaryDisgust;
 
     @Setter
     @Column(name = "diary_surprise")
-    private Long diarySurprise;
+    private Double diarySurprise;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "diary_index")
     private List<Image> imageList = new ArrayList<>();
 
     @Builder
-    public Diary (Long memberIndex, LocalDate diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList){
+    public Diary (Long memberIndex, LocalDate diarySetDate, String diaryTitle, String diaryContent, Double diaryHappiness, Double diarySadness, Double diaryFear, Double diaryAnger, Double diarySurprise, List<Image> imageList){
         this.memberIndex = memberIndex;
         this.diarySetDate = diarySetDate;
         this.diaryTitle = diaryTitle;

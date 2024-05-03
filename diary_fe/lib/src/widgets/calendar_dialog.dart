@@ -6,7 +6,7 @@ import 'dart:math';
 // import 'package:diary_fe/src/screens/diary_list_page.dart';
 import 'package:diary_fe/src/widgets/diary_detail_page.dart';
 
-
+import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/services/diary_provider.dart';
 
 class CalendarDialog {
@@ -41,7 +41,7 @@ class CalendarDialog {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DiaryListPage(selectedDay: selectedDay),
+                      builder: (context) => Write(selectedDay: DateTime.now()),
                     ),
                   );
                 },

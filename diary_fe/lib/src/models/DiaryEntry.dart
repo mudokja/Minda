@@ -1,27 +1,24 @@
 import 'package:diary_fe/src/models/diary_image.dart';
 
-
 class DiaryEntry {
-  int diaryIndex;
-  String diarySetDate;
-  String diaryTitle;
-  String diaryContent;
-  int diaryHappiness, diarySadness, diaryFear, diaryAnger, diarySurprise;
-  List<DiaryImage> imageList; // 변경된 부분
-  List<String> hashtagList;
+  final int diaryIndex;
+  final String diarySetDate;
+  final String diaryTitle;
+  final String diaryContent;
+  final int diaryHappiness, diarySadness, diaryFear, diaryAnger, diarySurprise;
+  final List<DiaryImage> imageList;
+  final List<String> hashtagList;
 
   DiaryEntry.fromJson(Map<String, dynamic> json)
-      : diaryIndex = json['diaryIndex'],
-        diarySetDate = json['diarySetDate'],
-        diaryTitle = json['diaryTitle'],
-        diaryContent = json['diaryContent'],
-        diaryHappiness = json['diaryHappiness'],
-        diarySadness = json['diarySadness'],
-        diaryFear = json['diaryFear'],
-        diaryAnger = json['diaryAnger'],
-        diarySurprise = json['diarySurprise'],
-        imageList = (json['imageList'] as List)
-            .map((i) => DiaryImage.fromJson(i))
-            .toList(), // 변경된 부분
-        hashtagList = List<String>.from(json['hashtagList']);
+      : diaryIndex = json['diaryIndex'] ?? 0,  // null 체크 및 기본값 제공
+        diarySetDate = json['diarySetDate'] ?? 'No Date',  // null 체크 및 기본값 제공
+        diaryTitle = json['diaryTitle'] ?? 'No Title',  // null 체크 및 기본값 제공
+        diaryContent = json['diaryContent'] ?? 'No Content',  // null 체크 및 기본값 제공
+        diaryHappiness = json['diaryHappiness'] ?? 0,  // null 체크 및 기본값 제공
+        diarySadness = json['diarySadness'] ?? 0,  // null 체크 및 기본값 제공
+        diaryFear = json['diaryFear'] ?? 0,  // null 체크 및 기본값 제공
+        diaryAnger = json['diaryAnger'] ?? 0,  // null 체크 및 기본값 제공
+        diarySurprise = json['diarySurprise'] ?? 0,  // null 체크 및 기본값 제공
+        imageList = (json['imageList'] as List?)?.map((i) => DiaryImage.fromJson(i as Map<String, dynamic>)).toList() ?? [],  // null 체크 및 기본값 제공
+        hashtagList = List<String>.from(json['hashtagList'] as List<dynamic> ?? []);  // null 체크 및 기본값 제공
 }

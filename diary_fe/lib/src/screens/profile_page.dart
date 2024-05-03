@@ -19,11 +19,20 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   ApiService apiService = ApiService();
   final storage = const FlutterSecureStorage();
-  DeleteStorage deleteStorage = DeleteStorage();
+
   void logout() async {
-    String? refreshToken = await storage.read(key: "REFRESH_TOKEN");
-    await apiService.delete('/api/auth/logout?refreshToken=$refreshToken');
-    deleteStorage.deleteAll();
+    await Provider.of<UserProvider>(context,
+        listen: false).logout();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const IntroPage(),
+      ),
+    );
+  }
+  void leave() async {
+    Provider.of<UserProvider>(context,
+        listen: false).leave();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -192,13 +201,18 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(
                       height: 30,
                     ),
-                    const Text(
+                    TextButton(
+                      onPressed: () {
+                        leave();
+                      },
+                      child: const Text(
                       '회원 탈퇴하기',
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.grey,
                       ),
                     )
+                    ),
                   ],
                 ),
               ),

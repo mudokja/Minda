@@ -10,11 +10,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'delete_storage.dart';
+
 class UserProvider with ChangeNotifier {
   ApiService apiService = ApiService();
   final Future<SharedPreferences> _sharedPreference =
       SharedPreferences.getInstance();
   AppUser user = AppUser();
+  DeleteStorage deleteStorage = DeleteStorage();
   late User? kakaoUser;
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   bool _isLoggedIn = false;
@@ -32,7 +35,15 @@ class UserProvider with ChangeNotifier {
     Map<String, dynamic> responseMap = response.data;
     _fetchTokenInfo(responseMap);
   }
-
+  Future<void> logout() async{
+    String? refreshToken = await storage.read(key: "REFRESH_TOKEN");
+    await apiService.delete('/api/auth/logout?refreshToken=$refreshToken');
+    deleteStorage.deleteAll();
+  }
+  Future<void> leave() async{
+    await apiService.delete("/api/member");
+    logout();
+  }
   Future<void> kakaoLogin() async {
     bool talkInstalled = await isKakaoTalkInstalled();
 

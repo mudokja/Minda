@@ -82,6 +82,6 @@ async def analyze_diary(entry: DiaryEntry):
         analyze_dict['emotion'] = emotion_dict  #문장 별 감정 수치
         analyze_dict['keyword'] = await text_keyword.get_keyword(diary_sentences)    #키워드는 어간 추출 리스트 기반
         mongo_util.mongo_insert(mongo_collection,analyze_dict)
-        return str(analyze_dict)
+        return "success"
     except Exception as e:
         return {str(e)}

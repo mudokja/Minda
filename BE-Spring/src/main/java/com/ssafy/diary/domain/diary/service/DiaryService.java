@@ -53,11 +53,11 @@ public class DiaryService {
                     .diarySetDate(currentDate)
                     .diaryTitle("Dummy Title " + i)
                     .diaryContent("Dummy Content " + i)
-                    .diaryHappiness((long) (Math.random() * 101))
-                    .diarySadness((long) (Math.random() * 101))
-                    .diaryFear((long) (Math.random() * 101))
-                    .diaryAnger((long) (Math.random() * 101))
-                    .diarySurprise((long) (Math.random() * 101))
+                    .diaryHappiness((Math.random() * 101))
+                    .diarySadness((Math.random() * 101))
+                    .diaryFear((Math.random() * 101))
+                    .diaryAnger((Math.random() * 101))
+                    .diarySurprise((Math.random() * 101))
                     .imageList(imageList)
                     .build();
             Diary addedDiary = diaryRepository.save(diary);

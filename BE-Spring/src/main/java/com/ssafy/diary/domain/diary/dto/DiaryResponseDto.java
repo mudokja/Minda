@@ -23,24 +23,24 @@ public class DiaryResponseDto {
 
     private String diaryContent;
 
-    private Long diaryHappiness;
+    private Double diaryHappiness;
 
-    private Long diarySadness;
+    private Double diarySadness;
 
-    private Long diaryFear;
+    private Double diaryFear;
 
-    private Long diaryAnger;
+    private Double diaryAnger;
 
 //    private Long diaryDisgust;
 
-    private Long diarySurprise;
+    private Double diarySurprise;
 
     private List<Image> imageList;
 
     private List<String> hashtagList;
 
     @Builder
-    public DiaryResponseDto(Long diaryIndex, LocalDate diarySetDate, String diaryTitle, String diaryContent, Long diaryHappiness, Long diarySadness, Long diaryFear, Long diaryAnger, Long diarySurprise, List<Image> imageList, List<String> hashtagList) {
+    public DiaryResponseDto(Long diaryIndex, LocalDate diarySetDate, String diaryTitle, String diaryContent, Double diaryHappiness, Double diarySadness, Double diaryFear, Double diaryAnger, Double diarySurprise, List<Image> imageList, List<String> hashtagList) {
         this.diaryIndex = diaryIndex;
         this.diarySetDate = diarySetDate;
         this.diaryTitle = diaryTitle;

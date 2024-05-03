@@ -27,14 +27,14 @@ public class AdviceController {
 
     private final AdviceService adviceService;
 
-    @Operation(summary = "일별 분석", description = "일기 하나(하루)에 대한 분석")
+    @Operation(summary = "분석 조회(일별)", description = "일기 하나(하루)에 대한 분석")
     @GetMapping("single")
     public ResponseEntity<SingleAdviceResponseDto> getAdvice(@ModelAttribute SingleAdviceRequestDto singleAdviceRequestDto, @AuthenticationPrincipal PrincipalMember principalMember){
         Long memberIndex = principalMember.getIndex();
         return ResponseEntity.ok(adviceService.getAdvice(memberIndex,singleAdviceRequestDto));
     }
 
-    @Operation(summary = "특정 기간에 대한 조언 조회", description = "특정 기간(ex. 일주일)에 대한 조언 조회")
+    @Operation(summary = "분석 조회(특정 기간)", description = "특정 기간(ex. 최근 일주일)에 대한 분석 조회")
     @GetMapping
     //특정 기간의 조언 요청
     public ResponseEntity<AdviceResponseDto> getAdviceByPeriod(@ModelAttribute AdviceRequestDto adviceRequestDto, @AuthenticationPrincipal PrincipalMember principalMember) {

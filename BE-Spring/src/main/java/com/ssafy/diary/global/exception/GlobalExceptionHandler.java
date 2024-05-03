@@ -19,6 +19,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(exception.getMessage());
     }
+    @ExceptionHandler(DiaryNotFoundException.class)
+    public ResponseEntity<String> handleDiaryNotFoundException(DiaryNotFoundException exception){
+        log.error("{} : DiaryNotFoundException");
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException exception) {
         log.error("Runtime exception: ", exception);

@@ -1,18 +1,15 @@
 import 'dart:async';
-
 import 'package:diary_fe/constants.dart';
-import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/login_dialog.dart';
 import 'package:diary_fe/src/widgets/signup_success.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:email_validator/email_validator.dart';
 
 class SignUpModal extends StatefulWidget {
   const SignUpModal({super.key});
@@ -31,15 +28,112 @@ class _SignUpModalState extends State<SignUpModal> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _verificationCodeController =
       TextEditingController();
+  String _idError = '';
+  String _emailError = '';
+  String _pwError = '';
+  String _pw2Error = '';
   bool _isVerified = false; // 이메일 인증 성공 여부
   Timer? _timer; // 타이머
   int _remainingTime = 300; // 초 단위, 5분
   bool _isCodeSent = false;
   String verificationId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _idController.addListener(_validateId);
+    _emailController.addListener(_validateEmail);
+    _pwController.addListener(_validatePassword);
+    _pw2Controller.addListener(_validatePasswordConfirmation);
+  }
+
+  void _validateId() {
+    final idText = _idController.text;
+    if (RegExp(r'[\uac00-\ud7a3]').hasMatch(idText) ||
+        RegExp(r'[\u3131-\u314E\u3165-\u3186\u314F-\u3163]+')
+            .hasMatch(idText)) {
+      // 한글 정규 표현식
+      _setIdError('아이디에는 한글이 포함될 수 없습니다.');
+    } else {
+      _setIdError(null);
+    }
+  }
+
+  void _validateEmail() {
+    final emailText = _emailController.text;
+    if (emailText.isEmpty) {
+      _setEmailError(null);
+    } else if (!EmailValidator.validate(emailText)) {
+      _setEmailError('유효하지 않은 이메일 형식입니다.');
+    } else {
+      _setEmailError(null);
+    }
+  }
+
+  void _setIdError(String? error) {
+    setState(() {
+      _idError = error ?? '';
+    });
+  }
+
+  void _setEmailError(String? error) {
+    setState(() {
+      _emailError = error ?? '';
+    });
+  }
+
+  void _validatePassword() {
+    final password = _pwController.text;
+    if (password.isEmpty) {
+      _setPasswordError(null);
+    } else if (password.length < 8) {
+      _setPasswordError('비밀번호는 최소 8자 이상이어야 합니다.');
+    } else {
+      _setPasswordError(null);
+    }
+    // 비밀번호 확인도 다시 검사
+    _validatePasswordConfirmation();
+  }
+
+  void _validatePasswordConfirmation() {
+    final password = _pwController.text;
+    final confirmation = _pw2Controller.text;
+    if (confirmation.isEmpty) {
+      _setPassword2Error(null);
+    } else if (password != confirmation) {
+      _setPassword2Error('비밀번호가 일치하지 않습니다.');
+    } else {
+      _setPassword2Error(null);
+    }
+  }
+
+  void _setPasswordError(String? error) {
+    setState(() {
+      _pwError = error ?? '';
+    });
+  }
+
+  void _setPassword2Error(String? error) {
+    setState(() {
+      _pw2Error = error ?? '';
+    });
+  }
+
+  @override
+  void dispose() {
+    _idController.removeListener(_validateId);
+    _idController.dispose();
+    _emailController.removeListener(_validateEmail);
+    _emailController.dispose();
+    _pwController.removeListener(_validatePassword);
+    _pwController.dispose();
+    _pw2Controller.removeListener(_validatePasswordConfirmation);
+    _pw2Controller.dispose();
+    super.dispose();
+  }
+
   void verifyEmail() async {
     try {
-      // 인증 코드 발송 요청 로직 구현
-      // 예제는 서버에 요청하는 로직이 들어가야 합니다.
       ApiService apiService = ApiService();
       Response response = await apiService.post(
         '/api/email/verification',
@@ -202,29 +296,18 @@ class _SignUpModalState extends State<SignUpModal> {
                     TextForm(
                       title: '아이디',
                       controller: _idController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return '아이디를 입력해주세요';
-                        }
-                        return null;
-                      },
+                      errorText: _idError.isNotEmpty ? _idError : null,
                     ),
                     const SizedBox(height: 20),
                     TextForm(
                       title: '이메일',
                       controller: _emailController,
-                      validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            _isVerified == false) {
-                          return '이메일 인증을 진행해주세요';
-                        }
-                        return null;
-                      },
+                      errorText: _emailError.isNotEmpty ? _emailError : null,
                       suffix: IconButton(
-                        onPressed: () {
-                          verifyEmail();
-                        },
+                        onPressed:
+                            _emailError == '' && _emailController.text != ''
+                                ? verifyEmail
+                                : null,
                         icon: Text(
                           '인증하기',
                           style: TextStyle(color: themeColors.color1),
@@ -284,40 +367,18 @@ class _SignUpModalState extends State<SignUpModal> {
                     TextForm(
                       title: '비밀번호',
                       controller: _pwController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return '비밀번호를 입력해주세요';
-                        } else if (!RegExp(
-                                r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$')
-                            .hasMatch(value)) {
-                          return '비밀번호는 8자 이상이며, 숫자와 영문자를\n포함해야 합니다';
-                        }
-                        return null;
-                      },
+                      errorText: _pwError.isNotEmpty ? _pwError : null,
                     ),
                     const SizedBox(height: 20),
                     TextForm(
                       title: '비밀번호 확인',
                       controller: _pw2Controller,
-                      validator: (value) {
-                        if (value != _pwController.text) {
-                          return '비밀번호가 일치하지 않습니다';
-                        }
-                        return null;
-                      },
+                      errorText: _pw2Error.isNotEmpty ? _pw2Error : null,
                     ),
                     const SizedBox(height: 20),
                     TextForm(
                       title: '닉네임',
                       controller: _nicknameController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return '닉네임을 입력해주세요';
-                        } else if (value.length > 8) {
-                          return '닉네임은 최대 8글자까지 가능합니다.';
-                        }
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 30),
                     SizedBox(

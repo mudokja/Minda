@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(DiaryNotFoundException.class)
     public ResponseEntity<String> handleDiaryNotFoundException(DiaryNotFoundException exception){
-        log.error("{} : DiaryNotFoundException", exception.getCause().toString());
+        log.error("{} : DiaryNotFoundException");
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(exception.getMessage());

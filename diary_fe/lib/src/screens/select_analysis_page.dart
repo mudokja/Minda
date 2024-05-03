@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:diary_fe/src/chart/bar_chart/bar_chart_test.dart';
 import 'package:diary_fe/src/chart/line_chart/line_chart.dart';
 import 'package:diary_fe/src/chart/radar_chart/radar_chart_test.dart';
+import 'package:diary_fe/src/models/advice_model.dart';
+import 'package:diary_fe/src/services/advice_service.dart';
 import 'package:diary_fe/src/services/analysis_service.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +20,10 @@ class DayAnalysisPage extends StatefulWidget {
 class _DayAnalysisPageState extends State<DayAnalysisPage> {
   DateTime date = DateTime.now();
   late AnalysisService _analysisService;
+  late AdviceService _adviceService;
   Map<String, dynamic> analysisData = {};
+  AdviceModel? advice;
+
   String formatDate(DateTime dateTime) {
     return '${dateTime.year.toString().padLeft(4, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
   }
@@ -25,16 +32,40 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   void initState() {
     super.initState();
     _analysisService = AnalysisService();
+    _adviceService = AdviceService();
     fetchAnalysisData();
   }
 
   void fetchAnalysisData() async {
+    debugPrint('됨 1');
     var data = await _analysisService.fetchData(date, date);
+    debugPrint('됨 2');
 
-    setState(() {
-      analysisData = data;
-    });
+    try {
+      var adviceData = await _adviceService.fetchAdvice(date);
+      debugPrint('됨 3');
+
+      setState(() {
+        analysisData = data;
+        advice = adviceData;
+        debugPrint('analysisData = $analysisData');
+        debugPrint('advice = $advice');
+      });
+    } catch (e) {
+      debugPrint("Error fetching advice: $e");
+      setState(() {
+        analysisData = data;
+      });
+    }
   }
+
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
 
   void onChangeDate(int num) {
     setState(() {
@@ -61,6 +92,48 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    List<TextSpan> spans = [];
+
+    if (advice != null &&
+        analysisData.containsKey('contents') &&
+        analysisData['contents'].isNotEmpty) {
+      String content = analysisData['contents'][0];
+      List<String> sentences = advice!.sentences;
+      List<String> emotions = advice!.emotions;
+
+      int currentIndex = 0;
+      for (int i = 0; i < min(sentences.length, emotions.length); i++) {
+        String sentence = sentences[i];
+        String emotion = emotions[i];
+
+        int startIndex = content.indexOf(sentence, currentIndex);
+        if (startIndex != -1) {
+          if (startIndex > currentIndex) {
+            spans.add(TextSpan(
+              text: content.substring(currentIndex, startIndex),
+              style: const TextStyle(color: Colors.white),
+            ));
+          }
+
+          spans.add(TextSpan(
+            text: sentence,
+            style: TextStyle(
+              color: Colors.white,
+              backgroundColor: emotionColors[emotion] ?? Colors.grey,
+            ),
+          ));
+
+          currentIndex = startIndex + sentence.length;
+        }
+      }
+
+      if (currentIndex < content.length) {
+        spans.add(TextSpan(
+          text: content.substring(currentIndex),
+          style: const TextStyle(color: Colors.white),
+        ));
+      }
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
@@ -138,20 +211,16 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                     ),
                   ),
                 ),
-                Container(
-                  color: Colors.transparent,
-                  child: Text(
-                    analysisData['contents'] != null &&
-                            analysisData['contents'].isNotEmpty
-                        ? '${analysisData['contents'][0]}'
-                        : '',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
+                if (analysisData['contents'] != null &&
+                    analysisData['contents'].isNotEmpty)
+                  Container(
+                    color: Colors.transparent,
+                    child: RichText(
+                      text: TextSpan(
+                        children: spans,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -190,9 +259,10 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                 width: screenWidth / 2.5,
                 height: 200,
                 child: RadarChartTest(
-                  startDate: date,
-                  endDate: date,
-                  // emotions: analysisData['emotions'] ?? [],
+                  emotions: analysisData['emotions'] != null &&
+                          analysisData['emotions'].containsKey(formatDate(date))
+                      ? analysisData['emotions'][formatDate(date)]
+                      : [0, 0, 0, 0, 0],
                 ),
               )
             ],
@@ -215,13 +285,13 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                 flex: 1,
                 child: SizedBox(),
               ),
-              const Expanded(
+              Expanded(
                 flex: 5,
                 child: SizedBox(
-                  child: Text(
-                    '안녕하세요…',
-                    style: TextStyle(
-                      color: Colors.white,
+                  child: RichText(
+                    text: TextSpan(
+                      children: spans,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -647,9 +717,6 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
               ),
             ],
           ),
-          // if (dateRange != null)
-          //   Text(
-          //       '선택된 범위: ${dateRange!.start.toString()} - ${dateRange!.end.toString()}'),
           const SizedBox(
             height: 50,
           ),

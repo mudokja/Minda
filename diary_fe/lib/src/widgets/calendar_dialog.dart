@@ -4,8 +4,8 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:diary_fe/src/widgets/color_legend_toggle.dart';
 import 'dart:math';
 // import 'package:diary_fe/src/screens/diary_list_page.dart';
-import 'package:diary_fe/src/widgets/diary_detail_page.dart';
-
+import 'package:diary_fe/src/screens/diary_detail_page.dart';
+import 'package:diary_fe/src/services/diary_api_service.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/services/diary_provider.dart';
 
@@ -36,15 +36,73 @@ class CalendarDialog {
                 lastDay: DateTime.utc(2030, 3, 14),
                 focusedDay: DateTime.now(),
                 selectedDayPredicate: (day) => false,
-                onDaySelected: (selectedDay, focusedDay) {
-                  Navigator.pop(context); // 다이얼로그 닫기
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Write(selectedDay: DateTime.now()),
-                    ),
-                  );
-                },
+                // onDaySelected: (selectedDay, focusedDay) {
+                //   Navigator.pop(context); // 다이얼로그 닫기
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => Write(selectedDay: DateTime.now()),
+                //     ),
+                //   );
+                // },
+
+// onDaySelected: (selectedDay, focusedDay) {
+//   Navigator.pop(context); // 다이얼로그 닫기
+//   DiaryApiService diaryService = DiaryApiService();
+
+//   diaryService.fetchDiaryEntryByDate(selectedDay).then((diaryEntry) {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(
+//         builder: (context) => DiaryDetailPage(
+//           selectedDay: selectedDay,
+//           diaryTitle: diaryEntry.diaryTitle,
+//           diaryContent: diaryEntry.diaryContent,
+//         ),
+//       ),
+//     );
+//   }).catchError((error) {
+//     print("Error fetching diary for selected day: $error");
+//     // 오류 발생 시 사용자에게 알림, 예를 들어 Snackbar 사용
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(content: Text('Failed to load diary entry. Please try again later.'))
+//     );
+  // });
+  onDaySelected: (selectedDay, focusedDay) {
+  Navigator.pop(context); // 다이얼로그 닫기
+  DiaryApiService diaryService = DiaryApiService();
+
+  diaryService.fetchDiaryEntriesByDate(selectedDay).then((diaryEntries) {
+    if (diaryEntries.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DiaryDetailPage(
+            selectedDay: selectedDay,
+            diaryTitle: diaryEntries.first.diaryTitle, // 첫 번째 일기의 제목
+            diaryContent: diaryEntries.first.diaryContent, // 첫 번째 일기의 내용
+          ),
+        ),
+      );
+    } else {
+      // 일기가 없는 경우 사용자에게 알림
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No diary entries found for this date.'))
+      );
+    }
+  }).catchError((error) {
+    print("Error fetching diary for selected day: $error");
+    // 오류 발생 시 사용자에게 알림
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to load diary entry. Please try again later.'))
+    );
+  });
+
+
+
+},
+
+
                 calendarBuilders: CalendarBuilders(
                   defaultBuilder: (context, day, focusedDay) {
                     final randomIndex = Random().nextInt(colors.length);

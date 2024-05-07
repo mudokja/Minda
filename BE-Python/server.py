@@ -1,11 +1,10 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-import text_emotion
-import text_keyword
+import text_emotion, text_keyword, text_chatbot
 import mongo_util
 from pydantic import BaseModel
 
@@ -83,5 +82,12 @@ async def analyze_diary(entry: DiaryEntry):
         analyze_dict['keyword'] = await text_keyword.get_keyword(diary_sentences)    #키워드는 어간 추출 리스트 기반
         mongo_util.mongo_insert(mongo_collection,analyze_dict)
         return "success"
+    except Exception as e:
+        return {str(e)}
+    
+@app.get("/api/ai/chatbot")
+def chat_response(input:str):
+    try:
+        return (text_chatbot.chat(input))
     except Exception as e:
         return {str(e)}

@@ -59,122 +59,14 @@
 //   }
 // }
 
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import 'package:diary_fe/src/services/diary_provider.dart';
-// import 'package:diary_fe/src/models/DiaryEntry.dart';
-
-// class DiaryDetailPage extends StatefulWidget {
-//   final DateTime selectedDay;
-
-//   DiaryDetailPage({super.key, DateTime? selectedDay})
-//     : selectedDay = selectedDay ?? DateTime.now();
-
-//   @override
-//   _DiaryDetailPageState createState() => _DiaryDetailPageState();
-// }
-
-// class _DiaryDetailPageState extends State<DiaryDetailPage> {
-//   @override
-//   void initState() {
-//     super.initState();
-//     // 데이터 로드 및 필터링 로직을 초기화
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('${widget.selectedDay.toIso8601String()}의 일기 상세'),
-//       ),
-//       body: Consumer<DiaryProvider>(
-//         builder: (context, provider, child) {
-//           if (provider.isLoading) {
-//             return const Center(child: CircularProgressIndicator());
-//           }
-//           if (provider.entries.isEmpty) {
-//             return const Center(child: Text("No diary entries found"));
-//           }
-//           return ListView.builder(
-//             itemCount: provider.entries.length,
-//             itemBuilder: (context, index) {
-//               DiaryEntry entry = provider.entries[index];
-//               return ListTile(
-//                 title: Text(entry.diaryTitle ?? 'No Title'),
-//                 subtitle: Text("Set on ${entry.diarySetDate}"),
-//                 onTap: () {
-//                   Navigator.push(
-//                     context,
-//                     MaterialPageRoute(
-//                       builder: (context) => DiaryDetailInfoPage(
-//                         selectedDay: DateTime.parse(entry.diarySetDate), // 문자열을 DateTime 객체로 변환
-//                         diaryTitle: entry.diaryTitle,
-//                         diaryContent: entry.diaryContent,
-//                       ),
-//                     ),
-//                   );
-//                 },
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
-
-// class DiaryDetailInfoPage extends StatefulWidget {
-//   final DateTime selectedDay;
-//   final String diaryTitle;
-//   final String diaryContent;
-
-//   const DiaryDetailInfoPage({
-//     super.key,
-//     required this.selectedDay,
-//     required this.diaryTitle,
-//     required this.diaryContent,
-//   });
-
-//   @override
-//   State<DiaryDetailInfoPage> createState() => _DiaryDetailInfoPageState();
-// }
-
-// class _DiaryDetailInfoPageState extends State<DiaryDetailInfoPage> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('일기 상세'),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text(
-//               widget.diaryTitle,
-//               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-//             ),
-//             const SizedBox(height: 20),
-//             Text(
-//               widget.diaryContent,
-//               style: const TextStyle(fontSize: 18),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:diary_fe/src/models/DiaryEntry.dart';
 import 'package:diary_fe/src/services/diary_provider.dart';
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/widgets/background.dart'; // Background 위젯 import
 
 class DiaryDetailPage extends StatefulWidget {
-
   final DateTime selectedDay;
   final String diaryTitle;
   final String diaryContent;
@@ -204,53 +96,88 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     ThemeColors themeColors = ThemeColors(); // 테마 색상 인스턴스
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('일기 상세'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 20, right: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      // appBar: AppBar(
+      //   title: const Text('일기 상세'),
+      // ),
+      body: Stack(
+        children: [
+          const Background(), // 배경 위젯
+          Center( // Center 위젯을 사용하여 중앙에 배치
+          // Padding(
+          //   padding: const EdgeInsets.all(16),
+             child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.9, // 최대 높이 설정
+              ),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9, // 화면의 90% 크기
+              decoration: BoxDecoration(
+                
+                color: Colors.white, // 컨테이너의 배경색
+                borderRadius: BorderRadius.circular(35), // 모서리 둥글게
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3), // 그림자 위치 조정
+                  ),
+                ],
+              ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0), // 내부 여백 추가
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch, // 가로로 꽉 차게
                 children: [
-                  Text(
-                    '작성된 일기',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: themeColors.color2,
+                  Padding(
+                    // padding: const EdgeInsets.only(left: 20, right: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10), // 좌우 여백
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded( // 텍스트가 버튼을 침범하지 않도록 Expanded 사용
+                        child: Text(
+                          '작성된 일기',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: themeColors.color2,
+                          ),
+                        ),
+                        ),
+                        SizedBox(
+                          width: 80, // 너비를 늘림
+                          height: 40, // 높이를 늘림
+                          child: TextButton(
+                            onPressed: _toggleConfirmationView,
+                            child: Text(
+                              '수정하기',
+                              style: TextStyle(
+                                  color: themeColors.color1,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                  
+                      ],
                     ),
                   ),
-                  SizedBox(
-                    width: 80, // 너비를 늘림
-                    height: 40, // 높이를 늘림
-                    child: TextButton(
-                      onPressed: _toggleConfirmationView,
+            
+                  Expanded(
+                    child: SingleChildScrollView(
                       child: Text(
-                        '수정하기',
-                        style: TextStyle(
-                            color: themeColors.color1,
-                            fontWeight: FontWeight.w600),
+                        widget.diaryContent,
+                        style: const TextStyle(fontSize: 18),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  widget.diaryContent,
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+          ),
+          ),
+        ],
       ),
     );
   }

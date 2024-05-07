@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class RadarChartTest extends StatefulWidget {
-  final List<int> emotions;
+  final List<double> emotions;
 
   const RadarChartTest({
     super.key,
@@ -30,7 +30,7 @@ class _RadarChartTestState extends State<RadarChartTest> {
     }
   }
 
-  List<RadarDataSet> _createRadarDataSets(List<int> values) {
+  List<RadarDataSet> _createRadarDataSets(List<double> values) {
     const colors = [
       Color(0xff845EC2),
       Color(0xffD65DB1),

@@ -14,6 +14,7 @@ class AnalysisPage extends StatefulWidget {
 
 class _AnalysisPageState extends State<AnalysisPage> {
   Calendar calendarView = Calendar.day;
+  DateTime selectedDate = DateTime.now();
 
   void updateCalendarView(Calendar newCalendar) {
     setState(() {
@@ -21,12 +22,24 @@ class _AnalysisPageState extends State<AnalysisPage> {
     });
   }
 
+  void updateSelectedDate(DateTime date) {
+    setState(() {
+      selectedDate = date;
+      calendarView = Calendar.day;
+    });
+  }
+
   Widget buildAnalysisPage() {
     switch (calendarView) {
       case Calendar.day:
-        return const DayAnalysisPage();
+        return DayAnalysisPage(
+          date: selectedDate,
+          onDateSelected: updateSelectedDate,
+        );
       case Calendar.week:
-        return const WeekAnalysisPage();
+        return WeekAnalysisPage(
+          onDateSelected: updateSelectedDate,
+        );
       case Calendar.month:
         return const MonthAnalysisPage();
       case Calendar.custom:

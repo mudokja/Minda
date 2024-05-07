@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class BarChartTest extends StatefulWidget {
-  final List<int> emotions;
+  final List<double> emotions;
 
   const BarChartTest({
     super.key,
@@ -30,7 +30,8 @@ class _BarChartTestState extends State<BarChartTest> {
     }
   }
 
-  List<BarChartGroupData> _createBarGroups(List<int> values) {
+  List<BarChartGroupData> _createBarGroups(List<double> values) {
+    debugPrint('${values[0].toDouble()}');
     const colors = [
       Color(0xff845EC2),
       Color(0xffD65DB1),
@@ -83,7 +84,7 @@ class _BarChartTestState extends State<BarChartTest> {
       BarChartData(
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
-        barGroups: _barGroups.isNotEmpty ? _barGroups : [],
+        barGroups: _barGroups,
         barTouchData: _createBarTouchData(),
         titlesData: const FlTitlesData(show: false),
       ),

@@ -11,14 +11,21 @@ import 'package:flutter/material.dart';
 import 'package:mat_month_picker_dialog/mat_month_picker_dialog.dart';
 
 class DayAnalysisPage extends StatefulWidget {
-  const DayAnalysisPage({super.key});
+  final DateTime date;
+  final Function(DateTime) onDateSelected;
+
+  const DayAnalysisPage({
+    super.key,
+    required this.date,
+    required this.onDateSelected,
+  });
 
   @override
   State<DayAnalysisPage> createState() => _DayAnalysisPageState();
 }
 
 class _DayAnalysisPageState extends State<DayAnalysisPage> {
-  DateTime date = DateTime.now();
+  late DateTime date;
   late AnalysisService _analysisService;
   late AdviceService _adviceService;
   Map<String, dynamic> analysisData = {};
@@ -31,6 +38,8 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   @override
   void initState() {
     super.initState();
+    debugPrint('widgetDate = ${widget.date}');
+    date = widget.date;
     _analysisService = AnalysisService();
     _adviceService = AdviceService();
     fetchAnalysisData();
@@ -41,20 +50,26 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
     var data = await _analysisService.fetchData(date, date);
     debugPrint('됨 2');
 
-    try {
-      var adviceData = await _adviceService.fetchAdvice(date);
-      debugPrint('됨 3');
+    if (data['contents'].isNotEmpty) {
+      try {
+        var adviceData = await _adviceService.fetchAdvice(date);
+        debugPrint('됨 3');
 
+        setState(() {
+          analysisData = data;
+          advice = adviceData;
+        });
+      } catch (e) {
+        debugPrint("Error fetching advice: $e");
+        setState(() {
+          analysisData = data;
+        });
+      }
+    } else {
+      debugPrint('일기 없음');
       setState(() {
         analysisData = data;
-        advice = adviceData;
-        debugPrint('analysisData = $analysisData');
-        debugPrint('advice = $advice');
-      });
-    } catch (e) {
-      debugPrint("Error fetching advice: $e");
-      setState(() {
-        analysisData = data;
+        advice = null;
       });
     }
   }
@@ -80,6 +95,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
       } else if (num < 0) {
         date = date.subtract(Duration(days: (-num)));
       }
+      widget.onDateSelected(date);
       fetchAnalysisData();
     });
   }
@@ -119,7 +135,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
             text: sentence,
             style: TextStyle(
               color: Colors.white,
-              backgroundColor: emotionColors[emotion] ?? Colors.grey,
+              backgroundColor: emotionColors[emotion] ?? Colors.transparent,
             ),
           ));
 
@@ -251,8 +267,9 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                 child: BarChartTest(
                   emotions: analysisData['emotions'] != null &&
                           analysisData['emotions'].containsKey(formatDate(date))
-                      ? analysisData['emotions'][formatDate(date)]
-                      : [0, 0, 0, 0, 0],
+                      ? List<double>.from(
+                          analysisData['emotions'][formatDate(date)])
+                      : [0.0, 0.0, 0.0, 0.0, 0.0],
                 ),
               ),
               SizedBox(
@@ -261,8 +278,9 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                 child: RadarChartTest(
                   emotions: analysisData['emotions'] != null &&
                           analysisData['emotions'].containsKey(formatDate(date))
-                      ? analysisData['emotions'][formatDate(date)]
-                      : [0, 0, 0, 0, 0],
+                      ? List<double>.from(
+                          analysisData['emotions'][formatDate(date)])
+                      : [0.0, 0.0, 0.0, 0.0, 0.0],
                 ),
               )
             ],
@@ -305,7 +323,12 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
 }
 
 class WeekAnalysisPage extends StatefulWidget {
-  const WeekAnalysisPage({super.key});
+  final Function(DateTime)? onDateSelected;
+
+  const WeekAnalysisPage({
+    super.key,
+    required this.onDateSelected,
+  });
 
   @override
   State<WeekAnalysisPage> createState() => _WeekAnalysisPageState();
@@ -317,11 +340,17 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
   DateTime endDate = DateTime.now();
   late AnalysisService _analysisService;
   Map<String, dynamic> analysisData = {};
+  String? happiestDate;
+  String? happiestKeyword;
+  String? saddestDate;
+  String? saddestKeyword;
+  late AdviceService _adviceService;
 
   @override
   void initState() {
     super.initState();
     _analysisService = AnalysisService();
+    _adviceService = AdviceService();
     dateRange = DateTimeRange(
       start: startDate,
       end: endDate,
@@ -334,7 +363,64 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
 
     setState(() {
       analysisData = data;
+      findHighestEmotionDates();
     });
+  }
+
+  void navigateToDayAnalysis(DateTime date) {
+    if (widget.onDateSelected != null) {
+      widget.onDateSelected!(date);
+      debugPrint('onDateselected = ${widget.onDateSelected!(date)}');
+      debugPrint('$date');
+    }
+  }
+
+  void findHighestEmotionDates() async {
+    happiestDate = null;
+    happiestKeyword = null;
+    saddestDate = null;
+    saddestKeyword = null;
+
+    analysisData['emotions'].forEach((date, emotions) async {
+      if (emotions != null && emotions.length >= 5) {
+        final happinessValue = emotions[0];
+        final sadnessValue = emotions[1];
+
+        if (happiestDate == null ||
+            happinessValue > analysisData['emotions'][happiestDate]![0]) {
+          happiestDate = date;
+        }
+
+        if (saddestDate == null ||
+            sadnessValue > analysisData['emotions'][saddestDate]![1]) {
+          saddestDate = date;
+        }
+      }
+    });
+
+    if (happiestDate != null) {
+      var advice =
+          await _adviceService.fetchAdvice(DateTime.parse(happiestDate!));
+      if (advice != null && advice.emotions.isNotEmpty) {
+        int happyIndex = advice.emotions.indexOf('기쁨');
+        if (happyIndex != -1) {
+          happiestKeyword = advice.sentences[happyIndex];
+        }
+      }
+    }
+
+    if (saddestDate != null) {
+      var advice =
+          await _adviceService.fetchAdvice(DateTime.parse(saddestDate!));
+      if (advice != null && advice.emotions.isNotEmpty) {
+        int sadIndex = advice.emotions.indexOf('슬픔');
+        if (sadIndex != -1) {
+          saddestKeyword = advice.sentences[sadIndex];
+        }
+      }
+    }
+
+    setState(() {});
   }
 
   void onChangeDate(int numWeeks) {
@@ -393,6 +479,10 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    bool hasEmotions =
+        analysisData['emotions'] != null && analysisData['emotions'].isNotEmpty;
+    bool singleEntry = hasEmotions && analysisData['emotions'].length == 1;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
@@ -440,13 +530,43 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
           const SizedBox(
             height: 50,
           ),
-          SizedBox(
-            width: screenWidth,
-            height: 200,
-            child: LineChartTest(
-              emotionsData: analysisData['emotions'] ?? {},
+          if (hasEmotions)
+            if (singleEntry)
+              Column(
+                children: [
+                  SizedBox(
+                    width: screenWidth / 2.5,
+                    height: 200,
+                    child: BarChartTest(
+                      emotions: List<double>.from(analysisData['emotions']
+                          [analysisData['emotions'].keys.first]),
+                    ),
+                  ),
+                  Text(
+                    '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
+                    style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                ],
+              )
+            else
+              SizedBox(
+                width: screenWidth,
+                height: 200,
+                child: LineChartTest(
+                  emotionsData: analysisData['emotions'],
+                ),
+              )
+          else
+            const Text(
+              '이 주에 작성된 일기가 없습니다...',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
-          ),
           const SizedBox(
             height: 50,
           ),
@@ -489,6 +609,29 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
               )
             ],
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (happiestDate != null && happiestKeyword != null)
+                GestureDetector(
+                  onTap: widget.onDateSelected != null
+                      ? () {
+                          navigateToDayAnalysis(DateTime.parse(happiestDate!));
+                        }
+                      : null,
+                  child: Text('가장 행복했던 날: $happiestDate "$happiestKeyword"'),
+                ),
+              if (saddestDate != null && saddestKeyword != null)
+                GestureDetector(
+                  onTap: widget.onDateSelected != null
+                      ? () {
+                          navigateToDayAnalysis(DateTime.parse(saddestDate!));
+                        }
+                      : null,
+                  child: Text('가장 속상했던 날: $saddestDate "$saddestKeyword"'),
+                ),
+            ],
+          )
         ],
       ),
     );
@@ -504,13 +647,13 @@ class MonthAnalysisPage extends StatefulWidget {
 
 class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
   DateTime date = DateTime.now();
-  late AnalysisService _analysisService;
+  late AnalysisService analysisService;
   Map<String, dynamic> analysisData = {};
 
   @override
   void initState() {
     super.initState();
-    _analysisService = AnalysisService();
+    analysisService = AnalysisService();
   }
 
   void fetchAnalysisData() async {
@@ -522,7 +665,7 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
       endDate = DateTime.now();
     }
 
-    var data = await _analysisService.fetchData(startDate, endDate);
+    var data = await analysisService.fetchData(startDate, endDate);
 
     setState(() {
       analysisData = data;
@@ -641,20 +784,20 @@ class CustomAnalysisPage extends StatefulWidget {
 
 class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
   DateTimeRange? dateRange;
-  late AnalysisService _analysisService;
+  late AnalysisService analysisService;
   Map<String, dynamic> analysisData = {};
 
   @override
   void initState() {
     super.initState();
-    _analysisService = AnalysisService();
+    analysisService = AnalysisService();
   }
 
   void fetchAnalysisData() async {
     if (dateRange == null) return;
 
     var data =
-        await _analysisService.fetchData(dateRange!.start, dateRange!.end);
+        await analysisService.fetchData(dateRange!.start, dateRange!.end);
 
     setState(() {
       analysisData = data;

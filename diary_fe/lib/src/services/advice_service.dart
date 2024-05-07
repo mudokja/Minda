@@ -13,10 +13,10 @@ class AdviceService {
     try {
       debugPrint('여긴 됨');
       var response = await _apiService.get('/api/advice/single?date=$formDate');
-      debugPrint('response Data = ${response.statusCode}');
+      debugPrint('responseData = $response');
+
       if (response.statusCode == 200) {
         var jsonData = response.data;
-        debugPrint('advice json Data = $jsonData');
         return AdviceModel.fromJson(jsonData);
       } else {
         debugPrint('Error occurred: ${response.statusCode}');

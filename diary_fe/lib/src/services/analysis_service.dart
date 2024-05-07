@@ -11,7 +11,7 @@ class AnalysisService {
   ) async {
     String formStartDate = formatDate(startDate);
     String formEndDate = formatDate(endDate);
-    Map<String, List<int>> emotions = {};
+    Map<String, List<double>> emotions = {};
 
     try {
       var response = await _apiService.post('/api/diary/list/period', data: {
@@ -27,8 +27,8 @@ class AnalysisService {
             AnalysisModel model = AnalysisModel.fromJson(item);
             String diaryDate = formatDate(model.diarySetDate);
 
-            List<int> dailyEmotions =
-                emotions.putIfAbsent(diaryDate, () => [0, 0, 0, 0, 0]);
+            List<double> dailyEmotions =
+                emotions.putIfAbsent(diaryDate, () => List.filled(5, 0.0));
 
             dailyEmotions[0] += model.diaryHappiness;
             dailyEmotions[1] += model.diarySadness;

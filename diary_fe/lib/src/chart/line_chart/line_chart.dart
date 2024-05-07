@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class LineChartTest extends StatefulWidget {
-  final Map<String, List<int>> emotionsData;
+  final Map<String, List<double>> emotionsData;
   const LineChartTest({
     super.key,
     required this.emotionsData,
@@ -31,17 +31,23 @@ class _LineChartTestState extends State<LineChartTest> {
 
   List<List<FlSpot>> _createSpots() {
     List<List<FlSpot>> spots = [];
-    widget.emotionsData.forEach((date, emotions) {
+
+    var sortedEntries = widget.emotionsData.entries.toList()
+      ..sort((a, b) => DateTime.parse(a.key).compareTo(DateTime.parse(b.key)));
+    debugPrint('sortedEntries = $sortedEntries');
+    for (var entry in sortedEntries) {
+      List<double> emotions = entry.value;
+      DateTime date = DateTime.parse(entry.key);
       for (int i = 0; i < emotions.length; i++) {
         if (spots.length <= i) {
           spots.add([]);
         }
         spots[i].add(FlSpot(
-          DateTime.parse(date).millisecondsSinceEpoch.toDouble(),
+          date.millisecondsSinceEpoch.toDouble(),
           emotions[i].toDouble(),
         ));
       }
-    });
+    }
     return spots;
   }
 

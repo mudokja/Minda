@@ -78,7 +78,7 @@ public class DiaryService {
         }
 
         Diary diary = diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
-        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex()));
+        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex(), memberIndex));
 
         AnalyzeRequestDto analyzeRequestDto = AnalyzeRequestDto.builder()
                 .diaryIndex(diary.getDiaryIndex())
@@ -176,11 +176,24 @@ public class DiaryService {
         // Diary 엔티티 저장
         diaryRepository.save(diary);
 
+        log.info("Updating diary with index: {}", diaryIndex);
+        log.debug("Updated diary details: {}", diary);
+
         // 해시태그 수정
-        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
-        System.out.println(diaryHashtag);
+//        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
+        Optional<DiaryHashtag> optionalDiaryHashtag = Optional.ofNullable(diaryHashtagRepository.findByDiaryIndex(diaryIndex));
+        DiaryHashtag diaryHashtag = optionalDiaryHashtag.orElseThrow(() -> new RuntimeException("해시태그를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+
+//        System.out.println("DiaryHashtag after find: " + diaryHashtag.getHashtagIndex());
+//        System.out.println("DiaryHashtag after find: " + diaryHashtag.getDiaryIndex());
         diaryHashtag.setHashtagList(diaryUpdateRequestDto.getHashtagList());
+
+//        log.debug("DiaryHashtag before update: {}", diaryHashtag);
+//        System.out.println("DiaryHashtag before update: " + diaryHashtag.getHashtagIndex());
+
         diaryHashtagRepository.save(diaryHashtag);
+//
+//        System.out.println("DiaryHashtag after update: " + diaryHashtag.getHashtagIndex());
     }
 
     //일기 삭제
@@ -251,6 +264,7 @@ public class DiaryService {
     //해시태그로 검색
     public List<DiaryResponseDto> searchDiaryListByHashtag(Long memberIndex, String keyword) {
         List<DiaryHashtag> diaryHashtagList = diaryHashtagRepository.findByMemberIndexAndHashtagListContaining(memberIndex, keyword);
+        System.out.println(diaryHashtagList.get(0).toString());
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for (DiaryHashtag diaryHashtag : diaryHashtagList) {

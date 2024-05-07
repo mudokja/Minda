@@ -11,7 +11,6 @@ public interface DiaryHashtagRepository extends MongoRepository<DiaryHashtag, St
 
     void deleteByDiaryIndex(Long diaryIndex);
 
-    @Query("{ 'memberIndex': ?1, 'hashtagList': { $regex: ?0, $options: 'i' } }")
+    @Query("{ 'memberIndex': ?0, 'hashtagList': { $regex: ?1, $options: 'i' } }")
     List<DiaryHashtag> findByMemberIndexAndHashtagListContaining(Long memberIndex, String keyword);
-
 }

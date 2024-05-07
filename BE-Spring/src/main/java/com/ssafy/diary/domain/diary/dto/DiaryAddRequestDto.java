@@ -43,9 +43,10 @@ public class DiaryAddRequestDto {
                 .build();
     }
 
-    public DiaryHashtag hashtagToDocument(Long diaryIndex) {
+    public DiaryHashtag hashtagToDocument(Long diaryIndex, Long memberIndex) {
         return DiaryHashtag.builder()
                 .diaryIndex(diaryIndex)
+                .memberIndex(memberIndex)
                 .hashtagList(hashtagList)
                 .build();
     }

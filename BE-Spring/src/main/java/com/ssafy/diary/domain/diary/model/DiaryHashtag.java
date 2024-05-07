@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
 
@@ -14,12 +15,16 @@ import java.util.List;
 public class DiaryHashtag {
 
     @Id
+//    @Field(name="hashtag_index")
     private String hashtagIndex;
 
+    @Field(name="member_index")
     private Long memberIndex;
 
+    @Field(name="diary_index")
     private Long diaryIndex;
 
+    @Field(name="hashtag_list")
     private List<String> hashtagList;
 
     @Builder

@@ -21,6 +21,7 @@ class LoginModal extends StatefulWidget {
 class _LoginModalState extends State<LoginModal> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
+  bool _isButtonEnabled = true;
   final storage = const FlutterSecureStorage();
   Future<void> login() async {
     if (_idController.text.isEmpty || _pwController.text.isEmpty) {
@@ -75,6 +76,20 @@ class _LoginModalState extends State<LoginModal> {
     );
   }
 
+  void _handleButtonClick() {
+    setState(() {
+      _isButtonEnabled = false; // 버튼 비활성화
+    });
+    login();
+
+    // 2초 후에 버튼을 다시 활성화
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _isButtonEnabled = true; // 버튼 활성화
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     ThemeColors themeColors = ThemeColors();
@@ -110,7 +125,7 @@ class _LoginModalState extends State<LoginModal> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: login,
+                      onPressed: _isButtonEnabled ? _handleButtonClick : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColors.color1, // 버튼 색상
                         shape: RoundedRectangleBorder(

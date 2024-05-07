@@ -32,11 +32,16 @@ class _SignUpModalState extends State<SignUpModal> {
   String _emailError = '';
   String _pwError = '';
   String _pw2Error = '';
-  bool _isVerified = false; // 이메일 인증 성공 여부
+  String _nicknameError = '';
+  bool _isVerified = false;
+  bool _isButtonEnabled = true;
+
   Timer? _timer; // 타이머
   int _remainingTime = 300; // 초 단위, 5분
   bool _isCodeSent = false;
   String verificationId = '';
+  String _idSuccessMessage = '';
+  String _idErrorMessage = '';
 
   @override
   void initState() {
@@ -45,6 +50,7 @@ class _SignUpModalState extends State<SignUpModal> {
     _emailController.addListener(_validateEmail);
     _pwController.addListener(_validatePassword);
     _pw2Controller.addListener(_validatePasswordConfirmation);
+    _nicknameController.addListener(_validateNickname);
   }
 
   void _validateId() {
@@ -84,10 +90,14 @@ class _SignUpModalState extends State<SignUpModal> {
 
   void _validatePassword() {
     final password = _pwController.text;
+
+    // 정규 표현식: 영문자와 숫자를 각각 하나 이상 포함해야 함
+    final passwordRegex = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
+
     if (password.isEmpty) {
       _setPasswordError(null);
-    } else if (password.length < 8) {
-      _setPasswordError('비밀번호는 최소 8자 이상이어야 합니다.');
+    } else if (!passwordRegex.hasMatch(password)) {
+      _setPasswordError('비밀번호는 최소 8자 이상이어야 하며,\n영문자와 숫자를 모두 포함해야 합니다.');
     } else {
       _setPasswordError(null);
     }
@@ -129,6 +139,8 @@ class _SignUpModalState extends State<SignUpModal> {
     _pwController.dispose();
     _pw2Controller.removeListener(_validatePasswordConfirmation);
     _pw2Controller.dispose();
+    _nicknameController.removeListener(_validateNickname);
+    _nicknameController.dispose();
     super.dispose();
   }
 
@@ -202,7 +214,6 @@ class _SignUpModalState extends State<SignUpModal> {
           "email": _emailController.text,
         },
       );
-      print(response.statusCode);
 
       if (response.statusCode == 201) {
         await login();
@@ -263,6 +274,56 @@ class _SignUpModalState extends State<SignUpModal> {
     }
   }
 
+  void idDuplicate() async {
+    ApiService apiService = ApiService();
+    Response response = await apiService.get(
+      '/api/member/check?id=${_idController.text}',
+    );
+    if (response.statusCode == 200) {
+      setState(() {
+        _idSuccessMessage = '사용가능한 아이디에요.';
+        _idErrorMessage = '';
+      });
+    } else {
+      setState(() {
+        _idErrorMessage = '중복되는 아이디가 있어요.';
+        _idSuccessMessage = '';
+      });
+    }
+  }
+
+  void _validateNickname() {
+    final nickname = _nicknameController.text;
+
+    if (nickname.isEmpty) {
+      _setNicknameError(null);
+    } else if (nickname.length > 8) {
+      _setNicknameError('닉네임은 8자 이내로 입력해야 합니다.');
+    } else {
+      _setNicknameError(null);
+    }
+  }
+
+  void _setNicknameError(String? error) {
+    setState(() {
+      _nicknameError = error ?? '';
+    });
+  }
+
+  void _handleButtonClick() {
+    setState(() {
+      _isButtonEnabled = false; // 버튼 비활성화
+    });
+    signUp();
+
+    // 2초 후에 버튼을 다시 활성화
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _isButtonEnabled = true; // 버튼 활성화
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     ThemeColors themeColors = ThemeColors();
@@ -297,6 +358,36 @@ class _SignUpModalState extends State<SignUpModal> {
                       title: '아이디',
                       controller: _idController,
                       errorText: _idError.isNotEmpty ? _idError : null,
+                      suffix: IconButton(
+                        onPressed: _idError == '' && _idController.text != ''
+                            ? idDuplicate
+                            : null,
+                        icon: Text(
+                          '중복검사하기',
+                          style: TextStyle(color: themeColors.color1),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        if (_idSuccessMessage.isNotEmpty)
+                          Text(
+                            _idSuccessMessage,
+                            style: const TextStyle(color: Colors.green),
+                          ),
+                        if (_idErrorMessage.isNotEmpty)
+                          Text(
+                            _idErrorMessage,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 20),
                     TextForm(
@@ -379,6 +470,8 @@ class _SignUpModalState extends State<SignUpModal> {
                     TextForm(
                       title: '닉네임',
                       controller: _nicknameController,
+                      errorText:
+                          _nicknameError.isNotEmpty ? _nicknameError : null,
                     ),
                     const SizedBox(height: 30),
                     SizedBox(
@@ -386,7 +479,8 @@ class _SignUpModalState extends State<SignUpModal> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate() &&
-                              _isVerified) {
+                              _isVerified &&
+                              _isButtonEnabled) {
                             signUp();
                           }
                         },

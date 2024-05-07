@@ -17,6 +17,7 @@ public class AnalyzeService {
     private final AnalyzeRepository analyzeRepository;
     @Qualifier("webClient")
     private final WebClient webClient;
+    private final WebClient webClient2;
 
     public Mono<String> addAnalyze(AnalyzeRequestDto analyzeRequestDto){
         return requestAnalyzeToFastAPI(analyzeRequestDto);

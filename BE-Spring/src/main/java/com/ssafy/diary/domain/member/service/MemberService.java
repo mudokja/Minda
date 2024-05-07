@@ -1,22 +1,29 @@
 package com.ssafy.diary.domain.member.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import com.ssafy.diary.domain.member.dto.MemberInfoResponseDto;
-import com.ssafy.diary.domain.member.dto.MemberModifyRequestDto;
-import com.ssafy.diary.domain.member.dto.MemberOauth2RegisterRequestDto;
-import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
+import com.ssafy.diary.domain.member.dto.*;
 import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
+import com.ssafy.diary.domain.refreshToken.repository.RefreshTokenRepository;
 import com.ssafy.diary.global.constant.AuthType;
 import com.ssafy.diary.global.constant.Role;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.pulsar.PulsarProperties;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,20 +31,28 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
     final private MemberRepository memberRepository;
     final private PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
+    @Value("${app.oatuh2.kakao.unlink.key}")
+    private String kakaoUnlinkKey;
+    @Value("${app.oatuh2.kakao.unlink.url}")
+    private String kakaoUnlinkUrl;
+    @Value("${app.oatuh2.kakao.unlink.type}")
+    private String kakaoUnlinkType;
 
     @Transactional
-    public void updateMemberPassword(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws BadRequestException {
+    public void updateMemberPassword(Long memberIndex, MemberUpdatePasswordRequestDto memberUpdatePasswordRequestDto) throws BadRequestException {
         Member member= getMemberCheck(memberIndex);
-        if(!passwordEncoder.matches(member.getPassword(),memberModifyRequestDto.getMemberOldPassword()))
+        if(!passwordEncoder.matches(member.getPassword(), memberUpdatePasswordRequestDto.getMemberOldPassword()))
         {
             throw new BadRequestException("member password incorrect");
         }
-        member.setPassword(passwordEncoder.encode(memberModifyRequestDto.getMemberNewPassword()));
+        member.setPassword(passwordEncoder.encode(memberUpdatePasswordRequestDto.getMemberNewPassword()));
     }
-
-    public void updateMemberInfo(Long memberIndex, MemberModifyRequestDto memberModifyRequestDto) throws NotFoundException {
+    @Transactional
+    public void updateMemberInfo(Long memberIndex, MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) throws NotFoundException {
         Member member= getMemberCheck(memberIndex);
-        member.setNickname(member.getNickname());
+        member.setNickname(memberInfoUpdateRequestDto.getMemberNickname());
+
     }
     @Transactional(readOnly = true)
     public Member getMemberCheck(Long memberIndex) {
@@ -92,6 +107,30 @@ public class MemberService {
         return memberRepository.existsByIdAndPlatform(
                 memberId, platform
         );
+    }
+    @Transactional
+    public void deleteMember(Long memberIndex){
+        Member member= memberRepository.findByIndexAndIsDeletedFalse(memberIndex)
+                .orElseThrow(()->new UsernameNotFoundException("member not found"));
+        member.setIsDeleted(true);
+        if(member.getPlatform().equals(AuthType.KAKAO)) {
+            WebClient webClient
+                    = WebClient.builder().baseUrl(kakaoUnlinkUrl).build();
+            Map<String, Object> body = new HashMap<>();
+            body.put("target_id_type","user_id");
+            body.put("target_id",member.getIndex());
+            webClient.post()
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .header("Authorization",kakaoUnlinkType+" "+kakaoUnlinkKey)
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(Reader.class)
+                    .doOnNext(response -> {
+                        System.out.println("Response from External API: " + body);
+                        // 받은 데이터 처리하는 로직
+                    });
+        }
+        memberRepository.deleteById(memberIndex);
     }
 
     public MemberInfoResponseDto getMemberInfo(Long memberIndex){

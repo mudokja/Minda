@@ -20,7 +20,7 @@ class BERTClassifier(nn.Module):
     def __init__(self,
                  bert,
                  hidden_size = 768,
-                 num_classes=7, #감정 개수로 변경
+                 num_classes=6, #감정 개수로 변경
                  dr_rate=None,
                  params=None):
         super(BERTClassifier, self).__init__()

@@ -24,11 +24,9 @@ import java.util.*;
 public class AdviceService {
 
     private final DiaryRepository diaryRepository;
-    private final AdviceRepository adviceRepository;
     private final AnalyzeRepository analyzeRepository;
 
     private String[] emotionArray = {"중립","분노","슬픔","놀람","불안","기쁨"};
-
 
     @Transactional
     public SingleAdviceResponseDto getAdvice(Long memberIndex, SingleAdviceRequestDto singleAdviceRequestDto){
@@ -53,23 +51,7 @@ public class AdviceService {
             emotionList.add(emotionArray[maxIndex]);
         }
         HashMap<String,Double> statusMap = new HashMap<>();
-        if(diary.getDiaryHappiness() == null){
-            double[] sumArray = new double[5];
-            for(Double[] value:emotion.values()){
-                for(int i=1;i<value.length;i++){
-                    sumArray[i-1] += value[i];
-                }
-            }
-            log.info("array={}", Arrays.toString(sumArray));
-            log.info("sentence={}",analyze.getSentence().length);
-            for(int i=0;i<sumArray.length;i++)
-                sumArray[i]/=analyze.getSentence().length;
-            diary.setDiaryAnger(sumArray[0]);
-            diary.setDiarySadness(sumArray[1]);
-            diary.setDiarySurprise(sumArray[2]);
-            diary.setDiaryFear(sumArray[3]);
-            diary.setDiaryHappiness(sumArray[4]);
-        }
+
         statusMap.put("분노",diary.getDiaryAnger());
         statusMap.put("슬픔",diary.getDiarySadness());
         statusMap.put("놀람",diary.getDiarySurprise());
@@ -90,29 +72,6 @@ public class AdviceService {
         HashMap<String,Double> statusMap = new HashMap<>();
 
         for(Diary diary: diaryList) {
-            if(diary.getDiaryHappiness() == null){
-                Long diaryIndex = diary.getDiaryIndex();
-                Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
-                        .orElseThrow(()-> new IllegalStateException("분석 결과가 없습니다."));
-
-                HashMap<String,Double[]> emotion = analyze.getEmotion();
-
-                double[] sumArray = new double[5];
-                for(Double[] value:emotion.values()){
-                    for(int i=1;i<value.length;i++){
-                        sumArray[i-1] += value[i];
-                    }
-                }
-                log.info("array={}", Arrays.toString(sumArray));
-                log.info("sentence={}",analyze.getSentence().length);
-                for(int i=0;i<sumArray.length;i++)
-                    sumArray[i]/=analyze.getSentence().length;
-                diary.setDiaryAnger(sumArray[0]);
-                diary.setDiarySadness(sumArray[1]);
-                diary.setDiarySurprise(sumArray[2]);
-                diary.setDiaryFear(sumArray[3]);
-                diary.setDiaryHappiness(sumArray[4]);
-            }
 
             // statusMap에 각 다이어리의 감정값을 누적하여 넣습니다.
             statusMap.put("분노", statusMap.getOrDefault("분노", 0.0) + diary.getDiaryAnger());

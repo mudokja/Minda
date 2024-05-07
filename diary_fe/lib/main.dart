@@ -1,6 +1,8 @@
+import 'package:diary_fe/firebase_options.dart';
 import 'package:diary_fe/src/screens/intro_page.dart';
 import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:diary_fe/src/screens/diary_list_page.dart';
@@ -12,8 +14,12 @@ import 'package:diary_fe/src/services/services_initializer.dart'; // setup.dart 
 import 'package:flutter/material.dart';
 import 'package:diary_fe/src/services/services_initializer.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // runApp() 호출 전 Flutter SDK 초기화
   KakaoSdk.init(

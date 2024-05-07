@@ -103,7 +103,7 @@ public class DiaryController {
     }
 
     //일기 검색(해시태그)
-    @Operation(summary = "일기 검색(해시태그)", description = "미완성. 검색 방법 고민. 예를 들어 '싸피'를 검색했을 때 정확하게 '싸피'라는 해시태그가 있는 일기만 검색되어야 하는지, '싸피데이'같이 '싸피'라는 키워드를 포함하는 해시태그가 존재하는 일기도 함께 검색되어야 하는지?")
+    @Operation(summary = "일기 검색(해시태그)", description = "'싸피'를 검색했을 때 정확하게 '싸피'라는 해시태그가 있는 일기만 검색됨. 해시태그를 카테고리 느낌으로 사용")
     @GetMapping("search/hashtag")
     public ResponseEntity<List<DiaryResponseDto>> getDiaryListByHashTag(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();

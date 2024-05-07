@@ -37,7 +37,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
 
   Future<void> sendContent() async {
     try {
-      Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze');
+      Response response =
+          await dio.get('https://k10b205.p.ssafy.io/api/analyze');
       // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
       Navigator.push(
         context,
@@ -231,30 +232,25 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           ),
                         ),
                       ),
-
-                    // Expanded(
-                    //   child: buildExistingWidgets(), // 기존 위젯 구성 함수 호출
-                    // ),
-Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 50),
-                    // child: SizedBox(
-                    //   width: 100, // 버튼의 너비
-                    //   height: 50, // 버튼의 높이
-                      child: ElevatedButton(
-                        onPressed: sendContent,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: themeColors.color1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      const SizedBox(height: 25,),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 50),
+                        child: ElevatedButton(
+                          onPressed: sendContent,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: themeColors.color1,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
-                        ),
                           child: const Text(
                             '일기 분석 보기',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
-                      // ),
-),
+                      ),
                     ],
                   ),
                 ),
@@ -266,8 +262,6 @@ Container(
     );
   }
 }
-
-
 
 class NotebookHolesPainter extends CustomPainter {
   final double lineSpacing;
@@ -288,7 +282,7 @@ class NotebookHolesPainter extends CustomPainter {
     }
   }
 
-  @override 
+  @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 

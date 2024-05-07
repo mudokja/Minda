@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -8,6 +8,9 @@ import text_emotion
 import text_keyword
 import mongo_util
 from pydantic import BaseModel
+from typing import Optional
+from transformers import PreTrainedTokenizerFast, GPT2LMHeadModel
+import torch
 
 print("호출: server.py")
 
@@ -83,5 +86,15 @@ async def analyze_diary(entry: DiaryEntry):
         analyze_dict['keyword'] = await text_keyword.get_keyword(diary_sentences)    #키워드는 어간 추출 리스트 기반
         mongo_util.mongo_insert(mongo_collection,analyze_dict)
         return "success"
+    except Exception as e:
+        return {str(e)}
+    
+@app.get("/api/ai/chatbot")
+def chat_response(query: str = Query(default="", description="Input sentence for the chatbot")):
+    try:
+        print(input)
+        # print(kogpt2_chatbot.chat(input))
+        # return kogpt2_chatbot.predict(input)
+        # print(chat_model.chat(quey))
     except Exception as e:
         return {str(e)}

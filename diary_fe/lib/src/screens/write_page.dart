@@ -12,8 +12,8 @@ class Write extends StatefulWidget {
   // const Write({super.key});
   final DateTime selectedDay; // selectedDay 정의
 
-  const Write({super.key, required this.selectedDay}); // 생성자를 통해 selectedDay를 받음
-
+  const Write(
+      {super.key, required this.selectedDay}); // 생성자를 통해 selectedDay를 받음
 
   @override
   State<Write> createState() => _WriteState();
@@ -76,7 +76,7 @@ class _WriteState extends State<Write> {
   bool showConfirmation = false;
 
 ////////////////////////
-@override
+  @override
   void initState() {
     super.initState();
     selectedDate = widget.selectedDay; // 페이지를 열 때 전달받은 날짜를 사용
@@ -88,7 +88,6 @@ class _WriteState extends State<Write> {
     // 예: diaryController.text = fetchedDiaryContent;
   }
 /////////////////////////////
-
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -131,7 +130,7 @@ class _WriteState extends State<Write> {
       ]
     };
     // diaryAddRequestDto JSON 객체를 FormData에 추가
-    formData.fields.add(MapEntry("diaryAddRequestDto", json.encode(diaryData)));
+    formData.fields.add(MapEntry("data", json.encode(diaryData)));
 
     formData.fields.add(const MapEntry("imageFiles", "string"));
 

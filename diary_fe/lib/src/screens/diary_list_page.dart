@@ -1,3 +1,4 @@
+import 'package:diary_fe/src/screens/diary_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:diary_fe/src/services/diary_provider.dart';
@@ -6,7 +7,6 @@ import 'package:diary_fe/src/services/diary_api_service.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/calendar_dialog.dart';
 import 'package:diary_fe/src/utils/dotted_line_painter.dart';
-import 'package:diary_fe/src/widgets/diary_detail_page.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
 
 // DiaryListPage 스테이트풀 위젯

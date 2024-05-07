@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler(AlreadyExistsMemberException.class)
     public ResponseEntity<String> handleAlreadyExistsMemberException(AlreadyExistsMemberException exception){
-        log.error("{} : AlreadyExistsMember", exception.getCause().toString());
+        log.error("{} : AlreadyExistsMember", exception.getMessage());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(exception.getMessage());
@@ -49,6 +49,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<String> handleBadRequestException(RuntimeException exception) {
         log.error("BadRequestException: ", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    }
+    @ExceptionHandler(EmailException.class)
+    public ResponseEntity<String> handleEmailException(RuntimeException exception) {
+        log.error("EmailException: ", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
     }
 }

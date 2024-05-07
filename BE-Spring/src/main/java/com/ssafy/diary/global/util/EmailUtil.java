@@ -47,8 +47,8 @@ public class EmailUtil {
     }
 
     public static String generateCode() {
-        String charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        int stringLength = 8;
+        String charSet = "0123456789";
+        int stringLength = 6;
         StringBuilder sb = new StringBuilder();
         SecureRandom random = new SecureRandom();
         for (int i = 0; i < stringLength; i++) {

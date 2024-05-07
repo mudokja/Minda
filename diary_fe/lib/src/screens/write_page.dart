@@ -9,7 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Write extends StatefulWidget {
-  const Write({super.key});
+  // const Write({super.key});
+  final DateTime selectedDay; // selectedDay 정의
+
+  const Write({super.key, required this.selectedDay}); // 생성자를 통해 selectedDay를 받음
+
 
   @override
   State<Write> createState() => _WriteState();
@@ -70,6 +74,21 @@ class _WriteState extends State<Write> {
   TextEditingController diaryController = TextEditingController();
   TextEditingController titleController = TextEditingController();
   bool showConfirmation = false;
+
+////////////////////////
+@override
+  void initState() {
+    super.initState();
+    selectedDate = widget.selectedDay; // 페이지를 열 때 전달받은 날짜를 사용
+    loadDiaryData(); // 이 함수에서 API 호출 등을 통해 데이터 로드
+  }
+
+  void loadDiaryData() {
+    // API 호출 등을 통해 selectedDate에 해당하는 일기 데이터를 로드하는 로직
+    // 예: diaryController.text = fetchedDiaryContent;
+  }
+/////////////////////////////
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(

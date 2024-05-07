@@ -1,4 +1,5 @@
 import 'package:diary_fe/firebase_options.dart';
+import 'package:diary_fe/src/models/notification.dart';
 import 'package:diary_fe/src/screens/intro_page.dart';
 import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
@@ -43,7 +44,6 @@ void initializeNotification() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
   initializeNotification();
 
   await Firebase.initializeApp(

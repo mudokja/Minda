@@ -1,6 +1,7 @@
 package com.ssafy.diary.domain.diary.service;
 
 import com.ssafy.diary.domain.analyze.dto.AnalyzeRequestDto;
+import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.service.AnalyzeService;
 import com.ssafy.diary.domain.diary.dto.DiaryAddRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;
@@ -14,6 +15,7 @@ import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,12 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
@@ -86,6 +87,8 @@ public class DiaryService {
 
         analyzeService.addAnalyze(analyzeRequestDto).subscribe(body -> {
             //감정 수치 조정해서 postgreSQL에 저장하는 메서드 호출
+            analyzeService.calculateEmotionPoints(diary);
+            diaryRepository.save(diary);
         });
     }
 

@@ -4,13 +4,9 @@ from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-import text_emotion
-import text_keyword
+import text_emotion, text_keyword, text_chatbot
 import mongo_util
 from pydantic import BaseModel
-from typing import Optional
-from transformers import PreTrainedTokenizerFast, GPT2LMHeadModel
-import torch
 
 print("호출: server.py")
 
@@ -90,11 +86,8 @@ async def analyze_diary(entry: DiaryEntry):
         return {str(e)}
     
 @app.get("/api/ai/chatbot")
-def chat_response(query: str = Query(default="", description="Input sentence for the chatbot")):
+def chat_response(input:str):
     try:
-        print(input)
-        # print(kogpt2_chatbot.chat(input))
-        # return kogpt2_chatbot.predict(input)
-        # print(chat_model.chat(quey))
+        return (text_chatbot.chat(input))
     except Exception as e:
         return {str(e)}

@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLException;
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -55,5 +57,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleEmailException(RuntimeException exception) {
         log.error("EmailException: ", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    }
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<String> handleSQLException(RuntimeException exception) {
+        log.error("SQLException: ", exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
     }
 }

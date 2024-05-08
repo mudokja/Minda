@@ -4,13 +4,13 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class FCMNotificationMessageRequestDto {
-    private String targetToken;
+public class FirebaseNotificationMessageRequestDto {
+    private Long memberIndex;
     private String title;
     private String body;
     @Builder
-    public FCMNotificationMessageRequestDto(String targetToken, String title, String body) {
-        this.targetToken = targetToken;
+    public FirebaseNotificationMessageRequestDto(Long memberIndex, String title, String body) {
+        this.memberIndex = memberIndex;
         this.title = title;
         this.body = body;
     }

@@ -43,13 +43,12 @@ void initializeNotification() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  initializeNotification();
-
+  // await Firebase.initializeApp();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   FirebaseAnalytics.instance.logAppOpen();
+  initializeNotification();
 
   // runApp() 호출 전 Flutter SDK 초기화
   KakaoSdk.init(
@@ -96,7 +95,22 @@ class _HomePageState extends State<HomePage> {
   var messageString = "";
 
   void getMyDeviceToken() async {
-    final token = await FirebaseMessaging.instance.getToken();
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
+    final token = await FirebaseMessaging.instance.getToken(
+        vapidKey:
+            'BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4bhIXx_WVyruYsVJ6IP3g9F7g02QfhFzA');
 
     print("내 디바이스 토큰: $token");
   }

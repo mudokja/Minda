@@ -16,7 +16,11 @@ class ApiService {
           return handler.next(options);
         },
         onError: (DioException error, handler) {
-          // 에러 발생시 처리하는 부분
+          // if (error.response?.statusCode == 400) {
+          //   return handler.next(error);
+          // }
+
+          return handler.next(error);
         },
       ),
     );

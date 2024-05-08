@@ -7,6 +7,7 @@ import 'package:diary_fe/src/services/diary_api_service.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/calendar_dialog.dart';
 import 'package:diary_fe/src/utils/dotted_line_painter.dart';
+import 'package:diary_fe/src/screens/diary_detail_page.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
 
 // DiaryListPage 스테이트풀 위젯
@@ -200,6 +201,10 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                         selectedDay: DateTime.parse(
                                             currentPageEntries[index]
                                                 .diarySetDate), // 일기 날짜를 DateTime 객체로 변환
+                                        diaryTitle: currentPageEntries[index]
+                                            .diaryTitle, // 일기 제목을 전달
+                                        diaryContent: currentPageEntries[index]
+                                            .diaryContent, // 일기 내용을 전달
                                       ),
                                     ),
                                   );

@@ -5,7 +5,7 @@ class DiaryEntry {
   final String diarySetDate;
   final String diaryTitle;
   final String diaryContent;
-  final int diaryHappiness, diarySadness, diaryFear, diaryAnger, diarySurprise;
+  final double diaryHappiness, diarySadness, diaryFear, diaryAnger, diarySurprise;
   final List<DiaryImage> imageList;
   final List<String> hashtagList;
 

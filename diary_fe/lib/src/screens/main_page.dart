@@ -2,6 +2,7 @@ import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 class MainPage extends StatelessWidget {
@@ -41,78 +42,84 @@ class MainPage extends StatelessWidget {
       body: Stack(
         children: <Widget>[
           const Background(),
-          Center(
-            child: SizedBox(
-              width: 500, // 전체 너비를 500으로 제한합니다.
-              child: Padding(
-                padding:
-                    const EdgeInsets.all(10), // 패딩을 조금 추가하여 화면 너비를 넘지 않도록 합니다.
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    SizedBox(
-                      height: 200,
-                      width: 200,
-                      child: Image.asset('assets/images/main_moon.png'),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 30),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '어서오세요 ${userProvider.user.nickname}님!',
-                            style: const TextStyle(
-                              fontSize: 19,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          const Text(
-                            '오늘 하루는 어떠셨나요?',
-                            style: TextStyle(
-                              fontSize: 19,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          ElevatedButton(
-                              onPressed: () {
-                                showWritingPage(context);
-                              },
-                              child: const Text(
-                                '일기 쓰기',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              )),
-                          const SizedBox(
-                            height: 80,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              SizedBox(
-                                width: 200,
-                                height: 200,
-                                child: Image.asset('assets/gifs/rabbit.gif'),
-                              ),
-                            ],
-                          ),
-                        ],
+          SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: 500,
+                height: 800,
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                      10), // 패딩을 조금 추가하여 화면 너비를 넘지 않도록 합니다.
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const SizedBox(
+                        height: 50,
                       ),
-                    )
-                  ],
+                      SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: Image.asset('assets/images/main_moon.png'),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 30),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '어서오세요 ${userProvider.user.nickname}님!',
+                              style: const TextStyle(
+                                fontSize: 19,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            const Text(
+                              '오늘 하루는 어떠셨나요?',
+                              style: TextStyle(
+                                fontSize: 19,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 15,
+                            ),
+                            ElevatedButton(
+                                onPressed: () {
+                                  showWritingPage(context);
+                                },
+                                child: const Text(
+                                  '일기 쓰기',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                )),
+                            const SizedBox(
+                              height: 100,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                SizedBox(
+                                  width: 200,
+                                  height: 200,
+                                  child: Image.asset('assets/gifs/rabbit.gif'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),

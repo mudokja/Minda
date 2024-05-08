@@ -6,6 +6,7 @@ import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 class Write extends StatefulWidget {
@@ -76,21 +77,22 @@ class _WriteState extends State<Write> {
   bool showConfirmation = false;
   bool complete = false;
   int lastNewLineIndex = 0;
+  String chatbotmessage = '줄바꿈을 할 때마다 저와 대화할 수 있어요!';
 
 ////////////////////////
   @override
   void initState() {
     super.initState();
     diaryController.addListener(_handleTextInputChange);
-    diaryController.addListener(() {
-      final String text = diaryController.text;
-      diaryController.value = diaryController.value.copyWith(
-        text: text,
-        selection:
-            TextSelection(baseOffset: text.length, extentOffset: text.length),
-        composing: TextRange.empty,
-      );
-    });
+    // diaryController.addListener(() {
+    //   final String text = diaryController.text;
+    //   diaryController.value = diaryController.value.copyWith(
+    //     text: text,
+    //     selection:
+    //         TextSelection(baseOffset: text.length, extentOffset: text.length),
+    //     composing: TextRange.empty,
+    //   );
+    // });
     selectedDate = widget.selectedDay; // 페이지를 열 때 전달받은 날짜를 사용
   }
 
@@ -116,9 +118,19 @@ class _WriteState extends State<Write> {
 
   Future<void> _sendTextToAPI(String text) async {
     // 여기에 API 요청 로직을 구현하세요.
-    print("Sending to API: $text");
+
     ApiService apiService = ApiService();
-    // await apiService.get('/api/ai/chatbot')
+    Response response = await apiService.get('/api/ai/chatbot?input=$text');
+    print(response.data);
+    if (response.data == '0') {
+      setState(() {
+        chatbotmessage = '너무 짧은 대화에는 답변할 수 없어요..';
+      });
+    } else {
+      setState(() {
+        chatbotmessage = response.data;
+      });
+    }
 
     // 예를 들어, HTTP 클라이언트를 사용한 요청:
     // final response = await http.post('https://your.api.url/diary', body: {'text': text});
@@ -210,7 +222,11 @@ class _WriteState extends State<Write> {
         child: Padding(
           padding: const EdgeInsets.only(top: 20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(
+                height: 50,
+              ),
               Text(
                 '일기 저장이 완료되었어요!',
                 style: TextStyle(
@@ -220,14 +236,14 @@ class _WriteState extends State<Write> {
               ),
               Image.asset('assets/gifs/analyze2.gif'),
               Text(
-                '작성한 일기 분량에 따라 분석시간이 조금 소요될 수 있어요',
+                '작성한 일기 분량에 따라 분석시간이\n조금 소요될 수 있어요.',
                 style: TextStyle(
                     color: themeColors.color1,
                     fontSize: 15,
                     fontWeight: FontWeight.w600),
               ),
               Text(
-                '분석이 완료되면 알림을 보내드릴게요',
+                '분석이 완료되면 알림을 보내드릴게요!',
                 style: TextStyle(
                     color: themeColors.color1,
                     fontSize: 15,
@@ -316,7 +332,7 @@ class _WriteState extends State<Write> {
       SingleChildScrollView(
         child: SizedBox(
           height: keyboardHeight == 0
-              ? modalHeight / 2
+              ? modalHeight * 2 / 5
               : modalHeight / 2 - keyboardHeight * 2 / 3,
           child: TextField(
             controller: diaryController,
@@ -333,8 +349,39 @@ class _WriteState extends State<Write> {
       const SizedBox(
         height: 20,
       ),
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200], // 밝은 회색 배경색 설정
+
+          borderRadius: BorderRadius.circular(12), // 모서리 둥글게 만들기
+        ),
+        padding: const EdgeInsets.all(8.0), // 내부 패딩을 넣어 테두리와 콘텐츠 사이 간격을 줌
+        child: Row(
+          children: [
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: Image.asset('assets/gifs/chick.gif'),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: Text(
+                chatbotmessage,
+                style: const TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(
+        height: 20,
+      ),
       SizedBox(
-        width: modalWidth * 0.8,
+        width: modalWidth,
         child: ElevatedButton(
           onPressed: _toggleConfirmationView,
           style: ElevatedButton.styleFrom(

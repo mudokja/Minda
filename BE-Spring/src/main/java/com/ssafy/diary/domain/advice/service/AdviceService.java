@@ -4,8 +4,6 @@ import com.ssafy.diary.domain.advice.dto.AdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.AdviceResponseDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceResponseDto;
-import com.ssafy.diary.domain.advice.entity.Advice;
-import com.ssafy.diary.domain.advice.repository.AdviceRepository;
 import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.diary.entity.Diary;

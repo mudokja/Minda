@@ -1,7 +1,6 @@
 package com.ssafy.diary.domain.diary.service;
 
 import com.ssafy.diary.domain.analyze.dto.AnalyzeRequestDto;
-import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.service.AnalyzeService;
 import com.ssafy.diary.domain.diary.dto.DiaryAddRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;

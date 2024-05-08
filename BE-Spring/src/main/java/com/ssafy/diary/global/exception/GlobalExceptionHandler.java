@@ -28,6 +28,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(exception.getMessage());
     }
+    @ExceptionHandler(UnauthorizedDiaryAccessException.class)
+    public ResponseEntity<String> handleUnauthorizedAccessException(UnauthorizedDiaryAccessException exception){
+        log.error("{} : UnauthorizedDiaryAccessException");
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(exception.getMessage());
+    }
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException exception) {
         log.error("Runtime exception: ", exception);

@@ -14,6 +14,7 @@ import com.ssafy.diary.domain.diary.repository.DiaryHashtagRepository;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
+import com.ssafy.diary.global.exception.UnauthorizedDiaryAccessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -114,9 +115,14 @@ public class DiaryService {
 //    }
 
     //일기 조회
-    public DiaryResponseDto getDiary(Long diaryIndex) {
+    public DiaryResponseDto getDiary(Long diaryIndex, Long memberIndex) {
         Diary diary = diaryRepository.findById(diaryIndex)
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+
+        if (diary.getMemberIndex() != memberIndex) {
+            throw new UnauthorizedDiaryAccessException("해당 다이어리에 대한 권한이 없습니다: " + diaryIndex);
+        }
+
         DiaryResponseDto diaryResponseDto = diary.toDto();
 
         DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
@@ -154,12 +160,16 @@ public class DiaryService {
 
     //일기 수정
     @Transactional
-    public void updateDiary(DiaryUpdateRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles) {
+    public void updateDiary(DiaryUpdateRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
 
         Long diaryIndex = diaryUpdateRequestDto.getDiaryIndex();
 
         Optional<Diary> optionalDiary = diaryRepository.findById(diaryIndex);
         Diary diary = optionalDiary.orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryUpdateRequestDto.getDiaryIndex()));
+
+        if (diary.getMemberIndex() != memberIndex) {
+            throw new UnauthorizedDiaryAccessException("해당 다이어리에 대한 권한이 없습니다: " + diaryIndex);
+        }
 
         diary.update(diaryUpdateRequestDto);
 
@@ -198,9 +208,12 @@ public class DiaryService {
 
     //일기 삭제
     @Transactional
-    public void removeDiary(Long diaryIndex) {
-        Optional<Diary> optionalDiary = diaryRepository.findById(diaryIndex);
+    public void removeDiary(Long diaryIndex, Long memberIndex) {
         Diary diary = diaryRepository.findById(diaryIndex).orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+
+        if (diary.getMemberIndex() != memberIndex) {
+            throw new UnauthorizedDiaryAccessException("해당 다이어리에 대한 권한이 없습니다: " + diaryIndex);
+        }
 
         deleteImageFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);

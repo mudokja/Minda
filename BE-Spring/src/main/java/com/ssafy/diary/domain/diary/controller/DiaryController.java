@@ -53,25 +53,27 @@ public class DiaryController {
     //일기 조회
     @Operation(summary = "일기 하나 조회", description = "일기 하나 조회")
     @GetMapping
-    public ResponseEntity<DiaryResponseDto> getDiary(Long diaryIndex) {
-        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryIndex);
+    public ResponseEntity<DiaryResponseDto> getDiary(Long diaryIndex, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryIndex, memberIndex);
         return ResponseEntity.ok(diaryResponseDto);
     }
 
     //일기 수정
     @Operation(summary = "일기 수정", description = "일기 수정. diaryIndex, diarySetDate, diaryTitle, diaryContent 필수")
     @PutMapping(consumes = "multipart/form-data")
-    public ResponseEntity<Object> putDiary(@RequestPart DiaryUpdateRequestDto diaryUpdateRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles) {
-        diaryService.updateDiary(diaryUpdateRequestDto, imageFiles);
+    public ResponseEntity<Object> putDiary(@RequestPart DiaryUpdateRequestDto diaryUpdateRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        diaryService.updateDiary(diaryUpdateRequestDto, imageFiles, memberIndex);
         return ResponseEntity.ok("diary updating succeeded");
     }
 
     //일기 삭제
     @Operation(summary = "일기 삭제", description = "일기 삭제")
     @DeleteMapping
-    public ResponseEntity<Object> deleteDiary(@RequestParam Long diaryIndex) {
-        System.out.println("diaryController: " + diaryIndex);
-        diaryService.removeDiary(diaryIndex);
+    public ResponseEntity<Object> deleteDiary(@RequestParam Long diaryIndex, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        diaryService.removeDiary(diaryIndex, memberIndex);
         return ResponseEntity.ok("diary deletion succeeded");
     }
 

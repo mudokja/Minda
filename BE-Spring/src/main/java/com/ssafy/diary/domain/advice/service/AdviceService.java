@@ -32,6 +32,7 @@ public class AdviceService {
     public SingleAdviceResponseDto getAdvice(Long memberIndex, SingleAdviceRequestDto singleAdviceRequestDto){
         Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex,singleAdviceRequestDto.getDate())
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
+
         Long diaryIndex = diary.getDiaryIndex();
         Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
                 .orElseThrow(()-> new IllegalStateException("분석 결과가 없습니다."));

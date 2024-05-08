@@ -13,4 +13,5 @@ public interface DiaryHashtagRepository extends MongoRepository<DiaryHashtag, St
 
     @Query("{ 'memberIndex': ?0, 'hashtagList': { $regex: ?1, $options: 'i' } }")
     List<DiaryHashtag> findByMemberIndexAndHashtagListContaining(Long memberIndex, String keyword);
+
 }

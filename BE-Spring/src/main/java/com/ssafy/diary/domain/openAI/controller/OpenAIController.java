@@ -57,4 +57,10 @@ public class OpenAIController {
     public ResponseEntity<Object> generateImage(@RequestParam Long diaryIndex){
         return ResponseEntity.ok().body(openAIService.generateImage(diaryIndex));
     }
+
+    @GetMapping("/s3")
+    public String saveImage(@RequestParam String imageUrl){
+        String s3Url = openAIService.saveImage(imageUrl);
+        return s3Url;
+    }
 }

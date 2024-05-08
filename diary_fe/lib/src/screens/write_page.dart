@@ -75,20 +75,55 @@ class _WriteState extends State<Write> {
   TextEditingController titleController = TextEditingController();
   bool showConfirmation = false;
   bool complete = false;
+  int lastNewLineIndex = 0;
 
 ////////////////////////
   @override
   void initState() {
     super.initState();
+    diaryController.addListener(_handleTextInputChange);
+    diaryController.addListener(() {
+      final String text = diaryController.text;
+      diaryController.value = diaryController.value.copyWith(
+        text: text,
+        selection:
+            TextSelection(baseOffset: text.length, extentOffset: text.length),
+        composing: TextRange.empty,
+      );
+    });
     selectedDate = widget.selectedDay; // 페이지를 열 때 전달받은 날짜를 사용
-    loadDiaryData(); // 이 함수에서 API 호출 등을 통해 데이터 로드
   }
 
-  void loadDiaryData() {
-    // API 호출 등을 통해 selectedDate에 해당하는 일기 데이터를 로드하는 로직
-    // 예: diaryController.text = fetchedDiaryContent;
+  void _handleTextInputChange() {
+    String currentText = diaryController.text;
+    int newLineIndex = currentText.lastIndexOf('\n');
+    // 새로운 줄바꿈 인덱스가 마지막 인덱스보다 큰지 확인하고, 유효한 인덱스인지 검사
+    if (newLineIndex > lastNewLineIndex &&
+        newLineIndex > 0 &&
+        newLineIndex <= currentText.length - 1) {
+      // 문자열 추출 전에 인덱스가 유효한지 확인
+      if (lastNewLineIndex < currentText.length &&
+          newLineIndex > lastNewLineIndex) {
+        String lineText =
+            currentText.substring(lastNewLineIndex, newLineIndex).trim();
+        if (lineText.isNotEmpty) {
+          _sendTextToAPI(lineText);
+        }
+        lastNewLineIndex = newLineIndex + 1; // 줄바꿈 문자 다음 위치를 저장
+      }
+    }
   }
-/////////////////////////////
+
+  Future<void> _sendTextToAPI(String text) async {
+    // 여기에 API 요청 로직을 구현하세요.
+    print("Sending to API: $text");
+    ApiService apiService = ApiService();
+    // await apiService.get('/api/ai/chatbot')
+
+    // 예를 들어, HTTP 클라이언트를 사용한 요청:
+    // final response = await http.post('https://your.api.url/diary', body: {'text': text});
+    // print('Response status: ${response.statusCode}');
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(

@@ -16,11 +16,10 @@ class ApiService {
           return handler.next(options);
         },
         onError: (DioException error, handler) {
-          // if (error.response?.statusCode == 400) {
-          //   return handler.next(error);
-          // }
-
-          return handler.next(error);
+          if (error.response?.statusCode == 401) {
+          } else {
+            return handler.next(error);
+          }
         },
       ),
     );

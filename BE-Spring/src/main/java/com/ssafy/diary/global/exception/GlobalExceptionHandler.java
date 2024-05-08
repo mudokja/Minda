@@ -1,6 +1,7 @@
 package com.ssafy.diary.global.exception;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
@@ -55,5 +56,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleEmailException(RuntimeException exception) {
         log.error("EmailException: ", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    }
+    @ExceptionHandler(FirebaseMessagingException.class)
+    public ResponseEntity<String> handleFireBaseException(RuntimeException exception) {
+        log.error("FireBaseException: ", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("FireBase Error");
     }
 }

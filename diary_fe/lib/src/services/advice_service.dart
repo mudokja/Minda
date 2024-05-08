@@ -11,9 +11,7 @@ class AdviceService {
   ) async {
     String formDate = formatDate(date);
     try {
-      debugPrint('여긴 됨');
       var response = await _apiService.get('/api/advice/single?date=$formDate');
-      debugPrint('responseData = $response');
 
       if (response.statusCode == 200) {
         var jsonData = response.data;

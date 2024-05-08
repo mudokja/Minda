@@ -34,7 +34,7 @@ class _LineChartTestState extends State<LineChartTest> {
 
     var sortedEntries = widget.emotionsData.entries.toList()
       ..sort((a, b) => DateTime.parse(a.key).compareTo(DateTime.parse(b.key)));
-    debugPrint('sortedEntries = $sortedEntries');
+
     for (var entry in sortedEntries) {
       List<double> emotions = entry.value;
       DateTime date = DateTime.parse(entry.key);

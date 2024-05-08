@@ -63,20 +63,20 @@ class _RadarChartTestState extends State<RadarChartTest> {
   }
 
   RadarTouchData _createRadarTouchData() => RadarTouchData(
-        enabled: true,
-        touchCallback: (event, response) {
-          if (response != null && response.touchedSpot != null) {
-            final touchedSpotIndex = response.touchedSpot!.touchedDataSetIndex;
-            final touchedSpotValue =
-                response.touchedSpot!.touchedRadarEntry.value;
+        enabled: false,
+        // touchCallback: (event, response) {
+        //   if (response != null && response.touchedSpot != null) {
+        //     final touchedSpotIndex = response.touchedSpot!.touchedDataSetIndex;
+        //     final touchedSpotValue =
+        //         response.touchedSpot!.touchedRadarEntry.value;
 
-            // 터치된 데이터의 인덱스와 값을 활용하여 원하는 동작 수행
-            // 예: 터치된 데이터의 세부 정보 표시 등
-            debugPrint(
-                'Touched spot index: $touchedSpotIndex, value: $touchedSpotValue');
-          }
-        },
-        touchSpotThreshold: 10,
+        //     // 터치된 데이터의 인덱스와 값을 활용하여 원하는 동작 수행
+        //     // 예: 터치된 데이터의 세부 정보 표시 등
+        //     debugPrint(
+        //         'Touched spot index: $touchedSpotIndex, value: $touchedSpotValue');
+        //   }
+        // },
+        // touchSpotThreshold: 10,
       );
 
   @override

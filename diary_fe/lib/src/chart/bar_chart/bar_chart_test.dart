@@ -31,7 +31,6 @@ class _BarChartTestState extends State<BarChartTest> {
   }
 
   List<BarChartGroupData> _createBarGroups(List<double> values) {
-    debugPrint('${values[0].toDouble()}');
     const colors = [
       Color(0xff845EC2),
       Color(0xffD65DB1),
@@ -40,6 +39,8 @@ class _BarChartTestState extends State<BarChartTest> {
       Color(0xffFFC75F),
     ];
 
+    const maxValue = 10.0;
+
     return List.generate(values.length, (index) {
       return BarChartGroupData(x: index, barRods: [
         BarChartRodData(
@@ -47,7 +48,13 @@ class _BarChartTestState extends State<BarChartTest> {
           color: colors[index],
           width: 20,
           borderRadius: BorderRadius.zero,
-        )
+        ),
+        BarChartRodData(
+          toY: maxValue,
+          color: Colors.transparent,
+          width: 0,
+          borderRadius: BorderRadius.zero,
+        ),
       ]);
     });
   }
@@ -58,6 +65,10 @@ class _BarChartTestState extends State<BarChartTest> {
           getTooltipColor: (_) => Colors.white,
           tooltipPadding: const EdgeInsets.all(8),
           getTooltipItem: (group, groupIndex, rod, _) {
+            if (rod.color == Colors.transparent) {
+              return null;
+            }
+
             const labels = [
               '기쁨',
               '슬픔',

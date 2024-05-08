@@ -9,8 +9,6 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:provider/provider.dart';
 import 'package:diary_fe/src/services/services_initializer.dart'; // setup.dart 파일 import
 // main.dart 파일
-import 'package:flutter/material.dart';
-import 'package:diary_fe/src/services/services_initializer.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

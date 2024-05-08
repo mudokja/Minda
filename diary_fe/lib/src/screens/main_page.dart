@@ -2,6 +2,7 @@ import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 class MainPage extends StatelessWidget {
@@ -41,17 +42,21 @@ class MainPage extends StatelessWidget {
       body: Stack(
         children: <Widget>[
           const Background(),
-          Center(
-            child: SizedBox(
-              width: 500, // 전체 너비를 500으로 제한합니다.
-              child: Padding(
-                padding:
-                    const EdgeInsets.all(10), // 패딩을 조금 추가하여 화면 너비를 넘지 않도록 합니다.
-                child: SingleChildScrollView(
+          SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: 500,
+                height: 800,
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                      10), // 패딩을 조금 추가하여 화면 너비를 넘지 않도록 합니다.
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      const SizedBox(
+                        height: 50,
+                      ),
                       SizedBox(
                         height: 200,
                         width: 200,

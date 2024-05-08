@@ -235,19 +235,27 @@ class _WriteState extends State<Write> {
                     fontWeight: FontWeight.w600),
               ),
               Image.asset('assets/gifs/analyze2.gif'),
-              Text(
-                '작성한 일기 분량에 따라 분석시간이\n조금 소요될 수 있어요.',
-                style: TextStyle(
-                    color: themeColors.color1,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600),
-              ),
-              Text(
-                '분석이 완료되면 알림을 보내드릴게요!',
-                style: TextStyle(
-                    color: themeColors.color1,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600),
+              Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '작성한 일기 분량에 따라 분석시간이 조금 소요될 수 있어요.',
+                      style: TextStyle(
+                          color: themeColors.color1,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '분석이 완료되면 알림을 보내드릴게요!',
+                      style: TextStyle(
+                          color: themeColors.color1,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(
                 height: 90,

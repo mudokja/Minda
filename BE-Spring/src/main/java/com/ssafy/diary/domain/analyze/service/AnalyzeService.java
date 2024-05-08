@@ -81,7 +81,7 @@ public class AnalyzeService {
     //Fast API로 요청 보내기
     public Mono<String> requestAnalyzeToFastAPI(AnalyzeRequestDto analyzeRequestDto) {
         return webClient.post()
-                .uri("/analyze")
+                .uri("https://k10b205.p.ssafy.io/api/ai/analyze")
 //                .uri(uriBuilder -> uriBuilder
 //                        .path("/analyze")
 //                        .queryParam("diary_index", analyzeRequestDto.getDiaryIndex())

@@ -74,6 +74,7 @@ class _WriteState extends State<Write> {
   TextEditingController diaryController = TextEditingController();
   TextEditingController titleController = TextEditingController();
   bool showConfirmation = false;
+  bool complete = false;
 
 ////////////////////////
   @override
@@ -137,7 +138,9 @@ class _WriteState extends State<Write> {
     // API 호출
     Response response = await apiService.post('/api/diary', data: formData);
 
-    Navigator.pop(context);
+    setState(() {
+      complete = !complete;
+    });
   }
 
   @override
@@ -151,13 +154,77 @@ class _WriteState extends State<Write> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!showConfirmation) ..._buildDiaryEntryForm(themeColors),
-              if (showConfirmation) ..._buildDiaryConfirmationView(themeColors),
+              if (!showConfirmation && !complete)
+                ..._buildDiaryEntryForm(themeColors),
+              if (showConfirmation && !complete)
+                ..._buildDiaryConfirmationView(themeColors),
+              if (showConfirmation && complete)
+                ..._buildCompleteForm(themeColors),
             ],
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildCompleteForm(ThemeColors themeColors) {
+    Size screenSize = MediaQuery.of(context).size;
+    double modalWidth = screenSize.width * 0.9;
+    return [
+      Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Column(
+            children: [
+              Text(
+                '일기 저장이 완료되었어요!',
+                style: TextStyle(
+                    color: themeColors.color1,
+                    fontSize: 25,
+                    fontWeight: FontWeight.w600),
+              ),
+              Image.asset('assets/gifs/analyze2.gif'),
+              Text(
+                '작성한 일기 분량에 따라 분석시간이 조금 소요될 수 있어요',
+                style: TextStyle(
+                    color: themeColors.color1,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600),
+              ),
+              Text(
+                '분석이 완료되면 알림을 보내드릴게요',
+                style: TextStyle(
+                    color: themeColors.color1,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(
+                height: 90,
+              ),
+              SizedBox(
+                width: modalWidth * 0.9,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeColors.color1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    '확인',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      )
+    ];
   }
 
   List<Widget> _buildDiaryEntryForm(ThemeColors themeColors) {

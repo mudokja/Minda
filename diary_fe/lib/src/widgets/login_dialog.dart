@@ -44,16 +44,43 @@ class _LoginModalState extends State<LoginModal> {
       );
       return;
     }
-
-    await Provider.of<UserProvider>(context, listen: false)
-        .login(_idController.text, _pwController.text);
-    await Provider.of<UserProvider>(context, listen: false).fetchUserData();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const Pages(),
-      ),
-    );
+    try {
+      await Provider.of<UserProvider>(context, listen: false)
+          .login(_idController.text, _pwController.text);
+      await Provider.of<UserProvider>(context, listen: false).fetchUserData();
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Pages(),
+          ));
+    } catch (e) {
+      if (e is DioException) {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false, // 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('로그인 오류'),
+              content: const SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text('회원가입이 되어있지 않거나, 아이디나 \n비밀번호가 달라요.'),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('확인'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // 다이얼로그 닫기
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
   }
 
   @override
@@ -63,19 +90,6 @@ class _LoginModalState extends State<LoginModal> {
     super.dispose();
   }
 
-  void _login() {
-    String email = _idController.text;
-    String password = _pwController.text;
-
-    log('Email: $email, Password: $password');
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const Pages(),
-      ),
-    );
-  }
-
   void _handleButtonClick() {
     setState(() {
       _isButtonEnabled = false; // 버튼 비활성화
@@ -83,7 +97,7 @@ class _LoginModalState extends State<LoginModal> {
     login();
 
     // 2초 후에 버튼을 다시 활성화
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(microseconds: 500), () {
       setState(() {
         _isButtonEnabled = true; // 버튼 활성화
       });

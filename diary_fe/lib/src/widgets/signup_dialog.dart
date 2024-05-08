@@ -129,6 +129,33 @@ class _SignUpModalState extends State<SignUpModal> {
     });
   }
 
+  void showErrorDialog(BuildContext context, String message) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false, // 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('에러 발생'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('확인'),
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _idController.removeListener(_validateId);
@@ -166,7 +193,12 @@ class _SignUpModalState extends State<SignUpModal> {
         // 인증 코드 발송 실패 처리
       }
     } catch (e) {
-      // 에러 처리
+      if (e is DioException) {
+        if (e.response?.statusCode == 400 &&
+            e.response?.data == 'request Too many') {
+          showErrorDialog(context, '이메일을 너무 자주 전송하고 있어요. 조금 기다렸다 시도해보세요.');
+        }
+      }
     }
   }
 
@@ -186,19 +218,48 @@ class _SignUpModalState extends State<SignUpModal> {
 
   void confirmVerification() async {
     // 인증 코드 확인 로직
-    ApiService apiService = ApiService();
-    Response response = await apiService.post(
-      '/api/email/auth',
-      data: {
-        "verificationId": verificationId,
-        "code": _verificationCodeController.text
-      },
-    );
-    if (response.statusCode == 200) {
-      _timer?.cancel();
-      setState(() {
-        _isVerified = true;
-      });
+    try {
+      ApiService apiService = ApiService();
+      Response response = await apiService.post(
+        '/api/email/auth',
+        data: {
+          "verificationId": verificationId,
+          "code": _verificationCodeController.text
+        },
+      );
+      if (response.statusCode == 200) {
+        _timer?.cancel();
+        setState(() {
+          _isVerified = true;
+        });
+      }
+    } catch (e) {
+      if (e is DioException) {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false, // 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('에러 발생'),
+              content: const SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text('인증코드가 일치하지 않아요. 확인하고 다시 입력해보세요.'),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('확인'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // 다이얼로그 닫기
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 
@@ -232,22 +293,11 @@ class _SignUpModalState extends State<SignUpModal> {
             );
           },
         );
-      } else {
-        // // 회원가입 실패 처리
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('회원가입 실패: ${response.data['message']}'),
-        //   ),
-        // );
-      }
+      } else {}
     } catch (e) {
-      print(e);
-      // 네트워크 오류 등의 예외 처리
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('회원가입 중 오류가 발생했습니다.'),
-        ),
-      );
+      if (e is DioException) {
+        print('에러났어요 이유 몰라요');
+      }
     }
   }
 
@@ -275,20 +325,29 @@ class _SignUpModalState extends State<SignUpModal> {
   }
 
   void idDuplicate() async {
-    ApiService apiService = ApiService();
-    Response response = await apiService.get(
-      '/api/member/check?id=${_idController.text}',
-    );
-    if (response.statusCode == 200) {
-      setState(() {
-        _idSuccessMessage = '사용가능한 아이디에요.';
-        _idErrorMessage = '';
-      });
-    } else {
-      setState(() {
-        _idErrorMessage = '중복되는 아이디가 있어요.';
-        _idSuccessMessage = '';
-      });
+    try {
+      // API 서비스 객체 생성
+      ApiService apiService = ApiService();
+
+      // GET 요청
+      Response response = await apiService.get(
+        '/api/member/check?id=${_idController.text}',
+      );
+
+      // 상태 코드 200일 경우 처리
+      if (response.statusCode == 200) {
+        setState(() {
+          _idSuccessMessage = '사용 가능한 아이디에요.';
+          _idErrorMessage = '';
+        });
+      }
+    } catch (e) {
+      if (e is DioException) {
+        setState(() {
+          _idErrorMessage = '중복되는 아이디가 있어요.';
+          _idSuccessMessage = '';
+        });
+      }
     }
   }
 
@@ -353,6 +412,13 @@ class _SignUpModalState extends State<SignUpModal> {
                         color: themeColors.color1,
                       ),
                     ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      '값을 모두 입력해야 회원가입이 가능해요.',
+                      style: TextStyle(fontSize: 9, color: themeColors.color2),
+                    ),
                     const SizedBox(height: 25),
                     TextForm(
                       title: '아이디',
@@ -380,12 +446,14 @@ class _SignUpModalState extends State<SignUpModal> {
                         if (_idSuccessMessage.isNotEmpty)
                           Text(
                             _idSuccessMessage,
-                            style: const TextStyle(color: Colors.green),
+                            style: const TextStyle(
+                                color: Colors.green, fontSize: 12),
                           ),
                         if (_idErrorMessage.isNotEmpty)
                           Text(
                             _idErrorMessage,
-                            style: const TextStyle(color: Colors.red),
+                            style: const TextStyle(
+                                color: Colors.red, fontSize: 12),
                           ),
                       ],
                     ),
@@ -429,16 +497,16 @@ class _SignUpModalState extends State<SignUpModal> {
                                 ),
                               ),
                               const SizedBox(
-                                width: 30,
+                                width: 20,
                               ),
                               Expanded(
                                 flex: 1,
                                 child: _isVerified
                                     ? const Text(
-                                        '확인되었습니다.',
+                                        '인증완료',
                                         style: TextStyle(
                                           color: Colors.green,
-                                          fontSize: 8,
+                                          fontSize: 12,
                                         ),
                                       )
                                     : Text(
@@ -446,11 +514,6 @@ class _SignUpModalState extends State<SignUpModal> {
                               ),
                             ],
                           ),
-                          // if (_isVerified)
-                          //   const Text(
-                          //     '확인되었습니다.',
-                          //     style: TextStyle(color: Colors.green),
-                          //   ),
                         ],
                       ),
                     ],
@@ -480,8 +543,46 @@ class _SignUpModalState extends State<SignUpModal> {
                         onPressed: () {
                           if (_formKey.currentState!.validate() &&
                               _isVerified &&
-                              _isButtonEnabled) {
+                              _isButtonEnabled &&
+                              _idSuccessMessage == '사용 가능한 아이디에요.' &&
+                              _idError.isEmpty &&
+                              _emailError.isEmpty &&
+                              _pwError.isEmpty &&
+                              _pw2Error.isEmpty &&
+                              _nicknameError.isEmpty &&
+                              _idController.text.isNotEmpty &&
+                              _pwController.text.isNotEmpty &&
+                              _pw2Controller.text.isNotEmpty &&
+                              _emailController.text.isNotEmpty &&
+                              _nicknameController.text.isNotEmpty) {
                             signUp();
+                          } else {
+                            showDialog<void>(
+                              context: context,
+                              barrierDismissible:
+                                  false, // 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('에러 발생'),
+                                  content: const SingleChildScrollView(
+                                    child: ListBody(
+                                      children: <Widget>[
+                                        Text(
+                                            '아이디 중복 검사, 이메일 인증과 입력되지 않은 값을 확인해보세요.'),
+                                      ],
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text('확인'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop(); // 다이얼로그 닫기
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(

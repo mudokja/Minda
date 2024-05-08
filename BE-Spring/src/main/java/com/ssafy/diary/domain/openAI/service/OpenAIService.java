@@ -5,9 +5,11 @@ import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.domain.diary.repository.ImageRepository;
 import com.ssafy.diary.domain.openAI.dto.DallERequest;
+import com.ssafy.diary.domain.openAI.dto.DallEResponse;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.AlreadyExistsImageException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.swing.text.html.Option;
 import java.io.IOException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OpenAIService {
@@ -38,18 +41,18 @@ public class OpenAIService {
                 .prompt(diary.getDiaryContent())
                 .n(1)
                 .size("1024x1024").build();
-        String imageUrl = restTemplate.postForObject(apiURL+"images/generations", request, String.class);
-        try {
-            String s3ImageUrl = s3Service.saveImageFromUrl(imageUrl);
-            return s3ImageUrl;
-        }catch(IOException e){
-            return e.getMessage();
-        }
-    }
+        DallEResponse response = restTemplate.postForObject(apiURL+"images/generations", request, DallEResponse.class);
 
-    public String saveImage(String imageUrl){
+        if (response == null || response.getData() == null || response.getData().isEmpty()) {
+            throw new RuntimeException("Failed to receive a valid response from DALL-E API");
+        }
+        String imageUrl = response.getData().get(0).getUrl();
         try {
             String s3ImageUrl = s3Service.saveImageFromUrl(imageUrl);
+            imageRepository.save(Image.builder()
+                    .diaryIndex(diaryIndex)
+                    .imageLink(s3ImageUrl)
+                    .imageName("AI").build());
             return s3ImageUrl;
         }catch(IOException e){
             return e.getMessage();

@@ -26,7 +26,8 @@ public class Image {
     private String imageLink;
 
     @Builder
-    public Image(String imageName, String imageLink) {
+    public Image(Long diaryIndex, String imageName, String imageLink) {
+        this.diaryIndex = diaryIndex;
         this.imageName = imageName;
         this.imageLink = imageLink;
     }

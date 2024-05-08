@@ -55,12 +55,7 @@ public class OpenAIController {
     @Operation(summary = "이미지 생성", description = "일기 인덱스를 받아 이미지가 없으면 이미지 생성")
     @GetMapping("/image")
     public ResponseEntity<Object> generateImage(@RequestParam Long diaryIndex){
-        return ResponseEntity.ok().body(openAIService.generateImage(diaryIndex));
-    }
-
-    @GetMapping("/s3")
-    public String saveImage(@RequestParam String imageUrl){
-        String s3Url = openAIService.saveImage(imageUrl);
-        return s3Url;
+        String s3Url = openAIService.generateImage(diaryIndex);
+        return ResponseEntity.ok().body(s3Url);
     }
 }

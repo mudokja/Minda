@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.openAI.controller;
 
+import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.openAI.dto.ChatGPTRequest;
 import com.ssafy.diary.domain.openAI.dto.ChatGPTResponse;
 import com.ssafy.diary.domain.openAI.dto.DallERequest;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -54,8 +56,9 @@ public class OpenAIController {
 
     @Operation(summary = "이미지 생성", description = "일기 인덱스를 받아 이미지가 없으면 이미지 생성")
     @GetMapping("/image")
-    public ResponseEntity<Object> generateImage(@RequestParam Long diaryIndex){
-        String s3Url = openAIService.generateImage(diaryIndex);
+    public ResponseEntity<Object> generateImage(@AuthenticationPrincipal PrincipalMember member, @RequestParam Long diaryIndex){
+        Long memberIndex = member.getIndex();
+        String s3Url = openAIService.generateImage(diaryIndex,memberIndex);
         return ResponseEntity.ok().body(s3Url);
     }
 }

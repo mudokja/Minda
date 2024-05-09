@@ -16,5 +16,6 @@ public interface AdviceRepository extends JpaRepository<Advice, Long> {
     @Query("SELECT a FROM Advice a WHERE a.memberIndex = :memberIndex AND a.startDate = :startDate AND a.endDate = :endDate")
     Optional<Advice> findByMemberIndexAndPeriod(@Param("memberIndex") Long memberIndex, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    void deleteByDiaryIndex(Long diaryIndex);
+    @Query("DELETE FROM Advice a WHERE a.startDate = :diarySetDate AND a.endDate = :diarySetDate")
+    void deleteByStartDateAndEndDate(LocalDate diarySetDate);
 }

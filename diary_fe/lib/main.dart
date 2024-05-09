@@ -13,10 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:provider/provider.dart';
 import 'package:diary_fe/src/services/services_initializer.dart'; // setup.dart 파일 import
-<<<<<<< HEAD
-=======
 // main.dart 파일
->>>>>>> 40c6a9238f4049cfa5ab5f24d29911e6bf016d28
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("백그라운드 메시지 처리.. ${message.notification!.body!}");

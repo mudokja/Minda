@@ -205,6 +205,7 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                             .diaryTitle, // 일기 제목을 전달
                                         diaryContent: currentPageEntries[index]
                                             .diaryContent, // 일기 내용을 전달
+                                        diaryIndex: currentPageEntries[index].diaryIndex,
                                       ),
                                     ),
                                   );

@@ -43,7 +43,6 @@ public class DiaryService {
     private final S3Service s3Service;
     private final AnalyzeService analyzeService;
     private final AnalyzeRepository analyzeRepository;
-    private final AdviceRepository adviceRepository;
     private final OpenAIService openAIService;
     private final NotificationService notificationService;
 
@@ -249,7 +248,6 @@ public class DiaryService {
         deleteImageFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
         analyzeRepository.deleteByDiaryIndex(diaryIndex);
-        adviceRepository.deleteByDiaryIndex(diaryIndex);
         diaryRepository.deleteById(diaryIndex);
     }
 

@@ -4,6 +4,8 @@ import com.ssafy.diary.domain.advice.dto.AdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.AdviceResponseDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceResponseDto;
+import com.ssafy.diary.domain.advice.entity.Advice;
+import com.ssafy.diary.domain.advice.repository.AdviceRepository;
 import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.diary.entity.Diary;
@@ -22,6 +24,7 @@ import java.util.*;
 public class AdviceService {
 
     private final DiaryRepository diaryRepository;
+    private final AdviceRepository adviceRepository;
     private final AnalyzeRepository analyzeRepository;
 
     private String[] emotionArray = {"중립","분노","슬픔","놀람","불안","기쁨"};
@@ -57,10 +60,12 @@ public class AdviceService {
         statusMap.put("불안",diary.getDiaryFear());
         statusMap.put("기쁨",diary.getDiaryHappiness());
 
+        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate());
+
         return SingleAdviceResponseDto.builder()
                 .sentence(analyze.getSentence())
                 .emotion(emotionList)
-                .adviceContent("null")
+                .adviceContent(advice.getAdviceContent())
                 .status(statusMap).build();
     }
 
@@ -90,8 +95,10 @@ public class AdviceService {
             statusMap.put("기쁨", statusMap.getOrDefault("기쁨", 0.0) / diaryCount);
         }
 
+        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+
         return AdviceResponseDto.builder()
-                .adviceContent("null")
+                .adviceContent(advice.getAdviceContent())
                 .status(statusMap).build();
     }
 }

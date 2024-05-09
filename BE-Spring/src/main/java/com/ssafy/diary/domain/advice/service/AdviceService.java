@@ -35,11 +35,11 @@ public class AdviceService {
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
 
         Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate())
-                .orElseThrow(()-> new IllegalStateException("조언 생성 결과가 없습니다."));
+                .orElseThrow(()-> new IllegalStateException("저장된 조언을 찾을 수 없습니다."));
 
         Long diaryIndex = diary.getDiaryIndex();
         Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
-                .orElseThrow(()-> new IllegalStateException("분석 결과가 없습니다."));
+                .orElseThrow(()-> new IllegalStateException("저장된 분석 결과가 없습니다."));
 
         HashMap<String,Double[]> emotion = analyze.getEmotion();
         List<String> emotionList = new ArrayList<>();
@@ -73,7 +73,7 @@ public class AdviceService {
     @Transactional
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {
 //        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate())
-//                .orElseThrow(()-> new IllegalStateException("조언 생성 결과가 없습니다."));
+//                .orElseThrow(()-> new IllegalStateException("저장된 조언을 찾을 수 없습니다."));
 
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 

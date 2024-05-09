@@ -176,6 +176,12 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
           diaryContent = contentController.text;
           showConfirmationView = false;
         });
+        Navigator.of(context).pop({
+          'action': 'update',
+          'diaryIndex': widget.diaryIndex,
+          'diaryTitle': diaryTitle,
+          'diaryContent': diaryContent,
+          });
       } else {
         print('Failed to update diary');
       }
@@ -191,7 +197,11 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
 
       if (response.statusCode == 200) {
         print('Diary deleted successfully');
-        Navigator.of(context).pop(); // 페이지를 닫고 이전 페이지로 돌아감
+        // Navigator.of(context).pop(); // 페이지를 닫고 이전 페이지로 돌아감
+      Navigator.of(context).pop({
+          'action': 'delete',
+          'diaryIndex': widget.diaryIndex,
+        });
       } else {
         print('Failed to delete diary');
       }
@@ -351,13 +361,17 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           decoration: BoxDecoration(
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: themeColors.color2, //테두리 색상
+                              width: 2, // 테두리 두꼐
+                            )
                           ),
                           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.network(
                               imageUrl,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) {
                                 print('Image loading error: $error');
                                 return const Text('이미지 로딩 실패');

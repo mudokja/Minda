@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 
@@ -28,13 +30,10 @@ import java.util.HashMap;
 public class OpenAIController {
     @Value("${openai.model}")
     private String model;
-
     @Value("${openai.api.url}")
     private String apiURL;
-
     @Value("${openai.api.key}")
     private String apiKey;
-
     @Autowired
     private RestTemplate restTemplate;
 
@@ -48,10 +47,12 @@ public class OpenAIController {
         return chatGPTResponse.getChoices().get(0).getMessage().getContent();
     }
 
-    @GetMapping("/image/test")
-    public Object image(@RequestParam String prompt){
-        DallERequest request = DallERequest.builder().prompt(prompt).n(1).size("512x512").build();
-        return restTemplate.postForObject(apiURL+"images/generations", request, String.class);
+    @GetMapping("/chatGPT/test")
+    public String advice(@AuthenticationPrincipal PrincipalMember member, @RequestParam String prompt){
+        Long memberIndex = member.getIndex();
+        openAIService.generateAdvice(prompt,memberIndex).subscribe(body->
+                System.out.println("Response from External API on controller: " + body));
+        return "success";
     }
 
     @Operation(summary = "이미지 생성", description = "일기 인덱스를 받아 이미지가 없으면 이미지 생성")

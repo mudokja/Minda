@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.openAI.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.ArrayList;

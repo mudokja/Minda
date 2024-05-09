@@ -4,6 +4,8 @@ import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
 import com.ssafy.diary.domain.diary.repository.ImageRepository;
+import com.ssafy.diary.domain.openAI.dto.ChatGPTRequest;
+import com.ssafy.diary.domain.openAI.dto.ChatGPTResponse;
 import com.ssafy.diary.domain.openAI.dto.DallERequest;
 import com.ssafy.diary.domain.openAI.dto.DallEResponse;
 import com.ssafy.diary.domain.s3.service.S3Service;
@@ -14,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
 import javax.swing.text.html.Option;
 import java.io.IOException;
 
@@ -25,11 +30,32 @@ public class OpenAIService {
     private final ImageRepository imageRepository;
     private final S3Service s3Service;
 
+    @Autowired
+    private final WebClient webClient;
+
     @Value("${openai.api.url}")
     private String apiURL;
+    @Value("${openai.model}")
+    private String gptModel;
+    @Value("${openai.api.key}")
+    private String openAIApiKey;
+
 
     @Autowired
     private RestTemplate restTemplate;
+
+    public Mono<ChatGPTResponse> generateAdvice(String prompt, Long memberIndex) {
+        ChatGPTRequest request = new ChatGPTRequest(gptModel, prompt);
+        return webClient.post()
+                .uri(apiURL + "chat/completions")
+                .header("Authorization", "Bearer " + openAIApiKey)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(ChatGPTResponse.class)
+                .doOnNext(body->{
+                    System.out.println("Response from External API: " + body);
+                });
+    }
 
     public String generateImage(Long diaryIndex, Long memberIndex) {
         if(imageRepository.existsByDiaryIndex(diaryIndex)){

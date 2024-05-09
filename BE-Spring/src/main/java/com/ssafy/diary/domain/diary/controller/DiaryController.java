@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.diary.controller;
 
+import com.amazonaws.Response;
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import com.ssafy.diary.domain.diary.dto.*;
 import com.ssafy.diary.domain.diary.service.DiaryService;
@@ -13,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "Diary", description = "다이어리 API")
@@ -30,6 +32,14 @@ public class DiaryController {
         Long memberIndex = principalMember.getIndex();
         diaryService.createDummyData(memberIndex);
         return ResponseEntity.status(HttpStatus.CREATED).body("dummy creating succeeded");
+    }
+
+    //해당 날짜에 일기 작성 여부 체크
+    @Operation(summary = "일기 작성 여부 체크", description = "해당 날짜에 일기 장성 여부 체크")
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkDiaryWasWritten(LocalDate diarySetDate, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        return ResponseEntity.ok(diaryService.checkDiaryWasWritten(diarySetDate, memberIndex));
     }
 
     //일기 등록

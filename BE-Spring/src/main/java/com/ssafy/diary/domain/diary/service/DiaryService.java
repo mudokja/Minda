@@ -71,6 +71,11 @@ public class DiaryService {
         }
     }
 
+    //해당 날짜에 일기 작성 여부 체크
+    public Boolean checkDiaryWasWritten(LocalDate diarySetDate, Long memberIndex) {
+        return diaryRepository.findByDiarySetDateAndMemberIndex(diarySetDate, memberIndex).isPresent()? true : false;
+    }
+
     //일기 등록
     public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
         List<Image> imageList = new ArrayList<>();

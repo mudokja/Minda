@@ -31,8 +31,8 @@ public class NotificationController {
     }
     @Operation(summary = "사용자 기기 토큰 제거", description = "사용자 기기토큰 삭제")
     @DeleteMapping
-    public ResponseEntity<String> deleteFirebaseNotificationToken(@RequestBody FirebaseMemberTokenRequestDto firebaseMemberTokenRequestDto) {
-        notificationService.deleteFirebaseMemberToken(firebaseMemberTokenRequestDto.getToken());
+    public ResponseEntity<String> deleteFirebaseNotificationToken(@RequestParam String token) {
+        notificationService.deleteFirebaseMemberToken(token);
         return ResponseEntity.ok("success");
     }
     @Operation(summary = "사용자 기기 토큰 등록", description = "사용자가 사용하는 기기토큰 등록")

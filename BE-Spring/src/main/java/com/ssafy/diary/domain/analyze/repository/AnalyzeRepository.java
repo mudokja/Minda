@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface AnalyzeRepository extends MongoRepository<Analyze,Long> {
     Optional<Analyze> findByDiaryIndex(Long diaryIndex);
+
+    void deleteByDiaryIndex(Long diaryIndex);
 }

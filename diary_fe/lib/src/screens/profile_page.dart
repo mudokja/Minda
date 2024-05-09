@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
@@ -65,6 +66,7 @@ class _ProfilePageState extends State<ProfilePage> {
     Size screenSize = MediaQuery.of(context).size;
     double buttonWidth = screenSize.width * 0.8;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: themeColors.color1,
@@ -79,157 +81,169 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Stack(
         children: <Widget>[
           const Background(),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: SizedBox(
-                width: 500,
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          '${userProvider.user.nickname}님\n안녕하세요!',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
+          SingleChildScrollView(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: SizedBox(
+                  width: 500,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${userProvider.user.nickname}님\n안녕하세요!',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          width: 80,
-                        ),
-                        SizedBox(
-                            height: 120,
-                            width: 120,
-                            child: Image.asset('assets/gifs/chick.gif')),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    SizedBox(
-                      width: buttonWidth,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: true,
-                            barrierColor: Colors.transparent,
-                            builder: (BuildContext context) {
-                              return Theme(
-                                data: Theme.of(context).copyWith(
-                                  dialogBackgroundColor:
-                                      const Color(0xFFFFFFFF),
-                                  dialogTheme: const DialogTheme(elevation: 0),
-                                ),
-                                child: const ChangeNickname(),
-                              );
-                            },
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: themeColors.color1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                          SizedBox(
+                              height: 120,
+                              width: 120,
+                              child: Image.asset('assets/gifs/chick.gif')),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      SizedBox(
+                        width: buttonWidth,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierColor: Colors.transparent,
+                              builder: (BuildContext context) {
+                                var mediaQuery = MediaQuery.of(context);
+                                var keyboardHeight =
+                                    mediaQuery.viewInsets.bottom;
+
+                                return AnimatedPadding(
+                                  padding: EdgeInsets.only(
+                                      bottom: keyboardHeight), // 키보드 높이만큼 패딩 조정
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOut,
+                                  child: Theme(
+                                    data: Theme.of(context).copyWith(
+                                      dialogBackgroundColor:
+                                          const Color(0xFFFFFFFF),
+                                      dialogTheme:
+                                          const DialogTheme(elevation: 0),
+                                    ),
+                                    child:
+                                        const ChangeNickname(), // 다이얼로그에 표시할 위젯
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: themeColors.color1,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8), // 선택적: 패딩 설정
                           ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8), // 선택적: 패딩 설정
-                        ),
-                        child: const Text(
-                          '닉네임 변경하기',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                          child: const Text(
+                            '닉네임 변경하기',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 25,
-                    ),
-                    SizedBox(
-                      width: buttonWidth,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: themeColors.color1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                      const SizedBox(
+                        height: 25,
+                      ),
+                      SizedBox(
+                        width: buttonWidth,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: themeColors.color1,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8), // 선택적: 패딩 설정
                           ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8), // 선택적: 패딩 설정
-                        ),
-                        child: const Text(
-                          '비밀번호 변경',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                          child: const Text(
+                            '비밀번호 변경',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 25,
-                    ),
-                    SizedBox(
-                      width: buttonWidth,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: themeColors.color1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                      const SizedBox(
+                        height: 25,
+                      ),
+                      SizedBox(
+                        width: buttonWidth,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: themeColors.color1,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8), // 선택적: 패딩 설정
                           ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8), // 선택적: 패딩 설정
-                        ),
-                        child: const Text(
-                          '알림 설정하기',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                          child: const Text(
+                            '알림 설정하기',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 25,
-                    ),
-                    SizedBox(
-                      width: buttonWidth,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          logout();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: themeColors.color2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                      const SizedBox(
+                        height: 25,
+                      ),
+                      SizedBox(
+                        width: buttonWidth,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            logout();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: themeColors.color2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8), // 선택적: 패딩 설정
                           ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8), // 선택적: 패딩 설정
-                        ),
-                        child: const Text(
-                          '로그아웃',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                          child: const Text(
+                            '로그아웃',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    TextButton(
-                        onPressed: () {
-                          leave();
-                        },
-                        child: const Text(
-                          '회원 탈퇴하기',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                          ),
-                        )),
-                  ],
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      TextButton(
+                          onPressed: () {
+                            leave();
+                          },
+                          child: const Text(
+                            '회원 탈퇴하기',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey,
+                            ),
+                          )),
+                    ],
+                  ),
                 ),
               ),
             ),

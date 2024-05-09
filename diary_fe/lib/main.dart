@@ -77,6 +77,7 @@ class MyApp extends StatelessWidget {
         builder: (context, userProvider, child) {
           // 로그인 상태에 따라 다른 페이지 렌더링
           return Scaffold(
+            resizeToAvoidBottomInset: false,
             body: userProvider.isLoggedIn ? const Pages() : const IntroPage(),
           );
         },

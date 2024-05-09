@@ -22,7 +22,7 @@ class _PagesState extends State<Pages> {
   void addWidgets() {
     widgetOptions = [
       const MainPage(),
-      DiaryListPage(selectedDay: DateTime.now()),  // 오늘 날짜를 기본값으로 설정
+      DiaryListPage(selectedDay: DateTime.now()), // 오늘 날짜를 기본값으로 설정
       const AnalysisPage(),
       const ProfilePage(),
     ];
@@ -47,10 +47,10 @@ class _PagesState extends State<Pages> {
               color: Colors.white, // 모달의 배경색을 하얗게 설정
               borderRadius: BorderRadius.circular(25), // 모달의 모서리를 둥글게 설정
             ),
-            child: 
-              // const Write(), // 여기에 커스텀 위젯을 넣으면 됩니다.
-              // const Write({super.key, required this.selectedDay}),
-              Write(selectedDay: DateTime.now()), // 현재 날짜를 selectedDay로 전달
+            child:
+                // const Write(), // 여기에 커스텀 위젯을 넣으면 됩니다.
+                // const Write({super.key, required this.selectedDay}),
+                Write(selectedDay: DateTime.now()), // 현재 날짜를 selectedDay로 전달
           ),
         );
       },
@@ -61,6 +61,7 @@ class _PagesState extends State<Pages> {
   Widget build(BuildContext context) {
     addWidgets();
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {

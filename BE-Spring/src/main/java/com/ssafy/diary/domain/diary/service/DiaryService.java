@@ -1,7 +1,9 @@
 package com.ssafy.diary.domain.diary.service;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.ssafy.diary.domain.advice.repository.AdviceRepository;
 import com.ssafy.diary.domain.analyze.dto.AnalyzeRequestDto;
+import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.analyze.service.AnalyzeService;
 import com.ssafy.diary.domain.diary.dto.DiaryAddRequestDto;
 import com.ssafy.diary.domain.diary.dto.DiaryListByPeriodRequestDto;
@@ -40,6 +42,8 @@ public class DiaryService {
     private final DiaryHashtagRepository diaryHashtagRepository;
     private final S3Service s3Service;
     private final AnalyzeService analyzeService;
+    private final AnalyzeRepository analyzeRepository;
+    private final AdviceRepository adviceRepository;
     private final OpenAIService openAIService;
     private final NotificationService notificationService;
 
@@ -244,6 +248,8 @@ public class DiaryService {
 
         deleteImageFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
+        analyzeRepository.deleteByDiaryIndex(diaryIndex);
+        adviceRepository.deleteByDiaryIndex(diaryIndex);
         diaryRepository.deleteById(diaryIndex);
     }
 

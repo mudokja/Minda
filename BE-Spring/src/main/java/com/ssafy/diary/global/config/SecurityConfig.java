@@ -61,7 +61,19 @@ public class SecurityConfig {
                         .requestMatchers(PERMIT_PATTERNS).permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**","/").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/member/check").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/member/register", "/api/auth/refresh", "/api/auth/login","/api/email/verification","/api/email/auth","/api/auth/oauth2/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/member/register",
+                                "/api/auth/refresh",
+                                "/api/auth/login",
+                                "/api/email/verification",
+                                "/api/email/auth",
+                                "/api/auth/oauth2/login",
+                                "/api/notification/token",
+                                "/api/notification/member"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/notification"
+                        ).permitAll()
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)

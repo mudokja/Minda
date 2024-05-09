@@ -4,6 +4,8 @@ import com.ssafy.diary.domain.advice.dto.AdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.AdviceResponseDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceResponseDto;
+import com.ssafy.diary.domain.advice.entity.Advice;
+import com.ssafy.diary.domain.advice.repository.AdviceRepository;
 import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.diary.entity.Diary;
@@ -22,6 +24,7 @@ import java.util.*;
 public class AdviceService {
 
     private final DiaryRepository diaryRepository;
+    private final AdviceRepository adviceRepository;
     private final AnalyzeRepository analyzeRepository;
 
     private String[] emotionArray = {"중립","분노","슬픔","놀람","불안","기쁨"};
@@ -30,6 +33,9 @@ public class AdviceService {
     public SingleAdviceResponseDto getAdvice(Long memberIndex, SingleAdviceRequestDto singleAdviceRequestDto){
         Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex,singleAdviceRequestDto.getDate())
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
+
+        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate())
+                .orElseThrow(()-> new IllegalStateException("조언 생성 결과가 없습니다."));
 
         Long diaryIndex = diary.getDiaryIndex();
         Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
@@ -60,12 +66,15 @@ public class AdviceService {
         return SingleAdviceResponseDto.builder()
                 .sentence(analyze.getSentence())
                 .emotion(emotionList)
-                .adviceContent("null")
+                .adviceContent(advice.getAdviceContent())
                 .status(statusMap).build();
     }
 
     @Transactional
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {
+//        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate())
+//                .orElseThrow(()-> new IllegalStateException("조언 생성 결과가 없습니다."));
+
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
         HashMap<String,Double> statusMap = new HashMap<>();
@@ -92,6 +101,7 @@ public class AdviceService {
 
         return AdviceResponseDto.builder()
                 .adviceContent("null")
+//                .adviceContent(advice.getAdviceContent())
                 .status(statusMap).build();
     }
 }

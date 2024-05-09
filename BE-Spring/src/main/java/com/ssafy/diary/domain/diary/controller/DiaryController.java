@@ -53,25 +53,27 @@ public class DiaryController {
     //일기 조회
     @Operation(summary = "일기 하나 조회", description = "일기 하나 조회")
     @GetMapping
-    public ResponseEntity<DiaryResponseDto> getDiary(Long diaryIndex) {
-        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryIndex);
+    public ResponseEntity<DiaryResponseDto> getDiary(Long diaryIndex, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        DiaryResponseDto diaryResponseDto = diaryService.getDiary(diaryIndex, memberIndex);
         return ResponseEntity.ok(diaryResponseDto);
     }
 
     //일기 수정
     @Operation(summary = "일기 수정", description = "일기 수정. diaryIndex, diarySetDate, diaryTitle, diaryContent 필수")
     @PutMapping(consumes = "multipart/form-data")
-    public ResponseEntity<Object> putDiary(@RequestPart DiaryUpdateRequestDto diaryUpdateRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles) {
-        diaryService.updateDiary(diaryUpdateRequestDto, imageFiles);
+    public ResponseEntity<Object> putDiary(@RequestPart DiaryUpdateRequestDto diaryUpdateRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        diaryService.updateDiary(diaryUpdateRequestDto, imageFiles, memberIndex);
         return ResponseEntity.ok("diary updating succeeded");
     }
 
     //일기 삭제
     @Operation(summary = "일기 삭제", description = "일기 삭제")
     @DeleteMapping
-    public ResponseEntity<Object> deleteDiary(@RequestParam Long diaryIndex) {
-        System.out.println("diaryController: " + diaryIndex);
-        diaryService.removeDiary(diaryIndex);
+    public ResponseEntity<Object> deleteDiary(@RequestParam Long diaryIndex, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        diaryService.removeDiary(diaryIndex, memberIndex);
         return ResponseEntity.ok("diary deletion succeeded");
     }
 
@@ -103,7 +105,7 @@ public class DiaryController {
     }
 
     //일기 검색(해시태그)
-    @Operation(summary = "일기 검색(해시태그)", description = "미완성. 검색 방법 고민. 예를 들어 '싸피'를 검색했을 때 정확하게 '싸피'라는 해시태그가 있는 일기만 검색되어야 하는지, '싸피데이'같이 '싸피'라는 키워드를 포함하는 해시태그가 존재하는 일기도 함께 검색되어야 하는지?")
+    @Operation(summary = "일기 검색(해시태그)", description = "'싸피'를 검색했을 때 정확하게 '싸피'라는 해시태그가 있는 일기만 검색됨. 해시태그를 카테고리 느낌으로 사용")
     @GetMapping("search/hashtag")
     public ResponseEntity<List<DiaryResponseDto>> getDiaryListByHashTag(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();

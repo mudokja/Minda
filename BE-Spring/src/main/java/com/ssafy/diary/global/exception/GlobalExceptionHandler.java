@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLException;
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -26,6 +28,13 @@ public class GlobalExceptionHandler {
         log.error("{} : DiaryNotFoundException");
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
+    @ExceptionHandler(UnauthorizedDiaryAccessException.class)
+    public ResponseEntity<String> handleUnauthorizedAccessException(UnauthorizedDiaryAccessException exception){
+        log.error("{} : UnauthorizedDiaryAccessException");
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(exception.getMessage());
     }
     @ExceptionHandler(RuntimeException.class)
@@ -72,5 +81,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleExpiredJwtException(ExpiredJwtException exception) {
         log.error("JWT token is expired: ", exception);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is expired");
+    }
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<String> handleSQLException(RuntimeException exception) {
+        log.error("SQLException: ", exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
     }
 }

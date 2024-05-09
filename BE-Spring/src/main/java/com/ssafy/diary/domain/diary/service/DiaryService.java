@@ -11,9 +11,12 @@ import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.model.DiaryHashtag;
 import com.ssafy.diary.domain.diary.repository.DiaryHashtagRepository;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
+import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
+import com.ssafy.diary.global.exception.UnauthorizedDiaryAccessException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,18 +24,18 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
     private final DiaryHashtagRepository diaryHashtagRepository;
     private final S3Service s3Service;
     private final AnalyzeService analyzeService;
+    private final OpenAIService openAIService;
 
     //더미데이터 생성
     public void createDummyData(Long memberIndex) {
@@ -77,7 +80,7 @@ public class DiaryService {
         }
 
         Diary diary = diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
-        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex()));
+        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex(), memberIndex));
 
         AnalyzeRequestDto analyzeRequestDto = AnalyzeRequestDto.builder()
                 .diaryIndex(diary.getDiaryIndex())
@@ -86,6 +89,9 @@ public class DiaryService {
 
         analyzeService.addAnalyze(analyzeRequestDto).subscribe(body -> {
             //감정 수치 조정해서 postgreSQL에 저장하는 메서드 호출
+            analyzeService.calculateEmotionPoints(diary);
+            diaryRepository.save(diary);
+            openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex);
         });
     }
 
@@ -111,9 +117,14 @@ public class DiaryService {
 //    }
 
     //일기 조회
-    public DiaryResponseDto getDiary(Long diaryIndex) {
+    public DiaryResponseDto getDiary(Long diaryIndex, Long memberIndex) {
         Diary diary = diaryRepository.findById(diaryIndex)
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+
+        if (diary.getMemberIndex() != memberIndex) {
+            throw new UnauthorizedDiaryAccessException("해당 다이어리에 대한 권한이 없습니다: " + diaryIndex);
+        }
+
         DiaryResponseDto diaryResponseDto = diary.toDto();
 
         DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
@@ -151,12 +162,16 @@ public class DiaryService {
 
     //일기 수정
     @Transactional
-    public void updateDiary(DiaryUpdateRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles) {
+    public void updateDiary(DiaryUpdateRequestDto diaryUpdateRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
 
         Long diaryIndex = diaryUpdateRequestDto.getDiaryIndex();
 
         Optional<Diary> optionalDiary = diaryRepository.findById(diaryIndex);
         Diary diary = optionalDiary.orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryUpdateRequestDto.getDiaryIndex()));
+
+        if (diary.getMemberIndex() != memberIndex) {
+            throw new UnauthorizedDiaryAccessException("해당 다이어리에 대한 권한이 없습니다: " + diaryIndex);
+        }
 
         diary.update(diaryUpdateRequestDto);
 
@@ -173,18 +188,34 @@ public class DiaryService {
         // Diary 엔티티 저장
         diaryRepository.save(diary);
 
+        log.info("Updating diary with index: {}", diaryIndex);
+        log.debug("Updated diary details: {}", diary);
+
         // 해시태그 수정
-        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
-        System.out.println(diaryHashtag);
+//        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
+        Optional<DiaryHashtag> optionalDiaryHashtag = Optional.ofNullable(diaryHashtagRepository.findByDiaryIndex(diaryIndex));
+        DiaryHashtag diaryHashtag = optionalDiaryHashtag.orElseThrow(() -> new RuntimeException("해시태그를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+
+//        System.out.println("DiaryHashtag after find: " + diaryHashtag.getHashtagIndex());
+//        System.out.println("DiaryHashtag after find: " + diaryHashtag.getDiaryIndex());
         diaryHashtag.setHashtagList(diaryUpdateRequestDto.getHashtagList());
+
+//        log.debug("DiaryHashtag before update: {}", diaryHashtag);
+//        System.out.println("DiaryHashtag before update: " + diaryHashtag.getHashtagIndex());
+
         diaryHashtagRepository.save(diaryHashtag);
+//
+//        System.out.println("DiaryHashtag after update: " + diaryHashtag.getHashtagIndex());
     }
 
     //일기 삭제
     @Transactional
-    public void removeDiary(Long diaryIndex) {
-        Optional<Diary> optionalDiary = diaryRepository.findById(diaryIndex);
+    public void removeDiary(Long diaryIndex, Long memberIndex) {
         Diary diary = diaryRepository.findById(diaryIndex).orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+
+        if (diary.getMemberIndex() != memberIndex) {
+            throw new UnauthorizedDiaryAccessException("해당 다이어리에 대한 권한이 없습니다: " + diaryIndex);
+        }
 
         deleteImageFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
@@ -248,6 +279,7 @@ public class DiaryService {
     //해시태그로 검색
     public List<DiaryResponseDto> searchDiaryListByHashtag(Long memberIndex, String keyword) {
         List<DiaryHashtag> diaryHashtagList = diaryHashtagRepository.findByMemberIndexAndHashtagListContaining(memberIndex, keyword);
+        System.out.println(diaryHashtagList.get(0).toString());
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for (DiaryHashtag diaryHashtag : diaryHashtagList) {

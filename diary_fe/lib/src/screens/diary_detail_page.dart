@@ -1,3 +1,4 @@
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,17 +8,21 @@ import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/widgets/background.dart'; // Background 위젯 import
 import 'package:intl/intl.dart';
 import 'package:diary_fe/src/screens/analysis_page.dart';
+import 'package:diary_fe/src/models/diary_image.dart';
 
 class DiaryDetailPage extends StatefulWidget {
   final DateTime selectedDay;
   final String diaryTitle;
   final String diaryContent;
+  final int diaryIndex; // diaryIndex필드 추가
+
 
   const DiaryDetailPage({
     super.key,
     required this.selectedDay,
     required this.diaryTitle,
     required this.diaryContent,
+    required this.diaryIndex, //diaryIndex 필드 추가
   });
 
   @override
@@ -29,6 +34,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
   bool showConfirmationView = false; // 상태를 관리하는 변수
   bool isLoading = false; //로딩 상태 관리
   String imageUrl = ''; // 생성된 이미지 URL 저장
+  ApiService apiService =ApiService();
 
   void _toggleConfirmationView() {
     setState(() {
@@ -38,9 +44,10 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
 
   Future<void> sendContent() async {
     try {
-      Response response =
-          await dio.get('https://k10b205.p.ssafy.io/api/analyze');
+      // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze'); 
+          //이렇게 쓰면 안됨..
       // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
+      Response response = await apiService.get('/api/analyze');
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -54,29 +61,168 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
   }
 
    Future<void> generateImage() async {
-    
+    // ApiService apiService =ApiService();
+    print('diaryIndex: ${widget.diaryIndex}'); // 디버깅용 출력
     setState(() {
       isLoading = true;
+      imageUrl = ''; // 이전 이미지를 초기화
     });
 
-    try {
-      Response response = await dio.get(
-        'https://k10b205.p.ssafy.io/api/openAI/image?diaryIndex=199',
-      
-      );
-      print(response.data);
+  //   try {
+  //     // Response response = await apiService.get('/api/openAI/image?diaryIndex=${widget.diaryEntry.diaryIndex}');
+  //     Response response = await apiService.get(
+  //       '/api/openAI/image?diaryIndex=${widget.diaryIndex}',
+  //     );
+  //     print(response.data);
 
+  //     setState(() {
+  //       imageUrl = response.data['url'];
+  //       isLoading = false;
+  //     });
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() {
+  //         isLoading = false;
+  //       });
+  //     }
+  //     print('Error generating image: $e');
+  //   }
+  // }
+
+//   try {
+//     final url = '/api/openAI/image?diaryIndex=${widget.diaryIndex}';
+//     print('Request URL: $url'); // 디버깅용 출력
+//     Response response = await apiService.get(url);
+
+//     // 응답 데이터가 바로 이미지 URL이므로 문자열로 처리
+//     setState(() {
+//       imageUrl = response.data as String; // 응답 데이터를 바로 URL로 캐스팅
+//       isLoading = false;
+//     });
+//   } catch (e) {
+//     if (mounted) {
+//       setState(() {
+//         isLoading = false;
+//       });
+//     }
+//     print('Error generating image: $e');
+
+//     // 추가적인 디버깅 정보 출력
+//     if (e is DioException) {
+//       print('DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
+//       print('Request Headers: ${e.requestOptions.headers}');
+//       print('Request Data: ${e.requestOptions.data}');
+//     }
+//   }
+// }
+try {
+    final url = '/api/openAI/image?diaryIndex=${widget.diaryIndex}';
+    print('Request URL: $url'); // 디버깅용 출력
+    Response response = await apiService.get(url);
+
+    // 응답 데이터가 올바른 URL인지 확인
+    if (response.data is String && response.data.isNotEmpty) {
       setState(() {
-        imageUrl = response.data['url'];
+        imageUrl = response.data;
         isLoading = false;
       });
-    } catch (e) {
+    } else {
+      print('Invalid image URL');
+      setState(() {
+        isLoading = false;
+        imageUrl = ''; // 오류 시 빈 이미지 URL
+      });
+    }
+  } catch (e) {
+    if (mounted) {
       setState(() {
         isLoading = false;
       });
-      print('Error generating image: $e');
+    }
+    print('Error generating image: $e');
+
+    // 추가적인 디버깅 정보 출력
+    if (e is DioException) {
+      print('DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
+      print('Request Headers: ${e.requestOptions.headers}');
+      print('Request Data: ${e.requestOptions.data}');
     }
   }
+}
+
+//일기하나조회
+Future<void> fetchDiaryEntry() async {
+  print('Fetching diary entry with index: ${widget.diaryIndex}');
+  setState(() {
+    isLoading = true;
+    // imageUrl = ''; // 이전 이미지를 초기화
+  });
+
+  try {
+    final url = '/api/diary?diaryIndex=${widget.diaryIndex}';
+    print('Request URL: $url');
+    Response response = await apiService.get(url);
+
+    // 전체 데이터 출력
+    print('Response Data: ${response.data}');
+
+
+    // 응답 데이터에서 `imageList` 배열 내의 첫 번째 `imageLink`를 추출
+    if (response.data != null && response.data['imageList'] is List && response.data['imageList'].isNotEmpty) {
+      final imageLink = response.data['imageList'][0]['imageLink'];
+      print('Fetched imageLink: $imageLink');
+      setState(() {
+        imageUrl = imageLink;
+        isLoading = false;
+      });
+    } else {
+      print('No images found');
+      setState(() {
+        imageUrl = '';
+        isLoading = false;
+      });
+    }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+    print('Error fetching diary entry: $e');
+
+    // 추가적인 디버깅 정보 출력
+    if (e is DioException) {
+      print('DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
+      print('Request Headers: ${e.requestOptions.headers}');
+      print('Request Data: ${e.requestOptions.data}');
+    }
+  }
+}
+//  Future<void> fetchDiaryEntry() async {
+//     final diaryProvider = Provider.of<DiaryProvider>(context, listen: false);
+//     await diaryProvider.fetchDiaryEntry(widget.diaryIndex);
+
+//     // 일기 데이터 로드 후 이미지 URL 추출
+//     final diaryEntry = diaryProvider.selectedDiaryEntry;
+//     if (diaryEntry != null && diaryEntry.imageList.isNotEmpty) {
+//       setState(() {
+//         imageUrl = diaryEntry.imageList[0].imageLink;
+//         isLoading = false;
+//       });
+//     } else {
+//       setState(() {
+//         imageUrl = '';
+//         isLoading = false;
+//       });
+//     }
+//   }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDiaryEntry();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -220,6 +366,27 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           ],
                         ),
                       ),
+                      // 이미지 생성
+                      const SizedBox(height: 15),
+                      if (isLoading)
+                        const Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      else if (imageUrl.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 10),
+                          child: Image.network(
+                            imageUrl,
+                            errorBuilder: (context, error, stackTrace) {
+                              print('Image loading error: $error');
+                              return const Text('이미지 로딩 실패');
+                            },
+                          ),
+                        )
+                      else
+                        const SizedBox(),
+
+
                       Expanded(
                         child: Container(
                           margin: const EdgeInsets.all(16),

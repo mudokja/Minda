@@ -87,4 +87,11 @@ public class GlobalExceptionHandler {
         log.error("SQLException: ", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
     }
+    @ExceptionHandler(AlreadyExistsEmailException.class)
+    public ResponseEntity<String> handleAlreadyExistsEmailException(RuntimeException exception){
+        log.error("{} : AlreadyExistsEmailException", exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(exception.getMessage());
+    }
 }

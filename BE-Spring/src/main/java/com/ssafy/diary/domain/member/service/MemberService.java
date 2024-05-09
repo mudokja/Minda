@@ -108,6 +108,11 @@ public class MemberService {
                 memberId, platform
         );
     }
+    public boolean checkExistEmail(String email, AuthType platform){
+        return memberRepository.existsByEmailAndPlatform(
+                email, platform
+        );
+    }
     @Transactional
     public void deleteMember(Long memberIndex){
         Member member= memberRepository.findByIndexAndIsDeletedFalse(memberIndex)

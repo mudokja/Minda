@@ -34,6 +34,9 @@ public class AdviceService {
         Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex,singleAdviceRequestDto.getDate())
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
 
+        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate())
+                .orElseThrow(()-> new IllegalStateException("조언 생성 결과가 없습니다."));
+
         Long diaryIndex = diary.getDiaryIndex();
         Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
                 .orElseThrow(()-> new IllegalStateException("분석 결과가 없습니다."));
@@ -60,8 +63,6 @@ public class AdviceService {
         statusMap.put("불안",diary.getDiaryFear());
         statusMap.put("기쁨",diary.getDiaryHappiness());
 
-        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate());
-
         return SingleAdviceResponseDto.builder()
                 .sentence(analyze.getSentence())
                 .emotion(emotionList)
@@ -71,6 +72,9 @@ public class AdviceService {
 
     @Transactional
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {
+//        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate())
+//                .orElseThrow(()-> new IllegalStateException("조언 생성 결과가 없습니다."));
+
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
         HashMap<String,Double> statusMap = new HashMap<>();
@@ -95,10 +99,9 @@ public class AdviceService {
             statusMap.put("기쁨", statusMap.getOrDefault("기쁨", 0.0) / diaryCount);
         }
 
-        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
-
         return AdviceResponseDto.builder()
-                .adviceContent(advice.getAdviceContent())
+                .adviceContent("null")
+//                .adviceContent(advice.getAdviceContent())
                 .status(statusMap).build();
     }
 }

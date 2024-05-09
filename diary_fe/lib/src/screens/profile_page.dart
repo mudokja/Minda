@@ -5,6 +5,9 @@ import 'package:diary_fe/src/services/delete_storage.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/change_nickname.dart';
+import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -19,10 +22,24 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   ApiService apiService = ApiService();
   final storage = const FlutterSecureStorage();
+  String platform = '';
 
   void logout() async {
-    await Provider.of<UserProvider>(context,
-        listen: false).logout();
+    if (kIsWeb) {
+      setState(() {
+        platform = "WEB";
+      });
+    } else {
+      setState(() {
+        platform = "ANDROID";
+      });
+    }
+
+    // Response response = await apiService.delete(
+    //   '/api/notification',
+    // );
+    await Provider.of<UserProvider>(context, listen: false).logout();
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -30,9 +47,9 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
   void leave() async {
-    Provider.of<UserProvider>(context,
-        listen: false).leave();
+    Provider.of<UserProvider>(context, listen: false).leave();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -202,17 +219,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       height: 30,
                     ),
                     TextButton(
-                      onPressed: () {
-                        leave();
-                      },
-                      child: const Text(
-                      '회원 탈퇴하기',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                      ),
-                    )
-                    ),
+                        onPressed: () {
+                          leave();
+                        },
+                        child: const Text(
+                          '회원 탈퇴하기',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        )),
                   ],
                 ),
               ),

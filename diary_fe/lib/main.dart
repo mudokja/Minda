@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
         builder: (context, userProvider, child) {
           // 로그인 상태에 따라 다른 페이지 렌더링
           return Scaffold(
-            body: userProvider.isLoggedIn ? const Pages() : const HomePage(),
+            body: userProvider.isLoggedIn ? const Pages() : const IntroPage(),
           );
         },
       ),
@@ -84,80 +84,80 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+// class HomePage extends StatefulWidget {
+//   const HomePage({super.key});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
+//   @override
+//   State<HomePage> createState() => _HomePageState();
+// }
 
-class _HomePageState extends State<HomePage> {
-  var messageString = "";
+// class _HomePageState extends State<HomePage> {
+//   var messageString = "";
 
-  void getMyDeviceToken() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
+//   void getMyDeviceToken() async {
+//     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+//     NotificationSettings settings = await messaging.requestPermission(
+//       alert: true,
+//       announcement: false,
+//       badge: true,
+//       carPlay: false,
+//       criticalAlert: false,
+//       provisional: false,
+//       sound: true,
+//     );
 
-    print('User granted permission: ${settings.authorizationStatus}');
-    final token = await FirebaseMessaging.instance.getToken(
-        vapidKey:
-            'BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4bhIXx_WVyruYsVJ6IP3g9F7g02QfhFzA');
+//     print('User granted permission: ${settings.authorizationStatus}');
+//     final token = await FirebaseMessaging.instance.getToken(
+//         vapidKey:
+//             'BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4bhIXx_WVyruYsVJ6IP3g9F7g02QfhFzA');
 
-    print("내 디바이스 토큰: $token");
-  }
+//     print("내 디바이스 토큰: $token");
+//   }
 
-  @override
-  void initState() {
-    getMyDeviceToken();
+//   @override
+//   void initState() {
+//     getMyDeviceToken();
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      RemoteNotification? notification = message.notification;
+//     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+//       RemoteNotification? notification = message.notification;
 
-      if (notification != null) {
-        FlutterLocalNotificationsPlugin().show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'high_importance_notification',
-              importance: Importance.max,
-            ),
-          ),
-        );
+//       if (notification != null) {
+//         FlutterLocalNotificationsPlugin().show(
+//           notification.hashCode,
+//           notification.title,
+//           notification.body,
+//           const NotificationDetails(
+//             android: AndroidNotificationDetails(
+//               'high_importance_channel',
+//               'high_importance_notification',
+//               importance: Importance.max,
+//             ),
+//           ),
+//         );
 
-        setState(() {
-          messageString = message.notification!.body!;
+//         setState(() {
+//           messageString = message.notification!.body!;
 
-          print("Foreground 메시지 수신: $messageString");
-        });
-      }
-    });
+//           print("Foreground 메시지 수신: $messageString");
+//         });
+//       }
+//     });
 
-    super.initState();
-  }
+//     super.initState();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("메시지 내용: $messageString"),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: Center(
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             Text("메시지 내용: $messageString"),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

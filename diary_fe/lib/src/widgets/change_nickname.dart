@@ -42,7 +42,7 @@ class _ChangeNicknameState extends State<ChangeNickname> {
     return Center(
       child: SizedBox(
         width: 450,
-        height: 320,
+        height: 330,
         child: Dialog(
           child: Padding(
             padding: const EdgeInsets.all(30.0),

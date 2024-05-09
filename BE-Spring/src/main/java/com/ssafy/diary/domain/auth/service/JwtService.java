@@ -242,6 +242,7 @@ public class JwtService {
                 .platform(member.getPlatform())
                 .memberIndex(member.getIndex())
                 .role(member.getRole())
+                .regDate(LocalDateTime.now())
                 .expireTime(refreshTokenExpiredTime)
                 .build()
         );

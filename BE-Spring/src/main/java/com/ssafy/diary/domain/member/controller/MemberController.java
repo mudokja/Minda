@@ -7,6 +7,7 @@ import com.ssafy.diary.domain.member.dto.MemberRegisterRequestDto;
 import com.ssafy.diary.domain.member.dto.MemberUpdatePasswordRequestDto;
 import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.global.constant.AuthType;
+import com.ssafy.diary.global.exception.AlreadyExistsEmailException;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -25,11 +26,25 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
     final private MemberService memberService;
 
-    @Operation(summary = "아이디 중복 확인", description = "아이디 중복 확인")
+    @Operation(summary = "아이디 중복 확인", description = "아이디 및 이메일 중복 확인")
     @GetMapping("/check")
-    public ResponseEntity<String> checkMemberId(@RequestParam("id") String id) {
-        if (memberService.checkExistMemberId(id, AuthType.LOCAL)) {
-            throw new AlreadyExistsMemberException("member ID " + id + " is exists");
+    public ResponseEntity<String> checkMemberOrEmailId(@RequestParam(name= "id",required = false) String id, @RequestParam(name = "email",required = false) String email) {
+        boolean isIdEmpty=id==null||id.isEmpty();
+        boolean isEmailEmpty=email==null||email.isEmpty();
+        if(isIdEmpty&&isEmailEmpty) {
+            return ResponseEntity.badRequest().body("value cannot be empty");
+        }
+        if(!isIdEmpty&&!isEmailEmpty) {
+            return ResponseEntity.badRequest().body("only one value is allowed");
+        }
+
+
+        if (isEmailEmpty&&memberService.checkExistMemberId(id, AuthType.LOCAL)) {
+            throw new AlreadyExistsMemberException("member ID " + id + "already is exists");
+        }
+
+        if(isIdEmpty&&memberService.checkExistEmail(email,AuthType.LOCAL)){
+            throw new AlreadyExistsEmailException("email " + email + " is already exists");
         }
         return ResponseEntity.ok().build();
     }

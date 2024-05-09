@@ -26,6 +26,7 @@ class _LoginModalState extends State<LoginModal> {
   ApiService apiService = ApiService();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
+  bool _isButtonEnabled = true;
   final storage = const FlutterSecureStorage();
   Future<void> login() async {
     if (_idController.text.isEmpty || _pwController.text.isEmpty) {
@@ -48,35 +49,43 @@ class _LoginModalState extends State<LoginModal> {
       );
       return;
     }
-    if (kIsWeb) {
-      setState(() {
-        platform = "WEB";
-      });
-    } else {
-      setState(() {
-        platform = "ANDROID";
-      });
+    try {
+      await Provider.of<UserProvider>(context, listen: false)
+          .login(_idController.text, _pwController.text);
+      await Provider.of<UserProvider>(context, listen: false).fetchUserData();
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Pages(),
+          ));
+    } catch (e) {
+      if (e is DioException) {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false, // 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('로그인 오류'),
+              content: const SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text('회원가입이 되어있지 않거나, 아이디나 \n비밀번호가 달라요.'),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('확인'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // 다이얼로그 닫기
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
-
-    await Provider.of<UserProvider>(context, listen: false)
-        .login(_idController.text, _pwController.text);
-    await Provider.of<UserProvider>(context, listen: false).fetchUserData();
-    // final token = await FirebaseMessaging.instance.getToken();
-
-    // Response response = await apiService.post(
-    //   '/api/notification',
-    //   data: {
-    //     "platform": platform,
-    //     "token": token,
-    //   },
-    // );
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const Pages(),
-      ),
-    );
   }
 
   @override
@@ -84,6 +93,20 @@ class _LoginModalState extends State<LoginModal> {
     _idController.dispose();
     _pwController.dispose();
     super.dispose();
+  }
+
+  void _handleButtonClick() {
+    setState(() {
+      _isButtonEnabled = false; // 버튼 비활성화
+    });
+    login();
+
+    // 2초 후에 버튼을 다시 활성화
+    Future.delayed(const Duration(microseconds: 500), () {
+      setState(() {
+        _isButtonEnabled = true; // 버튼 활성화
+      });
+    });
   }
 
   @override
@@ -121,7 +144,7 @@ class _LoginModalState extends State<LoginModal> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: login,
+                      onPressed: _isButtonEnabled ? _handleButtonClick : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColors.color1, // 버튼 색상
                         shape: RoundedRectangleBorder(

@@ -1,7 +1,9 @@
+import 'package:diary_fe/src/services/delete_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
+  bool refresh = true;
   Dio dio = Dio();
 
   String baseUrl = 'https://k10b205.p.ssafy.io';
@@ -9,16 +11,52 @@ class ApiService {
   ApiService() {
     // bool refresh = true;
     dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          String? accessToken = await storage.read(key: 'ACCESS_TOKEN');
-          options.headers['Authorization'] = 'Bearer $accessToken';
-          return handler.next(options);
-        },
-        onError: (DioException error, handler) {
-          // 에러 발생시 처리하는 부분
-        },
-      ),
+      InterceptorsWrapper(onRequest: (options, handler) async {
+        String? accessToken = await storage.read(key: 'ACCESS_TOKEN');
+        options.headers['Authorization'] = 'Bearer $accessToken';
+        return handler.next(options);
+      }, onError: (DioException error, handler) async {
+        if (error.response?.statusCode == 404 ||
+            error.response?.statusCode == 400) {
+          handler.next(error);
+        } else if (error.response?.statusCode == 401 && refresh) {
+          String? refreshToken = await storage.read(key: 'REFRESH_TOKEN');
+          if (refreshToken != null) {
+            try {
+              refresh = false;
+
+              Dio dio = Dio();
+              Response refreshResponse = await dio.post(
+                "$baseUrl/api/auth/refresh",
+                data: {"refreshToken": refreshToken},
+              );
+              print(refreshResponse.data);
+              String newAccessToken = refreshResponse.data["accessToken"];
+              await storage.write(key: 'ACCESS_TOKEN', value: newAccessToken);
+              error.requestOptions.headers['Authorization'] =
+                  'Bearer $newAccessToken';
+              final opts = Options(
+                method: error.requestOptions.method,
+                headers: error.requestOptions.headers,
+              );
+
+              return handler.resolve(await dio.request(
+                baseUrl + error.requestOptions.path,
+                options: opts,
+                data: error.requestOptions.data,
+                queryParameters: error.requestOptions.queryParameters,
+              ));
+            } catch (refreshError) {
+              return;
+            }
+          } else {
+            throw Exception('Refresh token not found');
+          }
+        } else if (error.response?.statusCode == 401 && refresh) {
+          DeleteStorage deleteStorage = DeleteStorage();
+          deleteStorage.deleteAll();
+        }
+      }),
     );
   }
   Future<Response> get(String url) async {

@@ -3,12 +3,11 @@ class AnalysisModel {
   final DateTime diarySetDate;
   final String diaryTitle;
   final String diaryContent;
-  final int diaryHappiness;
-  final int diarySadness;
-  final int diaryFear;
-  final int diaryAnger;
-
-  final int diarySurprise;
+  final double diaryHappiness;
+  final double diarySadness;
+  final double diaryFear;
+  final double diaryAnger;
+  final double diarySurprise;
   final List<ImageDetail> imageList;
   final List<String> hashtagList;
 
@@ -27,27 +26,23 @@ class AnalysisModel {
   });
 
   factory AnalysisModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return AnalysisModel(
-        diaryIndex: json['diaryIndex'] ?? 0,
-        diarySetDate:
-            DateTime.tryParse(json['diarySetDate'] ?? '') ?? DateTime.now(),
-        diaryTitle: json['diaryTitle'] ?? '',
-        diaryContent: json['diaryContent'] ?? '',
-        diaryHappiness: json['diaryHappiness'] ?? 0,
-        diarySadness: json['diarySadness'] ?? 0,
-        diaryFear: json['diaryFear'] ?? 0,
-        diaryAnger: json['diaryAnger'] ?? 0,
-        diarySurprise: json['diarySurprise'] ?? 0,
-        imageList: (json['imageList'] as List<dynamic>? ?? [])
-            .map((x) => ImageDetail.fromJson(x))
-            .toList(),
-        hashtagList:
-            List<String>.from(json['hashtagList'] as List<dynamic>? ?? []),
-      );
-    } catch (e) {
-      throw Exception('AnalysisModel 실패: $e');
-    }
+    return AnalysisModel(
+      diaryIndex: json['diaryIndex'] ?? 0,
+      diarySetDate:
+          DateTime.tryParse(json['diarySetDate'] ?? '') ?? DateTime.now(),
+      diaryTitle: json['diaryTitle'] ?? '',
+      diaryContent: json['diaryContent'] ?? '',
+      diaryHappiness: (json['diaryHappiness'] ?? 0.0).toDouble(),
+      diarySadness: (json['diarySadness'] ?? 0.0).toDouble(),
+      diaryFear: (json['diaryFear'] ?? 0.0).toDouble(),
+      diaryAnger: (json['diaryAnger'] ?? 0.0).toDouble(),
+      diarySurprise: (json['diarySurprise'] ?? 0.0).toDouble(),
+      imageList: (json['imageList'] as List<dynamic>? ?? [])
+          .map((x) => ImageDetail.fromJson(x))
+          .toList(),
+      hashtagList:
+          List<String>.from(json['hashtagList'] as List<dynamic>? ?? []),
+    );
   }
 
   Map<String, dynamic> toJson() {

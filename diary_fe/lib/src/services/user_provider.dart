@@ -164,10 +164,10 @@ class UserProvider with ChangeNotifier {
             key: "USER_DATA", value: json.encode(user.toJson()));
         notifyListeners(); // 데이터 변경 시 리스너에게 알림
       } else {
-        throw Exception('Failed to load user data');
+        // throw Exception('Failed to load user data');
       }
     } catch (e) {
-      throw Exception('Failed to fetch user data: $e');
+      // throw Exception('Failed to fetch user data: $e');
     }
   }
 }

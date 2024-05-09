@@ -11,7 +11,7 @@ class AnalysisService {
   ) async {
     String formStartDate = formatDate(startDate);
     String formEndDate = formatDate(endDate);
-    Map<String, List<int>> emotions = {};
+    Map<String, List<double>> emotions = {};
 
     try {
       var response = await _apiService.post('/api/diary/list/period', data: {
@@ -27,11 +27,9 @@ class AnalysisService {
             AnalysisModel model = AnalysisModel.fromJson(item);
             String diaryDate = formatDate(model.diarySetDate);
 
-            // 해당 날짜에 대한 감정 데이터가 없으면 초기화
-            List<int> dailyEmotions =
-                emotions.putIfAbsent(diaryDate, () => [0, 0, 0, 0, 0]);
+            List<double> dailyEmotions =
+                emotions.putIfAbsent(diaryDate, () => List.filled(5, 0.0));
 
-            // 해당 날짜의 감정 데이터에 값을 추가
             dailyEmotions[0] += model.diaryHappiness;
             dailyEmotions[1] += model.diarySadness;
             dailyEmotions[2] += model.diaryFear;

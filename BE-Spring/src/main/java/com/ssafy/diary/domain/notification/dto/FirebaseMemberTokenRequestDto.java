@@ -5,11 +5,11 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class FirebaseMemberTokenRegisterDto {
+public class FirebaseMemberTokenRequestDto {
     FireBasePlatform platform;
     String token;
     @Builder
-    public FirebaseMemberTokenRegisterDto(FireBasePlatform platform, String token) {
+    public FirebaseMemberTokenRequestDto(FireBasePlatform platform, String token) {
         this.platform = platform;
         this.token = token;
     }

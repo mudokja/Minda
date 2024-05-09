@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.ssafy.diary.domain.notification.dto.*;
 import com.ssafy.diary.domain.notification.entity.FirebaseMemberToken;
 import com.ssafy.diary.domain.notification.repository.FirebaseMemberTokenRepository;
+import com.ssafy.diary.global.exception.NotificationException;
 import com.ssafy.diary.global.util.FCMUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,23 +23,34 @@ public class NotificationService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final FirebaseMemberTokenRepository firebaseMemberTokenRepository;
 
-    public void addFirebaseMemberToken(FirebaseMemberToken firebaseMemberToken) {
-        firebaseMemberTokenRepository.save(firebaseMemberToken);
+    public void addFirebaseMemberToken(FirebaseMemberTokenRequestDto firebaseMemberToken, Long memberIndex) throws NotificationException.NotificationTokenDuplicatedException {
+        if(firebaseMemberTokenRepository.existsByFireBaseToken(firebaseMemberToken.getToken())){
+            throw new NotificationException.NotificationTokenDuplicatedException("duplicate firebase token");
+        }
+        firebaseMemberTokenRepository.save(FirebaseMemberToken.builder()
+                .memberIndex(memberIndex)
+                .fireBaseToken(firebaseMemberToken.getToken())
+                .fireBasePlatform(firebaseMemberToken.getPlatform())
+                .build());
+    }
+    public void deleteFirebaseMemberTokenByMemberAndPlatform(FirebaseMemberTokenRequestDto firebaseMemberToken, Long memberIndex) {
+        firebaseMemberTokenRepository.deleteByMemberIndexAndFireBasePlatform(memberIndex,firebaseMemberToken.getPlatform());
+    }
+    public void deleteFirebaseMemberToken(String firebaseToken) {
+        firebaseMemberTokenRepository.deleteByFireBaseToken(firebaseToken);
     }
 
     public KafkaNotificationMessageResponseDto sendKafkaFireBaseNotificationMessage(KafkaMemberNotificationMessageRequestDto notificationMessageRequestDto) {
 
         kafkaTemplate.send(notificationMemberTopic, notificationMessageRequestDto);
         return KafkaNotificationMessageResponseDto.builder()
-
-                .resultMessage("성공")
+                .resultMessage("success")
                 .build();
     }
     public KafkaNotificationMessageResponseDto sendKafkaFireBaseNotificationMessage(KafkaTokenNotificationMessageRequestDto notificationMessageRequestDto) {
-
-        kafkaTemplate.send(notificationMemberTopic, notificationMessageRequestDto);
+        kafkaTemplate.send(notificationTokenTopic, notificationMessageRequestDto);
         return KafkaNotificationMessageResponseDto.builder()
-                .resultMessage("성공")
+                .resultMessage("success")
                 .build();
     }
 

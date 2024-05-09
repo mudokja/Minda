@@ -2,6 +2,7 @@ package com.ssafy.diary.global.exception;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.google.firebase.messaging.FirebaseMessagingException;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailException.class)
     public ResponseEntity<String> handleEmailException(RuntimeException exception) {
         log.error("EmailException: ", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    }
+    @ExceptionHandler(NotificationException.class)
+    public ResponseEntity<String> handleNotificationException(RuntimeException exception) {
+        log.error("NotificationException: ", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
     }
     @ExceptionHandler(FirebaseMessagingException.class)

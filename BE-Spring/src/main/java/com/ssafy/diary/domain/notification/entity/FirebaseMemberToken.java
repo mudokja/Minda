@@ -22,9 +22,10 @@ public class FirebaseMemberToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long firebaseTokenIndex;
-    @Column(nullable = false,length = 512)
+    @Column(nullable = false,length = 512,unique = true)
     private String fireBaseToken;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private FireBasePlatform fireBasePlatform;
     @Embedded
     private DateField date=new DateField();

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DallERequest {
+public class DallERequestDto {
     private String model,prompt,size;
     private int n;
 }

@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatGPTResponse {
+public class ChatGPTResponseDto {
     private String id,object,model;
     private LocalDate created;
     private List<Choice> choices;

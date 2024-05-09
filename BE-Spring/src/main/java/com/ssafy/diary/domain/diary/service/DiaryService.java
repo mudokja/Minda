@@ -11,6 +11,7 @@ import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.model.DiaryHashtag;
 import com.ssafy.diary.domain.diary.repository.DiaryHashtagRepository;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
+import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import com.ssafy.diary.global.exception.UnauthorizedDiaryAccessException;
@@ -34,6 +35,7 @@ public class DiaryService {
     private final DiaryHashtagRepository diaryHashtagRepository;
     private final S3Service s3Service;
     private final AnalyzeService analyzeService;
+    private final OpenAIService openAIService;
 
     //더미데이터 생성
     public void createDummyData(Long memberIndex) {
@@ -89,6 +91,7 @@ public class DiaryService {
             //감정 수치 조정해서 postgreSQL에 저장하는 메서드 호출
             analyzeService.calculateEmotionPoints(diary);
             diaryRepository.save(diary);
+            openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex);
         });
     }
 

@@ -1,12 +1,16 @@
 package com.ssafy.diary.domain.advice.entity;
 
 import com.ssafy.diary.domain.advice.dto.AdviceResponseDto;
+import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -22,13 +26,21 @@ public class Advice extends BaseEntity {
     private Long memberIndex;
 
     @Column(name = "start_date")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     @Column(name = "advice_content")
     private String adviceContent;
+
+    @Builder
+    public Advice (Long memberIndex, LocalDate startDate, LocalDate endDate, String adviceContent){
+        this.memberIndex = memberIndex;
+        this.startDate =startDate;
+        this.endDate = endDate;
+        this.adviceContent = adviceContent;
+    }
 
 //    public AdviceResponseDto toDto() {
 //        return AdviceResponseDto.builder()

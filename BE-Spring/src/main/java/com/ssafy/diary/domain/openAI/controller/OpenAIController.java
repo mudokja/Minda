@@ -1,10 +1,8 @@
 package com.ssafy.diary.domain.openAI.controller;
 
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
-import com.ssafy.diary.domain.openAI.dto.ChatGPTRequest;
-import com.ssafy.diary.domain.openAI.dto.ChatGPTResponse;
-import com.ssafy.diary.domain.openAI.dto.DallERequest;
-import com.ssafy.diary.domain.openAI.dto.ImageClient;
+import com.ssafy.diary.domain.openAI.dto.ChatGPTRequestDto;
+import com.ssafy.diary.domain.openAI.dto.ChatGPTResponseDto;
 import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,10 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
-import java.util.HashMap;
 
 @Tag(name = "OpenAI", description = "GPT API")
 @RestController
@@ -42,15 +36,15 @@ public class OpenAIController {
 //    private final ImageClient imageClient;
     @GetMapping
     public String chat(@RequestParam String prompt){
-        ChatGPTRequest request = new ChatGPTRequest(model, prompt);
-        ChatGPTResponse chatGPTResponse =  restTemplate.postForObject(apiURL+"chat/completions", request, ChatGPTResponse.class);
+        ChatGPTRequestDto request = new ChatGPTRequestDto(model, prompt);
+        ChatGPTResponseDto chatGPTResponse =  restTemplate.postForObject(apiURL+"chat/completions", request, ChatGPTResponseDto.class);
         return chatGPTResponse.getChoices().get(0).getMessage().getContent();
     }
 
     @GetMapping("/chatGPT/test")
-    public String advice(@AuthenticationPrincipal PrincipalMember member, @RequestParam String prompt){
+    public String advice(@AuthenticationPrincipal PrincipalMember member, @RequestParam Long diaryIndex){
         Long memberIndex = member.getIndex();
-        openAIService.generateAdvice(prompt,memberIndex).subscribe(body->
+        openAIService.generateAdvice(diaryIndex,memberIndex).subscribe(body->
                 System.out.println("Response from External API on controller: " + body));
         return "success";
     }

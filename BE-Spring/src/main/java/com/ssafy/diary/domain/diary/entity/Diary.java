@@ -31,7 +31,7 @@ public class Diary extends BaseEntity {
     @Column(name = "diary_title")
     private String diaryTitle;
 
-    @Column(name = "diary_content")
+    @Column(name = "diary_content", columnDefinition = "TEXT")
     private String diaryContent;
 
     @Setter

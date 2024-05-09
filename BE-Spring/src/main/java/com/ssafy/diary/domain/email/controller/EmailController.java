@@ -26,7 +26,7 @@ public class EmailController {
     public ResponseEntity<CodeVerificationResponseDto> sendVerificationEmail(@RequestBody CodeVerificationRequestDto verificationRequestDto) throws JsonProcessingException {
         if(StringUtils.isNullOrEmpty(verificationRequestDto.getEmail()))
             throw new EmailException.EmailNotValidEmail("Not valid email");
-        if(!emailService.getVerificationCodeListByEmail(verificationRequestDto.getEmail()).isEmpty())
+        if(emailService.checkLastVerificationCodeTimeByEmail(verificationRequestDto.getEmail()))
             throw new EmailException.EmailVerificationRequestTooMany("request Too many");
         return ResponseEntity.ok().body(emailService.sendKafkaEmailAuthMessage(verificationRequestDto));
     }

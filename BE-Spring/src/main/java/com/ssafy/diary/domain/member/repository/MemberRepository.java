@@ -16,8 +16,10 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByIndex(Long memberIndex);
 
-    boolean existsByIdAndPlatform(String id, AuthType authType);
+    Boolean existsByIdAndPlatform(String id, AuthType authType);
     Optional<Member> findByIndexAndIsDeletedFalse(Long index);
+
+    Boolean existsByEmailAndPlatform(String email, AuthType platform);
 
 //    List<Member> findByIndexAndIsDeletedTrueAndModDateBefore(LocalDateTime isDeleted);
 }

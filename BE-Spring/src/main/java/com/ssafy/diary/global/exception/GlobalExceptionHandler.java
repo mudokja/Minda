@@ -68,4 +68,9 @@ public class GlobalExceptionHandler {
         log.error("FireBaseException: ", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("FireBase Error");
     }
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<String> handleExpiredJwtException(ExpiredJwtException exception) {
+        log.error("JWT token is expired: ", exception);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is expired");
+    }
 }

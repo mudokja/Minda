@@ -16,7 +16,6 @@ class DiaryDetailPage extends StatefulWidget {
   final String diaryContent;
   final int diaryIndex; // diaryIndex필드 추가
 
-
   const DiaryDetailPage({
     super.key,
     required this.selectedDay,
@@ -34,7 +33,17 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
   bool showConfirmationView = false; // 상태를 관리하는 변수
   bool isLoading = false; //로딩 상태 관리
   String imageUrl = ''; // 생성된 이미지 URL 저장
-  ApiService apiService =ApiService();
+  ApiService apiService = ApiService();
+
+  // 여기에 추가
+  String diaryDate = '';
+  String diaryTitle = '';
+  String diaryContent = '';
+
+  // 컨트롤러 선언
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController contentController = TextEditingController();
+  
 
   void _toggleConfirmationView() {
     setState(() {
@@ -44,8 +53,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
 
   Future<void> sendContent() async {
     try {
-      // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze'); 
-          //이렇게 쓰면 안됨..
+      // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze');
+      //이렇게 쓰면 안됨..
       // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
       Response response = await apiService.get('/api/analyze');
       Navigator.push(
@@ -60,7 +69,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     }
   }
 
-   Future<void> generateImage() async {
+  Future<void> generateImage() async {
     // ApiService apiService =ApiService();
     print('diaryIndex: ${widget.diaryIndex}'); // 디버깅용 출력
     setState(() {
@@ -68,161 +77,135 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
       imageUrl = ''; // 이전 이미지를 초기화
     });
 
-  //   try {
-  //     // Response response = await apiService.get('/api/openAI/image?diaryIndex=${widget.diaryEntry.diaryIndex}');
-  //     Response response = await apiService.get(
-  //       '/api/openAI/image?diaryIndex=${widget.diaryIndex}',
-  //     );
-  //     print(response.data);
+    try {
+      final url = '/api/openAI/image?diaryIndex=${widget.diaryIndex}';
+      print('Request URL: $url'); // 디버깅용 출력
+      Response response = await apiService.get(url);
 
-  //     setState(() {
-  //       imageUrl = response.data['url'];
-  //       isLoading = false;
-  //     });
-  //   } catch (e) {
-  //     if (mounted) {
-  //       setState(() {
-  //         isLoading = false;
-  //       });
-  //     }
-  //     print('Error generating image: $e');
-  //   }
-  // }
+      // 응답 데이터가 올바른 URL인지 확인
+      if (response.data is String && response.data.isNotEmpty) {
+        setState(() {
+          imageUrl = response.data;
+          isLoading = false;
+        });
+      } else {
+        print('Invalid image URL');
+        setState(() {
+          isLoading = false;
+          imageUrl = ''; // 오류 시 빈 이미지 URL
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+      print('Error generating image: $e');
 
-//   try {
-//     final url = '/api/openAI/image?diaryIndex=${widget.diaryIndex}';
-//     print('Request URL: $url'); // 디버깅용 출력
-//     Response response = await apiService.get(url);
-
-//     // 응답 데이터가 바로 이미지 URL이므로 문자열로 처리
-//     setState(() {
-//       imageUrl = response.data as String; // 응답 데이터를 바로 URL로 캐스팅
-//       isLoading = false;
-//     });
-//   } catch (e) {
-//     if (mounted) {
-//       setState(() {
-//         isLoading = false;
-//       });
-//     }
-//     print('Error generating image: $e');
-
-//     // 추가적인 디버깅 정보 출력
-//     if (e is DioException) {
-//       print('DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
-//       print('Request Headers: ${e.requestOptions.headers}');
-//       print('Request Data: ${e.requestOptions.data}');
-//     }
-//   }
-// }
-try {
-    final url = '/api/openAI/image?diaryIndex=${widget.diaryIndex}';
-    print('Request URL: $url'); // 디버깅용 출력
-    Response response = await apiService.get(url);
-
-    // 응답 데이터가 올바른 URL인지 확인
-    if (response.data is String && response.data.isNotEmpty) {
-      setState(() {
-        imageUrl = response.data;
-        isLoading = false;
-      });
-    } else {
-      print('Invalid image URL');
-      setState(() {
-        isLoading = false;
-        imageUrl = ''; // 오류 시 빈 이미지 URL
-      });
-    }
-  } catch (e) {
-    if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-    print('Error generating image: $e');
-
-    // 추가적인 디버깅 정보 출력
-    if (e is DioException) {
-      print('DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
-      print('Request Headers: ${e.requestOptions.headers}');
-      print('Request Data: ${e.requestOptions.data}');
+      // 추가적인 디버깅 정보 출력
+      if (e is DioException) {
+        print(
+            'DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
+        print('Request Headers: ${e.requestOptions.headers}');
+        print('Request Data: ${e.requestOptions.data}');
+      }
     }
   }
-}
 
-//일기하나조회
-Future<void> fetchDiaryEntry() async {
-  print('Fetching diary entry with index: ${widget.diaryIndex}');
-  setState(() {
-    isLoading = true;
-    // imageUrl = ''; // 이전 이미지를 초기화
-  });
+// 일기 하나 조회
+  Future<void> fetchDiaryEntry() async {
+    print('Fetching diary entry with index: ${widget.diaryIndex}');
+    setState(() {
+      isLoading = true;
+      // imageUrl = ''; // 이전 이미지를 초기화
+    });
 
-  try {
-    final url = '/api/diary?diaryIndex=${widget.diaryIndex}';
-    print('Request URL: $url');
-    Response response = await apiService.get(url);
+    try {
+      final url = '/api/diary?diaryIndex=${widget.diaryIndex}';
+      print('Request URL: $url');
+      Response response = await apiService.get(url);
 
-    // 전체 데이터 출력
-    print('Response Data: ${response.data}');
+      // 전체 데이터 출력
+      print('Response Data: ${response.data}');
 
-
-    // 응답 데이터에서 `imageList` 배열 내의 첫 번째 `imageLink`를 추출
-    if (response.data != null && response.data['imageList'] is List && response.data['imageList'].isNotEmpty) {
-      final imageLink = response.data['imageList'][0]['imageLink'];
-      print('Fetched imageLink: $imageLink');
+      if (response.data != null) {
+        final data = response.data;
+        final imageList = data['imageList'] as List;
+        if (imageList.isNotEmpty) {
+          final imageLink = imageList[0]['imageLink'];
+          setState(() {
+            imageUrl = imageLink;
+          });
+        }
+        // 날짜, 제목, 내용도 상태 변수에 저장
+        setState(() {
+          diaryDate = data['diarySetDate']; // 날짜 형식에 맞게 조정해야 할 수 있음
+          diaryTitle = data['diaryTitle'];
+          diaryContent = data['diaryContent'];
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching diary entry: $e');
       setState(() {
-        imageUrl = imageLink;
         isLoading = false;
       });
-    } else {
-      print('No images found');
-      setState(() {
-        imageUrl = '';
-        isLoading = false;
-      });
-    }
-  } catch (e) {
-    if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-    print('Error fetching diary entry: $e');
-
-    // 추가적인 디버깅 정보 출력
-    if (e is DioException) {
-      print('DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
-      print('Request Headers: ${e.requestOptions.headers}');
-      print('Request Data: ${e.requestOptions.data}');
     }
   }
-}
-//  Future<void> fetchDiaryEntry() async {
-//     final diaryProvider = Provider.of<DiaryProvider>(context, listen: false);
-//     await diaryProvider.fetchDiaryEntry(widget.diaryIndex);
 
-//     // 일기 데이터 로드 후 이미지 URL 추출
-//     final diaryEntry = diaryProvider.selectedDiaryEntry;
-//     if (diaryEntry != null && diaryEntry.imageList.isNotEmpty) {
-//       setState(() {
-//         imageUrl = diaryEntry.imageList[0].imageLink;
-//         isLoading = false;
-//       });
-//     } else {
-//       setState(() {
-//         imageUrl = '';
-//         isLoading = false;
-//       });
-//     }
-//   }
+  Future<void> updateDiary() async {
+    try {
+      const url = '/api/diary';
+      final data = {
+        'diaryIndex': widget.diaryIndex,
+        'diarySetDate': diaryDate,
+        'diaryTitle': titleController.text,
+        'diaryContent': contentController.text,
+      };
+      Response response = await apiService.put(url, data: data);
+
+      if (response.statusCode == 200) {
+        print('Diary updated successfully');
+        setState(() {
+          diaryTitle = titleController.text;
+          diaryContent = contentController.text;
+          showConfirmationView = false;
+        });
+      } else {
+        print('Failed to update diary');
+      }
+    } catch (e) {
+      print('Error updating diary: $e');
+    }
+  }
+
+  Future<void> deleteDiary() async {
+    try {
+      final url = '/api/diary?diaryIndex=${widget.diaryIndex}';
+      Response response = await apiService.delete(url);
+
+      if (response.statusCode == 200) {
+        print('Diary deleted successfully');
+        Navigator.of(context).pop(); // 페이지를 닫고 이전 페이지로 돌아감
+      } else {
+        print('Failed to delete diary');
+      }
+    } catch (e) {
+      print('Error deleting diary: $e');
+    }
+  }
+
 
   @override
   void initState() {
     super.initState();
     fetchDiaryEntry();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -256,7 +239,9 @@ Future<void> fetchDiaryEntry() async {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0), // 내부 여백 추가
+                  // padding: const EdgeInsets.all(16.0), // 내부 여백 추가
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch, // 가로로 꽉 차게
                     children: [
@@ -298,111 +283,103 @@ Future<void> fetchDiaryEntry() async {
                           ),
                         ],
                       ),
-                     Align(
+                      Align(
                         alignment: Alignment.centerRight,
                         child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.start, // 버튼들을 왼쪽 정렬
+                          
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const SizedBox(width: 15), // 추가적인 왼쪽 공간
-                            // 새로운 AI 이미지 생성 아이콘 버튼 추가
                             IconButton(
-                              // icon: Image.asset('assets/icons/ai-file.png', width: 5, height: 5), // 이미지 파일 사용
-                              icon: const Icon(Icons.brush), // 예시 아이콘, 적절한 아이콘으로 교체 필요
-                              // icon: const Icon(Icons.palette),
-                              // icon: const Icon(Icons.photo_filter_rounded),
-// icon: const Icon(Icons.add_photo_alternate),
-
-                              color: themeColors.color1, // 아이콘 색상 지정
-                              onPressed: generateImage, // AI 이미지 생성 로직 연결
+                              icon: const Icon(Icons.brush),
+                              color: themeColors.color1,
+                              onPressed:
+                                  imageUrl.isEmpty ? generateImage : null,
                             ),
-                            
-                            const SizedBox(width: 140), // AI 버튼과 삭제 버튼 간의 간격
-
-                            // 기존 '삭제' 버튼
-                            ElevatedButton(
-                              onPressed: () {
-                                // 일기 삭제
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: themeColors.color2, // 배경색
-                                foregroundColor: Colors.white, // 텍스트색
-                                minimumSize: const Size(50, 25), // 최소 크기 지정
-                                padding: EdgeInsets.zero, // 최소 패딩
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(45), // 모서리 둥글게
+                            const SizedBox(width: 10),
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: deleteDiary,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: themeColors.color2,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size(50, 25),
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(45),
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '삭제',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '삭제',
-                                  style: TextStyle(fontSize: 16), // 폰트사이즈 설정
+                                const SizedBox(width: 10),
+                                ElevatedButton(
+                                  onPressed: _toggleConfirmationView,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: themeColors.color1,
+                                    minimumSize: const Size(50, 25),
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(45),
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '수정',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(width: 10), // 버튼 간 간격 조정
-                            // 기존 '수정' 버튼
-                            ElevatedButton(
-                              onPressed: _toggleConfirmationView,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: themeColors.color1, // 배경색
-                                minimumSize: const Size(50, 25), // 최소 크기 지정
-                                foregroundColor: Colors.white, // 텍스트색
-                                padding: EdgeInsets.zero, // 최소 패딩
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(45), // 모서리 둥글게
-                                ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '수정',
-                                  style: TextStyle(fontSize: 16), // 폰트사이즈 설정
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 20), // 추가적인 오른쪽 공간
                           ],
                         ),
                       ),
-                      // 이미지 생성
-                      const SizedBox(height: 15),
                       if (isLoading)
                         const Center(
                           child: CircularProgressIndicator(),
                         )
                       else if (imageUrl.isNotEmpty)
                         Container(
-                          margin: const EdgeInsets.symmetric(vertical: 10),
-                          child: Image.network(
-                            imageUrl,
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Image loading error: $error');
-                              return const Text('이미지 로딩 실패');
-                            },
+                          width: double.infinity,
+                          height: MediaQuery.of(context).size.height * 0.3,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('Image loading error: $error');
+                                return const Text('이미지 로딩 실패');
+                              },
+                            ),
                           ),
                         )
                       else
                         const SizedBox(),
-
-
                       Expanded(
                         child: Container(
                           margin: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(
-                                0xFFF9D1DD), // Pink background color
-                            borderRadius:
-                                BorderRadius.circular(8), // Rounded corners
+                            color: const Color(0xFFF9D1DD),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: CustomPaint(
                             painter: LinedPaperPainter(),
-                            foregroundPainter: NotebookHolesPainter(
-                                24), // Line spacing for notebook holes
+                            foregroundPainter: NotebookHolesPainter(24),
                             child: SizedBox(
                               width: modalWidth,
-                              height: 400, // Fixed height
+                              height: 400,
                               child: Padding(
                                 padding: const EdgeInsets.all(30),
                                 child: SingleChildScrollView(
@@ -468,6 +445,7 @@ Future<void> fetchDiaryEntry() async {
     );
   }
 }
+
 class NotebookHolesPainter extends CustomPainter {
   final double lineSpacing;
 
@@ -480,7 +458,7 @@ class NotebookHolesPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     double holeRadius = 5;
-    double xOffset = 20; // 구멍의 x축 위치
+    double xOffset = 20;
 
     for (double y = lineSpacing; y < size.height; y += lineSpacing) {
       canvas.drawCircle(Offset(xOffset, y), holeRadius, paint);

@@ -51,23 +51,23 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     });
   }
 
-  Future<void> sendContent() async {
-    try {
-      // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze');
-      //이렇게 쓰면 안됨..
-      // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
-      Response response = await apiService.get('/api/analyze');
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AnalysisPage(),
-        ),
-      );
-    } catch (e) {
-      // 요청 실패 처리
-      print('Error fetching analysis: $e');
-    }
-  }
+  // Future<void> sendContent() async {
+  //   try {
+  //     // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze');
+  //     //이렇게 쓰면 안됨..
+  //     // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
+  //     Response response = await apiService.get('/api/analyze');
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (context) => const AnalysisPage(),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     // 요청 실패 처리
+  //     print('Error fetching analysis: $e');
+  //   }
+  // }
 
   Future<void> generateImage() async {
     // ApiService apiService =ApiService();
@@ -293,17 +293,233 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           ),
                         ],
                       ),
-                      Align(
+//                       Align(
+//                         alignment: Alignment.centerRight,
+//                         child: Row(
+                          
+//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                           children: [
+//                             IconButton(
+//                               icon: const Icon(Icons.brush),
+//                               color: themeColors.color1,
+//                               onPressed:
+//                                   imageUrl.isEmpty ? generateImage : null,
+//                             ),
+//                             const SizedBox(width: 10),
+//                             Row(
+//                               children: [
+//                                 ElevatedButton(
+//                                   onPressed: deleteDiary,
+//                                   style: ElevatedButton.styleFrom(
+//                                     backgroundColor: themeColors.color2,
+//                                     foregroundColor: Colors.white,
+//                                     minimumSize: const Size(50, 25),
+//                                     padding: EdgeInsets.zero,
+//                                     shape: RoundedRectangleBorder(
+//                                       borderRadius: BorderRadius.circular(45),
+//                                     ),
+//                                   ),
+//                                   child: const Center(
+//                                     child: Text(
+//                                       '삭제',
+//                                       style: TextStyle(fontSize: 16),
+//                                     ),
+//                                   ),
+//                                 ),
+//                                 const SizedBox(width: 10),
+//                                 ElevatedButton(
+//                                   onPressed: _toggleConfirmationView,
+//                                   style: ElevatedButton.styleFrom(
+//                                     backgroundColor: themeColors.color1,
+//                                     minimumSize: const Size(50, 25),
+//                                     foregroundColor: Colors.white,
+//                                     padding: EdgeInsets.zero,
+//                                     shape: RoundedRectangleBorder(
+//                                       borderRadius: BorderRadius.circular(45),
+//                                     ),
+//                                   ),
+//                                   child: const Center(
+//                                     child: Text(
+//                                       '수정',
+//                                       style: TextStyle(fontSize: 16),
+//                                     ),
+//                                   ),
+//                                 ),
+//                               ],
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                       if (isLoading)
+//                         const Center(
+//                           child: CircularProgressIndicator(),
+//                         )
+//                       else if (imageUrl.isNotEmpty)
+//                         Container(
+//                           width: double.infinity,
+//                           height: MediaQuery.of(context).size.height * 0.3,
+//                           decoration: BoxDecoration(
+//                             color: Colors.grey.shade200,
+//                             borderRadius: BorderRadius.circular(10),
+//                             border: Border.all(
+//                               color: themeColors.color2, //테두리 색상
+//                               width: 2, // 테두리 두꼐
+//                             )
+//                           ),
+//                           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+//                           child: ClipRRect(
+//                             borderRadius: BorderRadius.circular(10),
+//                             child: Image.network(
+//                               imageUrl,
+//                               fit: BoxFit.contain,
+//                               errorBuilder: (context, error, stackTrace) {
+//                                 print('Image loading error: $error');
+//                                 return const Text('이미지 로딩 실패');
+//                               },
+//                             ),
+//                           ),
+//                         )
+//                       else
+//                         const SizedBox(),
+//                       Expanded(
+//                         child: Container(
+//                           margin: const EdgeInsets.all(16),
+//                           decoration: BoxDecoration(
+//                             color: const Color(0xFFF9D1DD),
+//                             borderRadius: BorderRadius.circular(8),
+//                           ),
+//                           child: CustomPaint(
+//                             painter: LinedPaperPainter(),
+//                             foregroundPainter: NotebookHolesPainter(24),
+//                             child: SizedBox(
+//                               width: modalWidth,
+//                               height: 400,
+//                               child: Padding(
+//                                 padding: const EdgeInsets.all(30),
+//                                 child: SingleChildScrollView(
+//                                   child: Column(
+//                                     crossAxisAlignment:
+//                                         CrossAxisAlignment.start,
+//                                     children: <Widget>[
+//                                       Text(
+//                                         widget.diaryTitle.isNotEmpty
+//                                             ? widget.diaryTitle
+//                                             : '${widget.selectedDay.year}년 ${widget.selectedDay.month}월 ${widget.selectedDay.day}일의 일기',
+//                                         style: const TextStyle(
+//                                             fontSize: 18,
+//                                             fontWeight: FontWeight.bold),
+//                                       ),
+//                                       const SizedBox(height: 20),
+//                                       Text(
+//                                         widget.diaryContent.isNotEmpty
+//                                             ? widget.diaryContent
+//                                             : '일기가 작성되지 않았어요..',
+//                                         style: const TextStyle(
+//                                             fontSize: 18,
+//                                             color: Color(0xFFA488AF),
+//                                             fontWeight: FontWeight.w600),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                 ),
+//                               ),
+//                             ),
+//                           ),
+//                         ),
+//                       ),
+//                       const SizedBox(
+//                         height: 25,
+//                       ),
+//                       Container(
+//                         margin: const EdgeInsets.symmetric(horizontal: 50),
+//                         child: ElevatedButton(
+//                           // onPressed: sendContent,
+//                           onPressed: null, // 버튼 비활성화
+//                           style: ElevatedButton.styleFrom(
+//                             backgroundColor: themeColors.color1,
+//                             shape: RoundedRectangleBorder(
+//                               borderRadius: BorderRadius.circular(10),
+//                             ),
+//                           ),
+//                           child: const Text(
+//                             '일기 분석 보기',
+//                             style: TextStyle(
+//                                 color: Colors.white,
+//                                 fontWeight: FontWeight.w600),
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+// class NotebookHolesPainter extends CustomPainter {
+//   final double lineSpacing;
+
+//   NotebookHolesPainter(this.lineSpacing);
+
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final paint = Paint()
+//       ..color = Colors.white
+//       ..style = PaintingStyle.fill;
+
+//     double holeRadius = 5;
+//     double xOffset = 20;
+
+//     for (double y = lineSpacing; y < size.height; y += lineSpacing) {
+//       canvas.drawCircle(Offset(xOffset, y), holeRadius, paint);
+//     }
+//   }
+
+//   @override
+//   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+// }
+
+// class LinedPaperPainter extends CustomPainter {
+//   final double lineSpacing = 24;
+
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final paint = Paint()
+//       ..color = Colors.grey.shade300
+//       ..strokeWidth = 1.5;
+
+//     for (double y = lineSpacing; y < size.height; y += lineSpacing) {
+//       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+//     }
+//   }
+
+//   @override
+//   bool shouldRepaint(CustomPainter oldDelegate) => false;
+// }
+
+ Align(
                         alignment: Alignment.centerRight,
                         child: Row(
-                          
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.brush),
-                              color: themeColors.color1,
-                              onPressed:
-                                  imageUrl.isEmpty ? generateImage : null,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.brush),
+                                  color: themeColors.color1,
+                                  onPressed: imageUrl.isEmpty ? generateImage : null,
+                                ),
+                                const Text(
+                                  'AI로 이미지를\n생성해보세요!',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ],
                             ),
                             const SizedBox(width: 10),
                             Row(
@@ -350,9 +566,32 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 15),
                       if (isLoading)
-                        const Center(
-                          child: CircularProgressIndicator(),
+                        Container(
+                          width: double.infinity,
+                          height: MediaQuery.of(context).size.height * 0.3,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: themeColors.color2, // 테두리 색상
+                              width: 2, // 테두리 두께
+                            ),
+                          ),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 10),
+                              Text(
+                                '이미지를 생성중입니다.',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
                         )
                       else if (imageUrl.isNotEmpty)
                         Container(
@@ -362,11 +601,12 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: themeColors.color2, //테두리 색상
-                              width: 2, // 테두리 두꼐
-                            )
+                              color: themeColors.color2, // 테두리 색상
+                              width: 2, // 테두리 두께
+                            ),
                           ),
-                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.network(
@@ -433,7 +673,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 50),
                         child: ElevatedButton(
-                          onPressed: sendContent,
+                          onPressed: null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: themeColors.color1,
                             shape: RoundedRectangleBorder(

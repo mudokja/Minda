@@ -96,7 +96,8 @@ public class DiaryService {
             //감정 수치 조정해서 postgreSQL에 저장하는 메서드 호출
             analyzeService.calculateEmotionPoints(diary);
             diaryRepository.save(diary);
-            openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex);
+            openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
+                    .subscribe();
         });
     }
 

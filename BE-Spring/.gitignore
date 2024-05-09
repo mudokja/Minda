@@ -44,3 +44,6 @@ application-*.yml
 ##docker##
 Dockerfile
 .dockerignore
+
+##fcm##
+fcm-service.json

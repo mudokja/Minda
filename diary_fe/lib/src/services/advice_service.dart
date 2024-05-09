@@ -15,6 +15,7 @@ class AdviceService {
 
       if (response.statusCode == 200) {
         var jsonData = response.data;
+
         return AdviceModel.fromJson(jsonData);
       } else {
         debugPrint('Error occurred: ${response.statusCode}');

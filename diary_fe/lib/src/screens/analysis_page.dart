@@ -41,9 +41,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
           onDateSelected: updateSelectedDate,
         );
       case Calendar.month:
-        return const MonthAnalysisPage();
+        return MonthAnalysisPage(
+          onDateSelected: updateSelectedDate,
+        );
       case Calendar.custom:
-        return const CustomAnalysisPage();
+        return CustomAnalysisPage(
+          onDateSelected: updateSelectedDate,
+        );
       default:
         return Container();
     }

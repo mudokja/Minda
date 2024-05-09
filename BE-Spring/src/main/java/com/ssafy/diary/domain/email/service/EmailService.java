@@ -20,6 +20,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class EmailService {
+    public static final long DEFAULT_EXPIRE_TIME = 60L * 5 + 5;
     private final String verificationTopics = "diary.email.verification";
     private final VerificationRepository verificationRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -31,7 +32,8 @@ public class EmailService {
                 .verificationId(uuid)
                 .code(code)
                 .email(verificationRequestDto.getEmail())
-                .expireTime(60L*5+5)
+                .expireTime(DEFAULT_EXPIRE_TIME)
+                .regDate(LocalDateTime.now())
                 .build()
         );
         kafkaTemplate.send(verificationTopics, KafkaEmailAuthDto.builder()
@@ -62,6 +64,10 @@ public class EmailService {
         }
             return null;
 
+    }
+    public boolean checkLastVerificationCodeTimeByEmail(String email) {
+
+        return getVerificationCodeListByEmail(email).stream().anyMatch(v->v.getRegDate().isAfter(LocalDateTime.now().minusSeconds(30)));
     }
     public List<VerificationCode> getVerificationCodeListByEmail(String email){
         return verificationRepository.findByEmail(email);

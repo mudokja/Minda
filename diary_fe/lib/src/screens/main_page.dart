@@ -3,10 +3,12 @@ import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
+
   void showWritingPage(BuildContext context) {
     showModalBottomSheet(
       context: context,

@@ -20,5 +20,5 @@ class DiaryEntry {
         diaryAnger = json['diaryAnger'] ?? 0,  // null 체크 및 기본값 제공
         diarySurprise = json['diarySurprise'] ?? 0,  // null 체크 및 기본값 제공
         imageList = (json['imageList'] as List?)?.map((i) => DiaryImage.fromJson(i as Map<String, dynamic>)).toList() ?? [],  // null 체크 및 기본값 제공
-        hashtagList = List<String>.from(json['hashtagList'] as List<dynamic> ?? []);  // null 체크 및 기본값 제공
+        hashtagList = json['hashtagList'] != null ? List<String>.from(json['hashtagList'] as List<dynamic> ?? []):[];  // null 체크 및 기본값 제공
 }

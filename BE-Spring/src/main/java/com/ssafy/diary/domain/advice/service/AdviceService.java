@@ -66,7 +66,7 @@ public class AdviceService {
 
     @Transactional
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {
-        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
         HashMap<String,Double> statusMap = new HashMap<>();
 

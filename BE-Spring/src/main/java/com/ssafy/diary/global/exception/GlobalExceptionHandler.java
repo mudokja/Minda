@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
                 .body(exception.getMessage());
     }
     @ExceptionHandler(UnauthorizedDiaryAccessException.class)
-    public ResponseEntity<String> handleUnauthorizedAccessException(UnauthorizedDiaryAccessException exception){
+    public ResponseEntity<String> handleUnauthorizedDiaryAccessException(UnauthorizedDiaryAccessException exception){
         log.error("{} : UnauthorizedDiaryAccessException");
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)

@@ -12,12 +12,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
-    List<Diary> findByMemberIndex(Long memberIndex);
 
-    List<Diary> findByMemberIndexAndDiaryTitleContaining(Long memberIndex, String keyword);
+    @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex ORDER BY d.diarySetDate")
+    List<Diary> findByMemberIndexOrderByDiarySetDate(Long memberIndex);
+
+    @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex AND d.diaryTitle LIKE %:keyword% ORDER BY d.diarySetDate")
+    List<Diary> findByMemberIndexAndDiaryTitleContainingOrderByDiarySetDate(Long memberIndex, String keyword);
 
     Optional<Diary> findByMemberIndexAndDiarySetDate(@Param("memberIndex") Long MemberIndex, @Param("diarySetDate") LocalDate diarySetDate);
-    @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex AND d.diarySetDate BETWEEN :startDate AND :endDate")
-    List<Diary> findByMemberIndexAndDiarySetDate(@Param("memberIndex") Long MemberIndex, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex AND d.diarySetDate BETWEEN :startDate AND :endDate ORDER BY d.diarySetDate")
+    List<Diary> findByMemberIndexAndDiarySetDateOrderByDiarySetDate(@Param("memberIndex") Long MemberIndex, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
 }

@@ -31,8 +31,6 @@ public class DiaryResponseDto {
 
     private Double diaryAnger;
 
-//    private Long diaryDisgust;
-
     private Double diarySurprise;
 
     private List<Image> imageList;
@@ -49,7 +47,6 @@ public class DiaryResponseDto {
         this.diarySadness = diarySadness;
         this.diaryFear = diaryFear;
         this.diaryAnger = diaryAnger;
-//        this.diaryDisgust = diaryDisgust;
         this.diarySurprise = diarySurprise;
         this.imageList = imageList;
         this.hashtagList = hashtagList;

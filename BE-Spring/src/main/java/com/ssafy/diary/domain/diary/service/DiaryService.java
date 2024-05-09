@@ -221,7 +221,7 @@ public class DiaryService {
 
     //일기 목록 조회
     public List<DiaryResponseDto> getDiaryList(Long memberIndex) {
-        List<Diary> diaryList = diaryRepository.findByMemberIndex(memberIndex);
+        List<Diary> diaryList = diaryRepository.findByMemberIndexOrderByDiarySetDate(memberIndex);
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for (Diary diary : diaryList) {
@@ -239,7 +239,7 @@ public class DiaryService {
 
     //특정 기간동안의 일기 리스트 조회(통계 내기 위함)
     public List<DiaryResponseDto> getDiaryListByPeriod(Long memberIndex, DiaryListByPeriodRequestDto diaryListByPeriodRequestDto) {
-        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex, diaryListByPeriodRequestDto.getStartDate(), diaryListByPeriodRequestDto.getEndDate());
+        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, diaryListByPeriodRequestDto.getStartDate(), diaryListByPeriodRequestDto.getEndDate());
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for(Diary diary: diaryList) {
@@ -257,7 +257,7 @@ public class DiaryService {
 
     //제목으로 검색
     public List<DiaryResponseDto> searchDiaryListByTitle(Long memberIndex, String keyword) {
-        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiaryTitleContaining(memberIndex, keyword);
+        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiaryTitleContainingOrderByDiarySetDate(memberIndex, keyword);
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for (Diary diary : diaryList) {
@@ -286,6 +286,15 @@ public class DiaryService {
             diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
             responseDtoList.add(diaryResponseDto);
         }
+
+        // responseDtoList를 diarySetDate 필드를 기준으로 오름차순 정렬
+        Collections.sort(responseDtoList, new Comparator<DiaryResponseDto>() {
+            @Override
+            public int compare(DiaryResponseDto o1, DiaryResponseDto o2) {
+                return o1.getDiarySetDate().compareTo(o2.getDiarySetDate());
+            }
+        });
+
         return responseDtoList;
     }
 

@@ -1,5 +1,6 @@
 package com.ssafy.diary.domain.diary.service;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.ssafy.diary.domain.analyze.dto.AnalyzeRequestDto;
 import com.ssafy.diary.domain.analyze.service.AnalyzeService;
 import com.ssafy.diary.domain.diary.dto.DiaryAddRequestDto;
@@ -11,6 +12,10 @@ import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.model.DiaryHashtag;
 import com.ssafy.diary.domain.diary.repository.DiaryHashtagRepository;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
+import com.ssafy.diary.domain.notification.dto.KafkaMemberNotificationMessageRequestDto;
+import com.ssafy.diary.domain.notification.dto.KafkaTokenNotificationMessageRequestDto;
+import com.ssafy.diary.domain.notification.service.NotificationService;
+import com.ssafy.diary.domain.openAI.dto.ChatGPTRequestDto;
 import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
@@ -36,6 +41,7 @@ public class DiaryService {
     private final S3Service s3Service;
     private final AnalyzeService analyzeService;
     private final OpenAIService openAIService;
+    private final NotificationService notificationService;
 
     //더미데이터 생성
     public void createDummyData(Long memberIndex) {
@@ -77,7 +83,7 @@ public class DiaryService {
     }
 
     //일기 등록
-    public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex) {
+    public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex){
         List<Image> imageList = new ArrayList<>();
 
         if (imageFiles != null) {
@@ -97,7 +103,20 @@ public class DiaryService {
             analyzeService.calculateEmotionPoints(diary);
             diaryRepository.save(diary);
             openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
-                    .subscribe();
+                    .subscribe(ChatGPTRequestDto -> {
+                                try {
+                                    notificationService.sendFirebaseMemberNotificationMessage(
+                                            KafkaMemberNotificationMessageRequestDto.builder()
+                                                    .title("분석 완료")
+                                                    .body("일기 분석이 완료되었어요!")
+                                                    .memberIndex(memberIndex)
+                                                    .build()
+                                    );
+                                } catch (FirebaseMessagingException e) {
+                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
+                                }
+                            }
+                    );
         });
     }
 

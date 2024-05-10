@@ -20,6 +20,7 @@ import com.ssafy.diary.domain.notification.service.NotificationService;
 import com.ssafy.diary.domain.openAI.dto.ChatGPTRequestDto;
 import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.domain.s3.service.S3Service;
+import com.ssafy.diary.global.exception.AlreadyExistsDiaryException;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import com.ssafy.diary.global.exception.UnauthorizedDiaryAccessException;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,11 @@ public class DiaryService {
 
     //일기 등록
     public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex){
+
+        if(diaryRepository.findByDiarySetDateAndMemberIndex(diaryAddRequestDto.getDiarySetDate(), memberIndex).isPresent()) {
+            throw new AlreadyExistsDiaryException("해당 날짜에 이미 등록된 일기가 있습니다.");
+        }
+
         List<Image> imageList = new ArrayList<>();
 
         if (imageFiles != null) {

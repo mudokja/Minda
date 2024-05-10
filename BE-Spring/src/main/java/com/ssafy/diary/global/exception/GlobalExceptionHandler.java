@@ -23,6 +23,15 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(exception.getMessage());
     }
+
+    @ExceptionHandler(AlreadyExistsDiaryException.class)
+    public ResponseEntity<String> handleAlreadyExistsDiaryException(AlreadyExistsDiaryException exception){
+        log.error("{} : AlreadyExistsMember", exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(exception.getMessage());
+    }
+
     @ExceptionHandler(DiaryNotFoundException.class)
     public ResponseEntity<String> handleDiaryNotFoundException(DiaryNotFoundException exception){
         log.error("{} : DiaryNotFoundException");

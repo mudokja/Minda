@@ -44,7 +44,8 @@ def noun_sentences(sentences):
     except Exception as e:
         print ({str(e)})
 
-async def get_keyword(texts):
+# async def get_keyword(texts):
+def get_keyword(texts):
     try:
         # print(texts)
         keywords = summarize_with_keywords(texts, min_count=1, max_length=10,

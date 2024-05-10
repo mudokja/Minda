@@ -16,7 +16,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex ORDER BY d.diarySetDate DESC")
     List<Diary> findByMemberIndexOrderByDiarySetDate(@Param("memberIndex") Long memberIndex);
 
-    @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex AND d.diaryTitle LIKE %:keyword% ORDER BY d.diarySetDate")
+    @Query("SELECT d FROM Diary d WHERE d.memberIndex = :memberIndex AND d.diaryTitle LIKE %:keyword% ORDER BY d.diarySetDate DESC")
     List<Diary> findByMemberIndexAndDiaryTitleContainingOrderByDiarySetDate(@Param("memberIndex") Long memberIndex, @Param("keyword") String keyword);
 
     Optional<Diary> findByMemberIndexAndDiarySetDate(@Param("memberIndex") Long MemberIndex, @Param("diarySetDate") LocalDate diarySetDate);

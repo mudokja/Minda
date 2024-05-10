@@ -327,11 +327,11 @@ public class DiaryService {
             responseDtoList.add(diaryResponseDto);
         }
 
-        // responseDtoList를 diarySetDate 필드를 기준으로 오름차순 정렬
+        // responseDtoList를 diarySetDate 필드를 기준으로 내림차순 정렬
         Collections.sort(responseDtoList, new Comparator<DiaryResponseDto>() {
             @Override
             public int compare(DiaryResponseDto o1, DiaryResponseDto o2) {
-                return o1.getDiarySetDate().compareTo(o2.getDiarySetDate());
+                return o2.getDiarySetDate().compareTo(o1.getDiarySetDate()); // 비교 로직 수정
             }
         });
 

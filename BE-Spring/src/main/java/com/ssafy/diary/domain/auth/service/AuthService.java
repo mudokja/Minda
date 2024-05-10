@@ -9,9 +9,11 @@ import com.ssafy.diary.domain.member.entity.Member;
 import com.ssafy.diary.domain.member.repository.MemberRepository;
 import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.global.constant.Role;
+import com.ssafy.diary.global.exception.EmailException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.coyote.BadRequestException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -46,6 +48,9 @@ public class AuthService {
         Optional<Member> memberEntity =memberRepository.findByIdAndPlatform(oauth2LoginRequestDto.getId(),oauth2LoginRequestDto.getPlatform());
         Member member = null;
         if(memberEntity.isEmpty()){
+            if(StringUtils.isEmpty(oauth2LoginRequestDto.getEmail())){
+                throw new EmailException.EmailNotValidEmail("email is empty");
+            }
             member =memberService.registerOauth2Member(MemberOauth2RegisterRequestDto.builder()
                             .id(oauth2LoginRequestDto.getId())
                             .platform(oauth2LoginRequestDto.getPlatform())

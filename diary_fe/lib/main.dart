@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:diary_fe/firebase_options.dart';
 import 'package:diary_fe/src/models/notification.dart';
 import 'package:diary_fe/src/screens/intro_page.dart';
@@ -17,6 +19,39 @@ import 'package:diary_fe/src/services/services_initializer.dart'; // setup.dart 
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("백그라운드 메시지 처리.. ${message.notification!.body!}");
+}
+Future<void> _initFCMToken() async {
+  FirebaseMessaging messaging= FirebaseMessaging.instance;
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    RemoteNotification? notification = message.notification;
+
+    if (notification != null) {
+      FlutterLocalNotificationsPlugin().show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel',
+            'high_importance_notification',
+            importance: Importance.max,
+          ),
+        ),
+      );
+    }
+  });
+  String? fcmToken = await FirebaseMessaging.instance.getToken(vapidKey: "BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4b");
+  // 여기에서 _fcmToken을 사용하여 필요한 작업을 수행할 수 있습니다.
+  log(fcmToken!); // 로거를 사용하여 토큰을 출력
 }
 
 void initializeNotification() async {

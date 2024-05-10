@@ -277,8 +277,8 @@ class _SignUpModalState extends State<SignUpModal> {
       );
 
       if (response.statusCode == 201) {
-        await login();
         Navigator.pop(context);
+        await login();
         showDialog(
           context: context,
           barrierDismissible: true,
@@ -304,14 +304,7 @@ class _SignUpModalState extends State<SignUpModal> {
   Future<void> login() async {
     try {
       _timer?.cancel();
-      ApiService apiService = ApiService();
-      Response response = await apiService.post('/api/auth/login',
-          data: {"id": _idController.text, "password": _pwController.text});
-      Map<String, dynamic> responseMap = response.data;
-      await storage.write(
-          key: "ACCESS_TOKEN", value: responseMap["accessToken"]);
-      await storage.write(
-          key: "REFRESH_TOKEN", value: responseMap["refreshToken"]);
+      Provider.of<UserProvider>(context, listen: false).login(_idController.text, _pwController.text);
       Provider.of<UserProvider>(context, listen: false).fetchUserData();
     } catch (e) {
       print(e);

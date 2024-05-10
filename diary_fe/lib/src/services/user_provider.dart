@@ -5,6 +5,7 @@ import 'package:diary_fe/src/models/user.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
@@ -132,6 +133,14 @@ class UserProvider with ChangeNotifier {
       "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
       "email": kakaoUser?.kakaoAccount?.email
     });
+    if(response.statusCode==400){
+      switch(response.data.toString()){
+        case "email is empty" :
+          throw Exception("EMAIL_EMPTY");
+        default:
+          throw Exception("register failed");
+      }
+    }
     return response.data;
   }
 
@@ -170,4 +179,10 @@ class UserProvider with ChangeNotifier {
       // throw Exception('Failed to fetch user data: $e');
     }
   }
-}
+
+  Future<void> unLink() async {
+    await UserApi.instance.unlink();
+  }
+  }
+
+

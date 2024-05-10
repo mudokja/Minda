@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
@@ -44,26 +46,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   @override
-  void initState() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      RemoteNotification? notification = message.notification;
-
-      if (notification != null) {
-        FlutterLocalNotificationsPlugin().show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'high_importance_notification',
-              importance: Importance.max,
-            ),
-          ),
-        );
-      }
-    });
-
+  void initState() async {
     super.initState();
   }
 

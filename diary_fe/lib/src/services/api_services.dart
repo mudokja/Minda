@@ -7,6 +7,7 @@ class ApiService {
   Dio dio = Dio();
 
   String baseUrl = 'https://k10b205.p.ssafy.io';
+  // String baseUrl = 'http://192.168.31.35:8000';
   final storage = const FlutterSecureStorage();
   ApiService() {
     // bool refresh = true;

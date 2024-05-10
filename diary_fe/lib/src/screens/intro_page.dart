@@ -38,14 +38,10 @@ class _IntroPageState extends State<IntroPage> {
   @override
   void initState() {
     super.initState();
-    _initFCMToken();
+
   }
 
-  Future<void> _initFCMToken() async {
-    String? fcmToken = await FirebaseMessaging.instance.getToken();
-    // 여기에서 _fcmToken을 사용하여 필요한 작업을 수행할 수 있습니다.
-    log(fcmToken!); // 로거를 사용하여 토큰을 출력
-  }
+
 
   @override
   Widget build(BuildContext context) {

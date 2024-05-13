@@ -21,8 +21,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final storage = const FlutterSecureStorage();
 
   void logout() async {
-    await Provider.of<UserProvider>(context,
-        listen: false).logout();
+    await Provider.of<UserProvider>(context, listen: false).logout();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -30,9 +29,9 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
   void leave() async {
-    Provider.of<UserProvider>(context,
-        listen: false).leave();
+    Provider.of<UserProvider>(context, listen: false).leave();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -202,17 +201,39 @@ class _ProfilePageState extends State<ProfilePage> {
                       height: 30,
                     ),
                     TextButton(
-                      onPressed: () {
-                        leave();
-                      },
-                      child: const Text(
-                      '회원 탈퇴하기',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                      ),
-                    )
-                    ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('알림'),
+                                content: const Text(
+                                    '탈퇴하게 되면 지금까지 작성한 모든 일기가 사라져요. 그래도 진행할까요?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text('확인'),
+                                    onPressed: () {
+                                      leave();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: const Text('취소'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop(false);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: const Text(
+                          '회원 탈퇴하기',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        )),
                   ],
                 ),
               ),

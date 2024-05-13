@@ -160,38 +160,61 @@ class _WriteState extends State<Write> {
   }
 
   Future<void> sendContent() async {
-    ApiService apiService = ApiService();
-    FormData formData = FormData();
+    try {
+      ApiService apiService = ApiService();
+      FormData formData = FormData();
 
-    String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+      String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
 
-    String title = titleController.text.isNotEmpty
-        ? titleController.text
-        : DateFormat('yyyy년 M월 d일의 일기').format(selectedDate);
-    Uint8List fileBytes = await _image!.readAsBytes();
+      String title = titleController.text.isNotEmpty
+          ? titleController.text
+          : DateFormat('yyyy년 M월 d일의 일기').format(selectedDate);
 
-    MultipartFile multipartFile =
-        MultipartFile.fromBytes(fileBytes, filename: "uploaded_file.jpg");
+      var diaryData = {
+        "diarySetDate": formattedDate,
+        "diaryTitle": title,
+        "diaryContent": diaryController.text,
+        "hashtagList": [
+          "exampleTag1", // 예시 태그, 실제 사용 시 적절한 데이터로 교체
+        ]
+      };
+      // diaryAddRequestDto JSON 객체를 FormData에 추가
+      formData.fields.add(MapEntry("data", json.encode(diaryData)));
 
-    var diaryData = {
-      "diarySetDate": formattedDate,
-      "diaryTitle": title,
-      "diaryContent": diaryController.text,
-      "hashtagList": [
-        "exampleTag1", // 예시 태그, 실제 사용 시 적절한 데이터로 교체
-      ]
-    };
-    // diaryAddRequestDto JSON 객체를 FormData에 추가
-    formData.fields.add(MapEntry("data", json.encode(diaryData)));
+      if (_image != null) {
+        Uint8List fileBytes = await _image!.readAsBytes();
+        MultipartFile multipartFile =
+            MultipartFile.fromBytes(fileBytes, filename: "uploaded_file.jpg");
+        formData.files.add(MapEntry("imageFiles", multipartFile));
+      }
 
-    formData.files.add(MapEntry("imageFiles", multipartFile));
+      // API 호출
+      Response response = await apiService.post('/api/diary', data: formData);
 
-    // API 호출
-    Response response = await apiService.post('/api/diary', data: formData);
-
-    setState(() {
-      complete = !complete;
-    });
+      setState(() {
+        complete = !complete;
+      });
+    } catch (e) {
+      if (e is DioException) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('알림'),
+              content: const Text('이미 오늘 일기를 작성했어요!\n(중복 작성이 불가능해요.)'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('확인'),
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
   }
 
   Future<void> selectImage() async {

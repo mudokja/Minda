@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
+
 @Tag(name = "OpenAI", description = "GPT API")
 @RestController
 @RequestMapping("api/openAI")
@@ -33,27 +35,27 @@ public class OpenAIController {
 
     private final OpenAIService openAIService;
 
-//    private final ImageClient imageClient;
+    //    private final ImageClient imageClient;
     @GetMapping
-    public String chat(@RequestParam String prompt){
+    public String chat(@RequestParam String prompt) {
         ChatGPTRequestDto request = new ChatGPTRequestDto(model, prompt);
-        ChatGPTResponseDto chatGPTResponse =  restTemplate.postForObject(apiURL+"chat/completions", request, ChatGPTResponseDto.class);
+        ChatGPTResponseDto chatGPTResponse = restTemplate.postForObject(apiURL + "chat/completions", request, ChatGPTResponseDto.class);
         return chatGPTResponse.getChoices().get(0).getMessage().getContent();
     }
 
     @GetMapping("/chatGPT/test")
-    public String advice(@AuthenticationPrincipal PrincipalMember member, @RequestParam Long diaryIndex){
+    public String advice(@AuthenticationPrincipal PrincipalMember member, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
         Long memberIndex = member.getIndex();
-        openAIService.generateAdvice(diaryIndex,memberIndex).subscribe(body->
+        openAIService.generatePeriodAdvice(memberIndex, startDate, endDate).subscribe(body ->
                 System.out.println("Response from External API on controller: " + body));
         return "success";
     }
 
     @Operation(summary = "이미지 생성", description = "일기 인덱스를 받아 이미지가 없으면 이미지 생성")
     @GetMapping("/image")
-    public ResponseEntity<Object> generateImage(@AuthenticationPrincipal PrincipalMember member, @RequestParam Long diaryIndex){
+    public ResponseEntity<Object> generateImage(@AuthenticationPrincipal PrincipalMember member, @RequestParam Long diaryIndex) {
         Long memberIndex = member.getIndex();
-        String s3Url = openAIService.generateImage(diaryIndex,memberIndex);
+        String s3Url = openAIService.generateImage(diaryIndex, memberIndex);
         return ResponseEntity.ok().body(s3Url);
     }
 }

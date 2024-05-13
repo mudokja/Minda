@@ -20,6 +20,7 @@ import com.ssafy.diary.domain.notification.service.NotificationService;
 import com.ssafy.diary.domain.openAI.dto.ChatGPTRequestDto;
 import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.domain.s3.service.S3Service;
+import com.ssafy.diary.global.exception.AlreadyExistsDiaryException;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import com.ssafy.diary.global.exception.UnauthorizedDiaryAccessException;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,11 @@ public class DiaryService {
 
     //일기 등록
     public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex){
+
+        if(diaryRepository.findByDiarySetDateAndMemberIndex(diaryAddRequestDto.getDiarySetDate(), memberIndex).isPresent()) {
+            throw new AlreadyExistsDiaryException("해당 날짜에 이미 등록된 일기가 있습니다.");
+        }
+
         List<Image> imageList = new ArrayList<>();
 
         if (imageFiles != null) {
@@ -249,7 +255,7 @@ public class DiaryService {
         deleteImageFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
         analyzeRepository.deleteByDiaryIndex(diaryIndex);
-        adviceRepository.deleteByStartDateAndEndDate(diary.getDiarySetDate());
+        adviceRepository.deleteByDate(diary.getDiarySetDate());
         diaryRepository.deleteById(diaryIndex);
     }
 
@@ -321,11 +327,11 @@ public class DiaryService {
             responseDtoList.add(diaryResponseDto);
         }
 
-        // responseDtoList를 diarySetDate 필드를 기준으로 오름차순 정렬
+        // responseDtoList를 diarySetDate 필드를 기준으로 내림차순 정렬
         Collections.sort(responseDtoList, new Comparator<DiaryResponseDto>() {
             @Override
             public int compare(DiaryResponseDto o1, DiaryResponseDto o2) {
-                return o1.getDiarySetDate().compareTo(o2.getDiarySetDate());
+                return o2.getDiarySetDate().compareTo(o1.getDiarySetDate()); // 비교 로직 수정
             }
         });
 

@@ -3,6 +3,7 @@ package com.ssafy.diary.domain.advice.repository;
 import com.ssafy.diary.domain.advice.entity.Advice;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -16,6 +17,7 @@ public interface AdviceRepository extends JpaRepository<Advice, Long> {
     @Query("SELECT a FROM Advice a WHERE a.memberIndex = :memberIndex AND a.startDate = :startDate AND a.endDate = :endDate")
     Optional<Advice> findByMemberIndexAndPeriod(@Param("memberIndex") Long memberIndex, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
+    @Modifying
     @Query("DELETE FROM Advice a WHERE a.startDate = :diarySetDate AND a.endDate = :diarySetDate")
-    void deleteByStartDateAndEndDate(LocalDate diarySetDate);
+    void deleteByDate(@Param("diarySetDate")LocalDate diarySetDate);
 }

@@ -83,13 +83,6 @@ def analyze_diary(entry: DiaryEntry):
     except Exception as e:
         return {str(e)}
     
-# @app.get("/api/ai/chatbot")
-# def chat_response(input:str):
-#     try:
-#         return (text_chatbot.chat(input))
-#     except Exception as e:
-#         return {str(e)}
-    
 async def async_chat(input: str):
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, text_chatbot.chat, input)

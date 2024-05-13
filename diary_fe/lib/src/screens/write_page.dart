@@ -1,13 +1,17 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Write extends StatefulWidget {
   // const Write({super.key});
@@ -78,6 +82,7 @@ class _WriteState extends State<Write> {
   bool complete = false;
   int lastNewLineIndex = 0;
   String chatbotmessage = '줄바꿈을 할 때마다 저와 대화할 수 있어요!';
+  XFile? _image;
 
 ////////////////////////
   @override
@@ -131,10 +136,6 @@ class _WriteState extends State<Write> {
         chatbotmessage = response.data;
       });
     }
-
-    // 예를 들어, HTTP 클라이언트를 사용한 요청:
-    // final response = await http.post('https://your.api.url/diary', body: {'text': text});
-    // print('Response status: ${response.statusCode}');
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -167,8 +168,11 @@ class _WriteState extends State<Write> {
     String title = titleController.text.isNotEmpty
         ? titleController.text
         : DateFormat('yyyy년 M월 d일의 일기').format(selectedDate);
+    Uint8List fileBytes = await _image!.readAsBytes();
 
-    // diaryAddRequestDto 객체 생성
+    MultipartFile multipartFile =
+        MultipartFile.fromBytes(fileBytes, filename: "uploaded_file.jpg");
+
     var diaryData = {
       "diarySetDate": formattedDate,
       "diaryTitle": title,
@@ -180,7 +184,7 @@ class _WriteState extends State<Write> {
     // diaryAddRequestDto JSON 객체를 FormData에 추가
     formData.fields.add(MapEntry("data", json.encode(diaryData)));
 
-    formData.fields.add(const MapEntry("imageFiles", "string"));
+    formData.files.add(MapEntry("imageFiles", multipartFile));
 
     // API 호출
     Response response = await apiService.post('/api/diary', data: formData);
@@ -188,6 +192,130 @@ class _WriteState extends State<Write> {
     setState(() {
       complete = !complete;
     });
+  }
+
+  Future<void> selectImage() async {
+    // imageQuality 매개변수 없이 이미지 선택
+    if (kIsWeb) {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 25,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          // 압축된 이미지로 _image 업데이트
+          _image = pickedFile;
+        });
+      }
+    } else {
+      if (await Permission.photos
+          .onDeniedCallback(() => showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('알림'),
+                    content: const Text('이미지 삽입을 위해서는 권한 허용이 필요해요.'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: const Text('확인'),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                      ),
+                      TextButton(
+                        child: const Text('설정 열기'),
+                        onPressed: () {
+                          openAppSettings();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ))
+          .onPermanentlyDeniedCallback(() {
+            return showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('알림'),
+                  content: const Text('이미지 삽입을 위해서는 권한 허용이 필요해요.'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('확인'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('설정 열기'),
+                      onPressed: () {
+                        openAppSettings();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          })
+          .onLimitedCallback(() {
+            return showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('알림'),
+                  content: const Text('게시글에는 이미지가 포함되어야합니다.'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('확인'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('설정 열기'),
+                      onPressed: () {
+                        openAppSettings();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          })
+          .request()
+          .isGranted) {
+        final pickedFile = await ImagePicker().pickImage(
+          source: ImageSource.gallery,
+        );
+
+        if (pickedFile != null) {
+          // 파일 확장자 검사
+          String extension = pickedFile.path.split('.').last.toLowerCase();
+
+          if (extension != 'gif') {
+            // GIF가 아닌 경우, 이미지 압축
+            final compressedFile =
+                await FlutterImageCompress.compressAndGetFile(
+              pickedFile.path,
+              '${pickedFile.path}_compressed.jpg', // 압축된 이미지 저장 경로
+              quality: 25, // 압축 품질
+            );
+
+            if (compressedFile != null) {
+              setState(() {
+                // 압축된 이미지로 _image 업데이트
+                _image = XFile(compressedFile.path);
+              });
+            }
+          } else {
+            setState(() {
+              // GIF 이미지인 경우, 원본 이미지로 _image 업데이트
+              _image = pickedFile;
+            });
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -212,6 +340,12 @@ class _WriteState extends State<Write> {
         ),
       ),
     );
+  }
+
+  void removeImage() {
+    setState(() {
+      _image = null;
+    });
   }
 
   List<Widget> _buildCompleteForm(ThemeColors themeColors) {
@@ -325,6 +459,35 @@ class _WriteState extends State<Write> {
             color: themeColors.color1),
       ),
       const SizedBox(height: 15),
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200], // 밝은 회색 배경색 설정
+
+          borderRadius: BorderRadius.circular(12), // 모서리 둥글게 만들기
+        ),
+        padding: const EdgeInsets.all(8.0), // 내부 패딩을 넣어 테두리와 콘텐츠 사이 간격을 줌
+        child: Row(
+          children: [
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: Image.asset('assets/gifs/chick.gif'),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: Text(
+                chatbotmessage,
+                style: const TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 10),
       TextField(
         controller: titleController,
         decoration: InputDecoration(
@@ -357,36 +520,100 @@ class _WriteState extends State<Write> {
       const SizedBox(
         height: 20,
       ),
-      Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[200], // 밝은 회색 배경색 설정
-
-          borderRadius: BorderRadius.circular(12), // 모서리 둥글게 만들기
-        ),
-        padding: const EdgeInsets.all(8.0), // 내부 패딩을 넣어 테두리와 콘텐츠 사이 간격을 줌
-        child: Row(
-          children: [
-            SizedBox(
-              width: 50,
-              height: 50,
-              child: Image.asset('assets/gifs/chick.gif'),
-            ),
-            const SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: Text(
-                chatbotmessage,
-                style: const TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _image != null
+              ? Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: GestureDetector(
+                    onTap: selectImage,
+                    child: Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          width: 280,
+                          height: 200,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: kIsWeb
+                                ? Image.network(
+                                    _image!.path,
+                                    fit: BoxFit.cover,
+                                    width: 200,
+                                    height: 200,
+                                  )
+                                : Image.file(
+                                    File(_image!.path),
+                                    fit: BoxFit.cover,
+                                    width: 300,
+                                    height: 200,
+                                  ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: themeColors.color1,
+                              size: 15,
+                            ),
+                            onPressed: removeImage,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.white, // 배경색을 하얀색으로 설정
+                              shape: const CircleBorder(), // 버튼의 모양을 원형으로 설정
+                              side: BorderSide(
+                                  color: themeColors.color1,
+                                  width: 1), // 회색 테두리를 추가
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox(),
+          _image == null
+              ? SizedBox(
+                  width: 120,
+                  height: 35,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent, // 배경색을 투명하게 설정
+                      shadowColor: Colors.transparent, // 그림자 제거
+                      elevation: 0, // 높이 0으로 설정하여 평면적인 느낌을 줌
+                      side: BorderSide(
+                          color: themeColors.color1, width: 1), // 파란색 테두리 추가
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)), // 모서리를 둥글게
+                    ),
+                    onPressed: () {
+                      selectImage();
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.add_photo_alternate_rounded),
+                        SizedBox(
+                          width: 3,
+                        ),
+                        Text(
+                          '이미지 삽입',
+                          style: TextStyle(fontSize: 9),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox()
+        ],
       ),
       const SizedBox(
-        height: 20,
+        height: 15,
       ),
       SizedBox(
         width: modalWidth,
@@ -454,49 +681,90 @@ class _WriteState extends State<Write> {
               ],
             ),
           ),
-          Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF9D1DD), // 배경색
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    children: [
+                      _image != null
+                          ? Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              width: 270,
+                              height: 200,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: kIsWeb
+                                    ? Image.network(
+                                        _image!.path,
+                                        fit:
+                                            BoxFit.cover, // 이미지가 컨테이너 크기에 맞게 조정
+                                        width: 200, // 이미지의 폭을 컨테이너와 동일하게 설정
+                                        height: 200, // 이미지의 높이를 컨테이너와 동일하게 설정
+                                      )
+                                    : Image.file(
+                                        File(_image!.path),
+                                        fit:
+                                            BoxFit.cover, // 이미지가 컨테이너 크기에 맞게 조정
+                                        width: 300, // 이미지의 폭을 컨테이너와 동일하게 설정
+                                        height: 200, // 이미지의 높이를 컨테이너와 동일하게 설정
+                                      ),
+                              ),
+                            )
+                          : const Text('이미지를 넣지 않았어요.'),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9D1DD), // 배경색
 
-              borderRadius: BorderRadius.circular(8), // 모서리 둥글게
-            ),
-            child: CustomPaint(
-              painter: LinedPaperPainter(),
-              foregroundPainter: NotebookHolesPainter(24), // 줄 간격으로 구멍 위치 조정
-              child: SizedBox(
-                width: modalWidth,
-                height: 400, // 적절한 높이 지정
-                child: Padding(
-                  padding: const EdgeInsets.all(30),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          titleController.text.isNotEmpty
-                              ? titleController.text
-                              : '${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일의 일기',
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                  borderRadius: BorderRadius.circular(8), // 모서리 둥글게
+                ),
+                child: CustomPaint(
+                  painter: LinedPaperPainter(),
+                  foregroundPainter:
+                      NotebookHolesPainter(24), // 줄 간격으로 구멍 위치 조정
+                  child: SizedBox(
+                    width: modalWidth,
+                    height: 400, // 적절한 높이 지정
+                    child: Padding(
+                      padding: const EdgeInsets.all(30),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              titleController.text.isNotEmpty
+                                  ? titleController.text
+                                  : '${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일의 일기',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              diaryController.text.isNotEmpty
+                                  ? diaryController.text
+                                  : '일기가 작성되지 않았어요..',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Color(0xFFA488AF),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        Text(
-                          diaryController.text.isNotEmpty
-                              ? diaryController.text
-                              : '일기가 작성되지 않았어요..',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Color(0xFFA488AF),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),

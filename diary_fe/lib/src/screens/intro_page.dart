@@ -5,6 +5,8 @@ import 'package:diary_fe/src/widgets/login_dialog.dart';
 import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
@@ -14,6 +16,52 @@ class IntroPage extends StatefulWidget {
 }
 
 class _IntroPageState extends State<IntroPage> {
+  @override
+  void initState() {
+    super.initState();
+    requestPermissions();
+  }
+
+  Future<void> requestPermissions() async {
+    // 알림 권한 요청
+    var notificationStatus = await Permission.notification.request();
+    print('알림 권한 상태: $notificationStatus');
+    // 파일 권한 요청
+    var storageStatus1 = await Permission.photos.request();
+    var storageStatus2 = await Permission.storage.request();
+    if (storageStatus2.isDenied || storageStatus1.isDenied) {
+      // 파일 권한이 거부된 경우 알림 표시 후 앱 종료
+      showPermissionDeniedDialog();
+    }
+  }
+
+  void showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('주의'),
+          content: const Text('권한을 허용하지 않으면 앱의 일부 기능이 올바르게 동작하지 않을 수 있어요.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('확인'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void closeApp() {
+    // 앱 종료 (Platform-specific implementation)
+    if (Theme.of(context).platform == TargetPlatform.android) {
+      SystemNavigator.pop();
+    }
+  }
+
   final TextEditingController idController = TextEditingController();
   final TextEditingController pwController = TextEditingController();
 

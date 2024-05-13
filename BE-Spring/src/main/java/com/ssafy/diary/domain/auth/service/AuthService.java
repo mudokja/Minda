@@ -48,7 +48,7 @@ public class AuthService {
         Optional<Member> memberEntity =memberRepository.findByIdAndPlatform(oauth2LoginRequestDto.getId(),oauth2LoginRequestDto.getPlatform());
         Member member = null;
         if(memberEntity.isEmpty()){
-            if(oauth2LoginRequestDto.getEmail().isBlank()){
+            if(StringUtils.isBlank(oauth2LoginRequestDto.getEmail())){
                 throw new EmailException.EmailNotValidEmail("email is empty");
             }
             member =memberService.registerOauth2Member(MemberOauth2RegisterRequestDto.builder()

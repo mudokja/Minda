@@ -10,22 +10,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class Pages extends StatefulWidget {
-  const Pages({super.key});
+  final int initialPage;
+  final DateTime? selectedDate;
+
+  const Pages({
+    super.key,
+    this.initialPage = 0,
+    this.selectedDate,
+  });
 
   @override
   State<Pages> createState() => _PagesState();
 }
 
 class _PagesState extends State<Pages> {
-  final PageController _pageController = PageController();
-  int _selectedIndex = 0; // 현재 선택된 탭 인덱스
+  late final PageController _pageController;
+  late int _selectedIndex; // 현재 선택된 탭 인덱스
   late List<Widget> widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialPage;
+    _pageController = PageController(initialPage: widget.initialPage);
+    addWidgets();
+  }
 
   void addWidgets() {
     widgetOptions = [
       const MainPage(),
       DiaryListPage(selectedDay: DateTime.now()), // 오늘 날짜를 기본값으로 설정
-      const AnalysisPage(),
+      AnalysisPage(selectedDate: widget.selectedDate),
       const ProfilePage(),
     ];
   }

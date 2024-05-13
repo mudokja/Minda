@@ -115,6 +115,10 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
     });
   }
 
+  void reload() {
+    fetchAnalysisData();
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -145,26 +149,49 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
             children: [
               WidgetSpan(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: emotionColors[emotion]?.withOpacity(0.7) ??
-                        Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    sentence,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: emotionColors[emotion]?.withOpacity(0.7) ??
+                          Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                ),
+                    child: emotion != '중립'
+                        ? Text(
+                            sentence,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )
+                        : Stack(
+                            children: <Widget>[
+                              Text(
+                                sentence,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  foreground: Paint()
+                                    ..style = PaintingStyle.stroke
+                                    ..strokeWidth = 1.5
+                                    ..color = Colors.black,
+                                ),
+                              ),
+                              Text(
+                                sentence,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          )),
               ),
               const WidgetSpan(
                   child: SizedBox(
-                height: 40,
+                height: 34,
               ))
             ],
           ));
@@ -194,6 +221,11 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
               children: [
+                IconButton(
+                  onPressed: reload,
+                  icon: const Icon(Icons.replay_outlined),
+                  color: Colors.white,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -291,76 +323,135 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 18,
-                ),
-                const Text(
-                  '일기 분석',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                SizedBox(
+                  width: screenWidth * 0.85,
+                  height: 25,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: emotionColors.entries.map((entry) {
+                      return Row(
+                        children: [
+                          const SizedBox(width: 5),
+                          Text(
+                            '${entry.key} - ',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: entry.value.withOpacity(0.7),
+                            ),
+                            width: 50,
+                            height: 18,
+                          ),
+                        ],
+                      );
+                    }).toList(),
                   ),
                 ),
                 const SizedBox(
-                  height: 50,
+                  height: 20,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: screenWidth / 2.5,
-                      height: 200,
-                      child: BarChartTest(
-                        emotions: analysisData['emotions'] != null &&
-                                analysisData['emotions']
-                                    .containsKey(formatDate(date))
-                            ? List<double>.from(
-                                analysisData['emotions'][formatDate(date)])
-                            : [0.0, 0.0, 0.0, 0.0, 0.0],
-                      ),
-                    ),
-                    SizedBox(
-                      width: screenWidth / 2.5,
-                      height: 200,
-                      child: RadarChartTest(
-                        emotions: analysisData['emotions'] != null &&
-                                analysisData['emotions']
-                                    .containsKey(formatDate(date))
-                            ? List<double>.from(
-                                analysisData['emotions'][formatDate(date)])
-                            : [0.0, 0.0, 0.0, 0.0, 0.0],
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Image.asset(
-                        'assets/gifs/thinking_face.gif',
-                        width: 100,
-                        height: 100,
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 1,
-                      child: SizedBox(),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                          child: advice?.adviceContent == null
-                              ? const Text('')
-                              : Text('${advice!.adviceContent}')),
-                    )
-                  ],
-                )
+                analysisData['titles'] != null &&
+                        analysisData['titles'].isNotEmpty
+                    ? Column(
+                        children: [
+                          const Text(
+                            '일기 분석',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                width: screenWidth / 2.5,
+                                height: 200,
+                                child: BarChartTest(
+                                  emotions: analysisData['emotions'] != null &&
+                                          analysisData['emotions']
+                                              .containsKey(formatDate(date))
+                                      ? List<double>.from(
+                                          analysisData['emotions']
+                                              [formatDate(date)])
+                                      : [0.0, 0.0, 0.0, 0.0, 0.0],
+                                ),
+                              ),
+                              SizedBox(
+                                width: screenWidth / 2.5,
+                                height: 200,
+                                child: RadarChartTest(
+                                  emotions: analysisData['emotions'] != null &&
+                                          analysisData['emotions']
+                                              .containsKey(formatDate(date))
+                                      ? List<double>.from(
+                                          analysisData['emotions']
+                                              [formatDate(date)])
+                                      : [0.0, 0.0, 0.0, 0.0, 0.0],
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Image.asset(
+                                  'assets/gifs/thinking_face.gif',
+                                  width: 100,
+                                  height: 100,
+                                ),
+                              ),
+                              const Expanded(
+                                flex: 1,
+                                child: SizedBox(),
+                              ),
+                              Expanded(
+                                flex: 5,
+                                child: SizedBox(
+                                  child: advice?.adviceContent == null
+                                      ? const Text('')
+                                      : Stack(
+                                          children: <Widget>[
+                                            Text(
+                                              '${advice!.adviceContent}',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                foreground: Paint()
+                                                  ..style = PaintingStyle.stroke
+                                                  ..strokeWidth = 3
+                                                  ..color = Colors.white,
+                                              ),
+                                            ),
+                                            Text(
+                                              '${advice!.adviceContent}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black,
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                ),
+                              )
+                            ],
+                          )
+                        ],
+                      )
+                    : const Text(''),
               ],
             ),
           );
@@ -648,45 +739,52 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                 const SizedBox(
                   height: 50,
                 ),
-                const Text(
-                  '주간일기 분석',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Image.asset(
-                        'assets/gifs/thinking_face.gif',
-                        width: 100,
-                        height: 100,
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 1,
-                      child: SizedBox(),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                        child: Text(
-                          '${analysisData['emotions']}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                analysisData['titles'] != null &&
+                        analysisData['titles'].isNotEmpty
+                    ? Column(
+                        children: [
+                          const Text(
+                            '주간일기 분석',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Image.asset(
+                                  'assets/gifs/thinking_face.gif',
+                                  width: 100,
+                                  height: 100,
+                                ),
+                              ),
+                              const Expanded(
+                                flex: 1,
+                                child: SizedBox(),
+                              ),
+                              Expanded(
+                                flex: 5,
+                                child: SizedBox(
+                                  child: Text(
+                                    '${analysisData['emotions']}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      )
+                    : const Text(''),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1058,45 +1156,52 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
                 const SizedBox(
                   height: 50,
                 ),
-                const Text(
-                  '월간일기 분석',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Image.asset(
-                        'assets/gifs/thinking_face.gif',
-                        width: 100,
-                        height: 100,
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 1,
-                      child: SizedBox(),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                        child: Text(
-                          '${analysisData['emotions']}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                analysisData['titles'] != null &&
+                        analysisData['titles'].isNotEmpty
+                    ? Column(
+                        children: [
+                          const Text(
+                            '월간일기 분석',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Image.asset(
+                                  'assets/gifs/thinking_face.gif',
+                                  width: 100,
+                                  height: 100,
+                                ),
+                              ),
+                              const Expanded(
+                                flex: 1,
+                                child: SizedBox(),
+                              ),
+                              Expanded(
+                                flex: 5,
+                                child: SizedBox(
+                                  child: Text(
+                                    '${analysisData['emotions']}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      )
+                    : const Text(''),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1444,34 +1549,42 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
                 ),
                 dateRange == null
                     ? const Text('')
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: Image.asset(
-                              'assets/gifs/thinking_face.gif',
-                              width: 100,
-                              height: 100,
-                            ),
-                          ),
-                          const Expanded(
-                            flex: 1,
-                            child: SizedBox(),
-                          ),
-                          Expanded(
-                            flex: 5,
-                            child: SizedBox(
-                              child: Text(
-                                '${analysisData['emotions']}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                ),
+                    : analysisData['titles'] != null &&
+                            analysisData['titles'].isNotEmpty
+                        ? Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: Image.asset(
+                                      'assets/gifs/thinking_face.gif',
+                                      width: 100,
+                                      height: 100,
+                                    ),
+                                  ),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: SizedBox(),
+                                  ),
+                                  Expanded(
+                                    flex: 5,
+                                    child: SizedBox(
+                                      child: Text(
+                                        '${analysisData['emotions']}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
                               ),
-                            ),
+                            ],
                           )
-                        ],
-                      ),
+                        : const Text(''),
                 dateRange == null
                     ? const Text('')
                     : Row(

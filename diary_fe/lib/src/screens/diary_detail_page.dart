@@ -1,3 +1,4 @@
+import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,6 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
   // 컨트롤러 선언
   final TextEditingController titleController = TextEditingController();
   final TextEditingController contentController = TextEditingController();
-  
 
   void _toggleConfirmationView() {
     setState(() {
@@ -51,23 +51,26 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     });
   }
 
-  // Future<void> sendContent() async {
-  //   try {
-  //     // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze');
-  //     //이렇게 쓰면 안됨..
-  //     // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
-  //     Response response = await apiService.get('/api/analyze');
-  //     Navigator.push(
-  //       context,
-  //       MaterialPageRoute(
-  //         builder: (context) => const AnalysisPage(),
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     // 요청 실패 처리
-  //     print('Error fetching analysis: $e');
-  //   }
-  // }
+  Future<void> sendContent() async {
+    try {
+      // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze');
+      //이렇게 쓰면 안됨..
+      // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
+      // Response response = await apiService.get('/api/analyze');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Pages(
+            initialPage: 2,
+            selectedDate: DateTime.parse(diaryDate),
+          ),
+        ),
+      );
+    } catch (e) {
+      // 요청 실패 처리
+      print('Error fetching analysis: $e');
+    }
+  }
 
   Future<void> generateImage() async {
     // ApiService apiService =ApiService();
@@ -181,7 +184,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
           'diaryIndex': widget.diaryIndex,
           'diaryTitle': diaryTitle,
           'diaryContent': diaryContent,
-          });
+        });
       } else {
         print('Failed to update diary');
       }
@@ -198,7 +201,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
       if (response.statusCode == 200) {
         print('Diary deleted successfully');
         // Navigator.of(context).pop(); // 페이지를 닫고 이전 페이지로 돌아감
-      Navigator.of(context).pop({
+        Navigator.of(context).pop({
           'action': 'delete',
           'diaryIndex': widget.diaryIndex,
         });
@@ -209,7 +212,6 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
       print('Error deleting diary: $e');
     }
   }
-
 
   @override
   void initState() {
@@ -250,20 +252,18 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                 ),
                 child: Padding(
                   // padding: const EdgeInsets.all(16.0), // 내부 여백 추가
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch, // 가로로 꽉 차게
                     children: [
-                      
                       Stack(
                         children: [
-                          
                           // Position the close button on the right
                           Align(
                             alignment: Alignment.centerRight,
                             child: IconButton(
-                              
                               icon: const Icon(Icons.close_sharp,
                                   color: Colors
                                       .grey), // Icon color changed to grey
@@ -273,13 +273,10 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           ),
                         ],
                       ),
-                      
+
                       Row(
-                        
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        
                         children: [
-                       
                           IconButton(
                             icon: const Icon(Icons.keyboard_arrow_left_rounded),
                             onPressed: () {
@@ -304,25 +301,24 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                         ],
                       ),
 
-                    Align(
+                      Align(
                         alignment: Alignment.centerRight,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [         
+                          children: [
                             IconButton(
                               icon: const Icon(Icons.brush),
                               color: themeColors.color1,
-                              onPressed: imageUrl.isEmpty ? generateImage : null,
-                            padding: EdgeInsets.zero, // 간격 최소화
+                              onPressed:
+                                  imageUrl.isEmpty ? generateImage : null,
+                              padding: EdgeInsets.zero, // 간격 최소화
                             ),
-                             if (!isLoading && imageUrl.isEmpty)
-                             
+                            if (!isLoading && imageUrl.isEmpty)
                               const Text(
                                 'AI로 이미지를\n생성해보세요!',
                                 style: TextStyle(fontSize: 12),
                               ),
-                            
-                            const SizedBox(width:90),
+                            const SizedBox(width: 90),
                             Row(
                               children: [
                                 ElevatedButton(
@@ -475,8 +471,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 50),
                         child: ElevatedButton(
-                          // onPressed: sendContent,
-                          onPressed: null, // 버튼 비활성화 
+                          onPressed: sendContent,
+                          // onPressed: null, // 버튼 비활성화
                           style: ElevatedButton.styleFrom(
                             backgroundColor: themeColors.color1,
                             shape: RoundedRectangleBorder(

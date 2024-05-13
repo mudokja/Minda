@@ -34,12 +34,10 @@ def noun_sentences(sentences):
         for sentence in sentences:
             if len(sentence) == 0:
                 continue
-            sentence_pos = okt.pos(sentence, stem=True)
-            nouns = [word for word, pos in sentence_pos if pos == 'Noun']
-            if len(nouns) == 1:
+            nouns = okt.nouns(sentence)
+            if len(nouns) == 0:
                 continue
             noun_sentences.append(' '.join(nouns) + '.')
-
         return noun_sentences
     except Exception as e:
         print ({str(e)})
@@ -50,7 +48,7 @@ def get_keyword(texts):
         # print(texts)
         keywords = summarize_with_keywords(texts, min_count=1, max_length=10,
             beta=0.85, max_iter=10, stopwords=None, verbose=True)  #min_count로 민감도 조절, 20보다 늘리면 에러
-        print(keywords)
+        # print(keywords)
         # krwordrank_cloud = WordCloud(
         #     font_path = "malgunbd.ttf",
         #     width = 800,

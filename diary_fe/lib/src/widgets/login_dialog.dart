@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/error/social_login_error.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
@@ -23,6 +25,7 @@ class LoginModal extends StatefulWidget {
 class _LoginModalState extends State<LoginModal> {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   String platform = '';
+  ThemeColors themeColors = ThemeColors();
   ApiService apiService = ApiService();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
@@ -183,25 +186,160 @@ class _LoginModalState extends State<LoginModal> {
       });
     });
   }
-
-  showEmailRequstModal() {
+  void showErrorDialog(BuildContext context, String message) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false, // 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('에러 발생'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('확인'),
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  Future<Future> showEmailRequestModal() async {
     TextEditingController emailController = TextEditingController();
+    TextEditingController verificationCodeController= TextEditingController();
+    Timer? timer;
+    bool isVerified=false;
+    String? errorText='';
+    bool isCodeSent = false;
+    String verificationId = '';
+    int remainingTime =300;
     bool isButtonDisabled = false; // 버튼 활성화 상태 관리
+
     bool isEmailValid(String email) {
       final RegExp emailRegExp = RegExp(
         r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$',
       );
       return emailRegExp.hasMatch(email);
+
+    }
+    void startTimer() {
+      setState(() {
+        remainingTime = 300; // 초 단위, 5분
+      });
+      timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (remainingTime > 0) {
+          setState(() => remainingTime--);
+        } else {
+          timer.cancel();
+          const Text('시간이 초과되었습니다.');
+        }
+      });
     }
 
+    void verifyEmail() async {
+      try {
+        ApiService apiService = ApiService();
+        Response response = await apiService.post(
+          '/api/email/verification',
+          data: {
+            "email": emailController.text,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          timer?.cancel();
+          print("확인");
+          setState(() {
+            isCodeSent = true;
+            verificationId = response.data["verificationId"];
+            startTimer();
+          });
+          // 인증 코드 발송 성공 메시지 또는 로직
+        } else {
+          // 인증 코드 발송 실패 처리
+        }
+      } catch (e) {
+        if (e is DioException) {
+          if (e.response?.statusCode == 400 &&
+              e.response?.data == 'request Too many') {
+
+          }
+          switch(e.response?.statusCode){
+              case 309 :
+                errorText="이미 존재하는 이메일 입니다";
+                break;
+            case 400 :
+              switch(e.response?.data){
+                case 'request Too many':
+                  showErrorDialog(context, '이메일을 너무 자주 전송하고 있어요. 조금 기다렸다 시도해보세요.');
+                break;
+            default:
+            }
+          }
+        }
+      }
+    }
+    void confirmVerification() async {
+      // 인증 코드 확인 로직
+      try {
+        ApiService apiService = ApiService();
+        Response response = await apiService.post(
+          '/api/email/auth',
+          data: {
+            "verificationId": verificationId,
+            "code": verificationCodeController.text
+          },
+        );
+        if (response.statusCode == 200) {
+          timer?.cancel();
+          setState(() {
+            isVerified = true;
+          });
+        }
+      } catch (e) {
+        if (e is DioException) {
+          showDialog<void>(
+            context: context,
+            barrierDismissible: false, // 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('에러 발생'),
+                content: const SingleChildScrollView(
+                  child: ListBody(
+                    children: <Widget>[
+                      Text('인증코드가 일치하지 않아요. 확인하고 다시 입력해보세요.'),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('확인'),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // 다이얼로그 닫기
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      }
+    }
 
     // 모달을 띄우는 내부 함수
-    void _showDialog() {
-      showDialog(
+      return showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('이메일 인증'),
+            title: Text('이메일 정보 입력'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -210,50 +348,112 @@ class _LoginModalState extends State<LoginModal> {
                   decoration: InputDecoration(
                     labelText: '이메일',
                     hintText: 'your_email@example.com',
+                    keyboardType: TextInputType.emailAddress,
                     errorText: isEmailValid(emailController.text)
-                        ? null
+                        ? errorText=''
                         : '유효한 이메일 주소를 입력해주세요.',
+                    suffix: IconButton(
+                      onPressed: errorText =='' && isEmailValid(emailController.text)
+                          ? verifyEmail
+                          : null,
+                      icon: Text(
+                        '인증하기',
+                        style: TextStyle(color: themeColors.color1),
+                      ),
                   ),
-                  keyboardType: TextInputType.emailAddress,
                 ),
+
               ],
             ),
+              if (isCodeSent) ...[
+          Column(
+          children: [
+          const SizedBox(
+          height: 40,
+          ),
+          Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          Expanded(
+          flex: 4,
+          child: TextForm(
+          title: '이메일 인증 코드',
+          controller: verificationCodeController,
+          suffix: IconButton(
+          onPressed: confirmVerification,
+          icon: Text(
+          '확인',
+          style:
+          TextStyle(color: themeColors.color1),
+          ),
+          ),
+          ),
+          ),
+          const SizedBox(
+          width: 20,
+          ),
+          Expanded(
+          flex: 2,
+          child: isVerified
+          ? TextButton(
+          child: const Text('인증완료',
+          style: TextStyle(
+          color: Colors.green,
+          fontSize: 12,
+          ),
+          ),
+          onPressed: (){
+          Navigator.pop(context,emailController.text);
+          },
+
+          )
+              : Text(
+          "${(remainingTime / 60).floor().toString().padLeft(2, '0')}:${(remainingTime % 60).toString().padLeft(2, '0')}"),
+          ),
+          ],
+          ),
+          ],
+          ),
+          ],
             actions: <Widget>[
-              TextButton(
-                child: Text('인증하기'),
-                onPressed: isButtonDisabled ? null : () async {
-                  if (isEmailValid(emailController.text)) {
-                    // 버튼 비활성화
-                    isButtonDisabled = true;
-                    // Dio를 사용해 서버에 요청 보내기 (여기서는 예시로만 작성)
-                    var dio = Dio();
-                    try {
-                      var response = await dio.post(
-                          'https://yourapi.com/verify',
-                          data: {'email': emailController.text});
-                      // 응답 처리 로직
-                      print(response);
-                    } catch (e) {
-                      print(e);
-                    }
-                    // 30초 후 버튼 다시 활성화
-                    Future.delayed(Duration(seconds: 30), () {
-                      isButtonDisabled = false;
-                    });
-                  } else {
-                    // 에러 메시지 처리
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(
-                        SnackBar(content: Text('유효한 이메일 주소를 입력해주세요.')));
-                  }
-                },
+
               ),
+
+              // TextButton(
+              //   child: Text('인증하기'),
+              //   onPressed: isButtonDisabled ? null :v () async {
+              //     if (isEmailValid(emailController.text)) {
+              //       // 버튼 비활성화
+              //       isButtonDisabled = true;
+              //       try {
+              //         Response response = await apiService.get(
+              //             '/api/member/check?email=${emailController.text}');
+              //         if(response.statusCode!=200){
+              //           errorText="다시 입력해주세요";
+              //         }
+              //
+              //
+              //       } catch (e) {
+              //         debugPrint(e.toString());
+              //         if(e is DioException){
+              //           switch(e.response?.statusCode){
+              //             case 309 :
+              //               errorText="이미 존재하는 이메일 입니다";
+              //               break;
+              //             default:
+              //           }
+              //         }
+              //       }
+              //     } else {
+              //       errorText='유효한 이메일 주소를 입력해주세요.';
+              //     }
+              //
             ],
+
           );
         },
       );
-    }
-    _showDialog();
+
   }
   @override
   Widget build(BuildContext context) {
@@ -404,9 +604,22 @@ class _LoginModalState extends State<LoginModal> {
                       height: 40,
                       child: InkWell(
                         onTap: () async {
-                          await Provider.of<UserProvider>(context,
-                                  listen: false)
-                              .kakaoLogin();
+                          try {
+                            await Provider.of<UserProvider>(context,
+                                  listen: false).kakaoLogin();
+                          } catch (e){
+                            if(e is SocialLoginError){
+                              switch(e.message.toString())
+                              {
+                                case "Email Required":
+                                  String? email =(await showEmailRequestModal()) as String?;
+                                  await Provider.of<UserProvider>(context,
+                                      listen: false).retryKakaoLogin(email);
+                                  break;
+                                default:
+                              }
+                            }
+                          }
                           await Provider.of<UserProvider>(context,
                                   listen: false)
                               .fetchUserData();

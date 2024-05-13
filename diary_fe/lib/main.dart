@@ -49,7 +49,7 @@ Future<void> _initFCMToken() async {
       );
     }
   });
-  String? fcmToken = await FirebaseMessaging.instance.getToken(vapidKey: "BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4b");
+  String? fcmToken = await FirebaseMessaging.instance.getToken(vapidKey: "BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4bhIXx_WVyruYsVJ6IP3g9F7g02QfhFzA");
   // 여기에서 _fcmToken을 사용하여 필요한 작업을 수행할 수 있습니다.
   log(fcmToken!); // 로거를 사용하여 토큰을 출력
 }
@@ -85,7 +85,7 @@ void main() async {
   );
   FirebaseAnalytics.instance.logAppOpen();
   initializeNotification();
-
+  _initFCMToken();
   // runApp() 호출 전 Flutter SDK 초기화
   KakaoSdk.init(
     nativeAppKey: '1725e254be43deb4ed9e5624c1db2f57',
@@ -123,17 +123,17 @@ class MyApp extends StatelessWidget {
 
 // class HomePage extends StatefulWidget {
 //   const HomePage({super.key});
-
+//
 //   @override
 //   State<HomePage> createState() => _HomePageState();
 // }
-
+//
 // class _HomePageState extends State<HomePage> {
 //   var messageString = "";
-
+//
 //   void getMyDeviceToken() async {
 //     FirebaseMessaging messaging = FirebaseMessaging.instance;
-
+//
 //     NotificationSettings settings = await messaging.requestPermission(
 //       alert: true,
 //       announcement: false,
@@ -143,22 +143,22 @@ class MyApp extends StatelessWidget {
 //       provisional: false,
 //       sound: true,
 //     );
-
+//
 //     print('User granted permission: ${settings.authorizationStatus}');
 //     final token = await FirebaseMessaging.instance.getToken(
 //         vapidKey:
 //             'BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4bhIXx_WVyruYsVJ6IP3g9F7g02QfhFzA');
-
+//
 //     print("내 디바이스 토큰: $token");
 //   }
-
+//
 //   @override
 //   void initState() {
 //     getMyDeviceToken();
-
+//
 //     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
 //       RemoteNotification? notification = message.notification;
-
+//
 //       if (notification != null) {
 //         FlutterLocalNotificationsPlugin().show(
 //           notification.hashCode,
@@ -172,18 +172,18 @@ class MyApp extends StatelessWidget {
 //             ),
 //           ),
 //         );
-
+//
 //         setState(() {
 //           messageString = message.notification!.body!;
-
+//
 //           print("Foreground 메시지 수신: $messageString");
 //         });
 //       }
 //     });
-
+//
 //     super.initState();
 //   }
-
+//
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(

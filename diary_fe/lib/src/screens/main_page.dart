@@ -46,7 +46,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
   }
 

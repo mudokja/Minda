@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show Platform;
+import 'dart:js';
+import 'package:diary_fe/src/error/social_login_error.dart';
 import 'package:diary_fe/src/models/user.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
@@ -45,52 +47,47 @@ class UserProvider with ChangeNotifier {
     await apiService.delete("/api/member");
     logout();
   }
+  Future<void> _webKakaoLogin() async{
+    bool talkInstalled = await isKakaoTalkInstalled();
+    if (talkInstalled) {
+      try {
+        await UserApi.instance.loginWithKakaoTalk();
+      } catch (error) {
+        print('카카오톡으로 로그인 실패 $error');
+
+        // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
+        // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
+        if (error is PlatformException && error.code == 'CANCELED') {
+          return;
+        }
+        try {
+          await UserApi.instance.loginWithKakaoAccount();
+        } catch (error) {
+          print('카카오계정으로 로그인 실패 $error');
+        }
+      }
+    } else {
+      try {
+        await UserApi.instance.loginWithKakaoAccount();
+      } catch (error) {
+        debugPrint('카카오계정으로 로그인 실패 $error');
+
+      }
+    }
+  }
   Future<void> kakaoLogin() async {
     bool talkInstalled = await isKakaoTalkInstalled();
 
-    var key = await KakaoSdk.origin;
-    log(key);
     debugPrint("호출 카카오");
     try {
       if (kIsWeb) {
         //웹 방식 로그인은 문제가 발생하지 않으면 별도로 구현하지 않을예정
-        if (talkInstalled) {
-          try {
-            await UserApi.instance.loginWithKakaoTalk();
-            Map<String, dynamic> response = await _requestOauth2KakaoLogin();
-            await _fetchTokenInfo(response);
-          } catch (error) {
-            print('카카오톡으로 로그인 실패 $error');
-
-            // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
-            // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
-            if (error is PlatformException && error.code == 'CANCELED') {
-              return;
-            }
-            try {
-              await UserApi.instance.loginWithKakaoAccount();
-              Map<String, dynamic> response = await _requestOauth2KakaoLogin();
-              await _fetchTokenInfo(response);
-            } catch (error) {
-              print('카카오계정으로 로그인 실패 $error');
-            }
-          }
-        } else {
-          try {
-            await UserApi.instance.loginWithKakaoAccount();
-            Map<String, dynamic> response = await _requestOauth2KakaoLogin();
-            await _fetchTokenInfo(response);
-          } catch (error) {
-            debugPrint('카카오계정으로 로그인 실패 $error');
-          }
-        }
+        _webKakaoLogin();
       } else {
         if (Platform.isAndroid || Platform.isIOS) {
           if (talkInstalled) {
             try {
               await UserApi.instance.loginWithKakaoTalk();
-              Map<String, dynamic> response = await _requestOauth2KakaoLogin();
-              await _fetchTokenInfo(response);
             } catch (error) {
               print('카카오톡으로 로그인 실패 $error');
 
@@ -102,9 +99,6 @@ class UserProvider with ChangeNotifier {
               // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인
               try {
                 await UserApi.instance.loginWithKakaoAccount();
-                Map<String, dynamic> response =
-                    await _requestOauth2KakaoLogin();
-                await _fetchTokenInfo(response);
               } catch (error) {
                 print('카카오계정으로 로그인 실패 $error');
               }
@@ -112,36 +106,81 @@ class UserProvider with ChangeNotifier {
           } else {
             try {
               await UserApi.instance.loginWithKakaoAccount();
-              Map<String, dynamic> response = await _requestOauth2KakaoLogin();
-              await _fetchTokenInfo(response);
             } catch (error) {
               debugPrint('카카오계정으로 로그인 실패 $error');
             }
           }
         }
       }
+      Map<String, dynamic> response = await _requestOauth2KakaoLogin();
+      await _fetchTokenInfo(response);
     } catch (error) {
-      print('카카오계정으로 로그인 실패 $error');
+      debugPrint('카카오 로그인 실패 $error');
+      rethrow;
     }
+  }
+  Future<void> retryKakaoLogin(String? email) async{
+    kakaoUser = await UserApi.instance.me();
+    if(email==null&&kakaoUser?.kakaoAccount?.email==null)  {
+      throw SocialLoginError("Email Required");
+    }
+
+    Map requestData={
+      "platform": "KAKAO",
+      "id": kakaoUser?.id,
+      "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
+      "email": email??kakaoUser?.kakaoAccount?.email
+    };
+    Response? response;
+    try{
+      response = await apiService.post("/api/auth/oauth2/login", data: requestData);
+      _fetchTokenInfo(response.data);
+    } catch (e){
+      if(e is DioException){
+        if(e.response?.statusCode==400)
+        {
+          switch(e.response?.data){
+            case "email is empty" :
+              throw SocialLoginError("Email Required");
+            default :
+              throw SocialLoginError("Register Failed");
+
+          }
+        }
+      }
+
+    }
+
   }
 
   Future<Map<String, dynamic>> _requestOauth2KakaoLogin() async {
     kakaoUser = await UserApi.instance.me();
-    Response response = await apiService.post("/api/auth/oauth2/login", data: {
+    Map requestData= {
       "platform": "KAKAO",
       "id": kakaoUser?.id,
       "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
       "email": kakaoUser?.kakaoAccount?.email
-    });
-    if(response.statusCode==400){
-      switch(response.data.toString()){
-        case "email is empty" :
-          throw Exception("EMAIL_EMPTY");
-        default:
-          throw Exception("register failed");
+    };
+    Response? response;
+    try{
+      response = await apiService.post("/api/auth/oauth2/login", data: requestData);
+    } catch (e){
+      if(e is DioException){
+        if(e.response?.statusCode==400)
+          {
+            switch(e.response?.data){
+              case "email is empty" :
+                throw SocialLoginError("Email Required");
+              default :
+                throw SocialLoginError("Register Failed");
+
+            }
+          }
       }
+
     }
-    return response.data;
+
+    return response?.data;
   }
 
   Future<void> _fetchTokenInfo(Map<String, dynamic> responseMap) async {

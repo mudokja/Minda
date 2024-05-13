@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:html';
 
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/error/social_login_error.dart';
@@ -25,7 +26,6 @@ class LoginModal extends StatefulWidget {
 class _LoginModalState extends State<LoginModal> {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   String platform = '';
-  ThemeColors themeColors = ThemeColors();
   ApiService apiService = ApiService();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
@@ -218,27 +218,39 @@ class _LoginModalState extends State<LoginModal> {
     Timer? timer;
     bool isVerified=false;
     String? errorText='';
-    bool isCodeSent = false;
+    bool isCodeSent = true;
     String verificationId = '';
     int remainingTime =300;
+    String? inputText='';
+    ThemeColors themeColors=ThemeColors();
     bool isButtonDisabled = false; // 버튼 활성화 상태 관리
+    final _formKey = GlobalKey<FormState>();
 
     bool isEmailValid(String email) {
       final RegExp emailRegExp = RegExp(
         r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$',
       );
+      if(emailRegExp.hasMatch(email)){
+
+      errorText='';
+      }
       return emailRegExp.hasMatch(email);
 
     }
     void startTimer() {
       setState(() {
-        remainingTime = 300; // 초 단위, 5분
+        remainingTime = 300;// 초 단위, 5분
+        isButtonDisabled=true;
       });
       timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (remainingTime > 0) {
           setState(() => remainingTime--);
         } else {
           timer.cancel();
+          setState(() {
+          isButtonDisabled=false;
+
+          });
           const Text('시간이 초과되었습니다.');
         }
       });
@@ -256,7 +268,7 @@ class _LoginModalState extends State<LoginModal> {
 
         if (response.statusCode == 200) {
           timer?.cancel();
-          print("확인");
+          print("도착");
           setState(() {
             isCodeSent = true;
             verificationId = response.data["verificationId"];
@@ -323,7 +335,7 @@ class _LoginModalState extends State<LoginModal> {
                   TextButton(
                     child: const Text('확인'),
                     onPressed: () {
-                      Navigator.of(context).pop(); // 다이얼로그 닫기
+                      Navigator.pop(context); // 다이얼로그 닫기
                     },
                   ),
                 ],
@@ -334,122 +346,119 @@ class _LoginModalState extends State<LoginModal> {
       }
     }
 
+
     // 모달을 띄우는 내부 함수
       return showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('이메일 정보 입력'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: '이메일',
-                    hintText: 'your_email@example.com',
-                    keyboardType: TextInputType.emailAddress,
-                    errorText: isEmailValid(emailController.text)
-                        ? errorText=''
-                        : '유효한 이메일 주소를 입력해주세요.',
-                    suffix: IconButton(
-                      onPressed: errorText =='' && isEmailValid(emailController.text)
-                          ? verifyEmail
-                          : null,
-                      icon: Text(
-                        '인증하기',
-                        style: TextStyle(color: themeColors.color1),
+            title: const Text('이메일 정보 입력'),
+
+            content: Form(
+              key: _formKey,
+            child:
+                SizedBox(
+                  width: 100,
+                  height: 200,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      TextFormField(
+                        controller: emailController,
+                        decoration: const InputDecoration(
+                        labelText: '이메일',
+                        hintText: 'your_email@example.com',
+                            ),
+                        validator:(value) {
+                          return emailController.text.isEmpty? "이메일을 입력해야합니다."
+                          :
+                          isEmailValid(value!)
+                              ? null
+                              : '유효한 이메일을 입력해주세요.';
+                        },
+
+                        onSaved: (value) {
+                          if(emailController.text.isNotEmpty&&isEmailValid(emailController.text)){
+
+                          setState(() {
+                            inputText=value!;
+                          });
+                          }
+                        },
+                          ),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            style: const ButtonStyle(
+                              enableFeedback: true
+                            ),
+                            onPressed:isButtonDisabled
+                                ?null
+                              :(){
+                              if(_formKey.currentState!.validate()){
+                                _formKey.currentState?.save();
+                                verifyEmail();
+                              }
+                            },
+                            child: isCodeSent?
+                                const Text('')
+                                :const Text(
+                              '인증하기',
+                            ),
+                          ),
+                        ],
                       ),
-                  ),
+                          if (isCodeSent) ...<Widget>[
+                              Column(
+                              children: [
+                              const SizedBox(
+                              height: 20,
+                              ),
+                              Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                              Expanded(
+                              flex: 4,
+                              child: TextForm(
+                              title: '이메일 인증 코드',
+                              controller: verificationCodeController,
+                              suffix: IconButton(
+                              onPressed: confirmVerification,
+                              icon: Text(
+                              '확인',
+                              style:
+                              TextStyle(color: themeColors.color1),
+                              ),
+                              ),
+                              ),
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: isVerified
+                                      ? const Text('인증 성공',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 12,
+                                      ),
+                                    )
+                                      : Text(
+
+                                      "${(remainingTime / 60).floor().toString().padLeft(2, '0')}:${(remainingTime % 60).toString().padLeft(2, '0')}"),
+                                ),
+                              ],
+                                                    ),
+                                                  ],
+                                                ),
+                  ],
+                                ],
+                              ),
                 ),
-
-              ],
-            ),
-              if (isCodeSent) ...[
-          Column(
-          children: [
-          const SizedBox(
-          height: 40,
           ),
-          Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-          Expanded(
-          flex: 4,
-          child: TextForm(
-          title: '이메일 인증 코드',
-          controller: verificationCodeController,
-          suffix: IconButton(
-          onPressed: confirmVerification,
-          icon: Text(
-          '확인',
-          style:
-          TextStyle(color: themeColors.color1),
-          ),
-          ),
-          ),
-          ),
-          const SizedBox(
-          width: 20,
-          ),
-          Expanded(
-          flex: 2,
-          child: isVerified
-          ? TextButton(
-          child: const Text('인증완료',
-          style: TextStyle(
-          color: Colors.green,
-          fontSize: 12,
-          ),
-          ),
-          onPressed: (){
-          Navigator.pop(context,emailController.text);
-          },
-
-          )
-              : Text(
-          "${(remainingTime / 60).floor().toString().padLeft(2, '0')}:${(remainingTime % 60).toString().padLeft(2, '0')}"),
-          ),
-          ],
-          ),
-          ],
-          ),
-          ],
-            actions: <Widget>[
-
-              ),
-
-              // TextButton(
-              //   child: Text('인증하기'),
-              //   onPressed: isButtonDisabled ? null :v () async {
-              //     if (isEmailValid(emailController.text)) {
-              //       // 버튼 비활성화
-              //       isButtonDisabled = true;
-              //       try {
-              //         Response response = await apiService.get(
-              //             '/api/member/check?email=${emailController.text}');
-              //         if(response.statusCode!=200){
-              //           errorText="다시 입력해주세요";
-              //         }
-              //
-              //
-              //       } catch (e) {
-              //         debugPrint(e.toString());
-              //         if(e is DioException){
-              //           switch(e.response?.statusCode){
-              //             case 309 :
-              //               errorText="이미 존재하는 이메일 입니다";
-              //               break;
-              //             default:
-              //           }
-              //         }
-              //       }
-              //     } else {
-              //       errorText='유효한 이메일 주소를 입력해주세요.';
-              //     }
-              //
-            ],
-
           );
         },
       );
@@ -632,7 +641,7 @@ class _LoginModalState extends State<LoginModal> {
                         },
 
                         // InkWell이 꽉 찬 영역에 반응하도록 Container 등으로 감싸거나 크기를 지정
-                        child: SizedBox(
+                        child: const SizedBox(
                           width: 500, // InkWell의 크기를 지정
                           height: 60,
                         ),

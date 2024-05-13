@@ -72,7 +72,7 @@ public class OpenAIService {
             }
             emotionDeque.add(emotionArray[maxIndex]);
         }
-        String prompt = "일기와 그 일기를 AI에 넣은 감정 분석 결과야. 의견을 말해줘. \n";
+        String prompt = "일기와 그 일기를 AI에 넣은 감정 분석 결과야. 감정 분석 결과를 참고해서 일기 작성자에게 조언을 해 줘. 친구에게 이야기하는 듯한 말투로 부드러운 어조로 조언을 해 줘. 호칭은 생략해 줘.\n";
         for(String sentence: analyze.getSentence()){
             prompt+=sentence + "(분석 감정:" + emotionDeque.poll() + ")\n";}
         ChatGPTRequestDto request = new ChatGPTRequestDto(gptModel, prompt);

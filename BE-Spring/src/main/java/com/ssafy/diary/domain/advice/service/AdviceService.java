@@ -34,9 +34,6 @@ public class AdviceService {
         Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex,singleAdviceRequestDto.getDate())
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
 
-        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate())
-                .orElseThrow(()-> new IllegalStateException("저장된 조언을 찾을 수 없습니다."));
-
         Long diaryIndex = diary.getDiaryIndex();
         Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
                 .orElseThrow(()-> new IllegalStateException("저장된 분석 결과가 없습니다."));
@@ -63,11 +60,21 @@ public class AdviceService {
         statusMap.put("불안",diary.getDiaryFear());
         statusMap.put("기쁨",diary.getDiaryHappiness());
 
-        return SingleAdviceResponseDto.builder()
-                .sentence(analyze.getSentence())
-                .emotion(emotionList)
-                .adviceContent(advice.getAdviceContent())
-                .status(statusMap).build();
+        Optional<Advice> advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate());
+
+        if (advice.isPresent()) {
+            return SingleAdviceResponseDto.builder()
+                    .sentence(analyze.getSentence())
+                    .emotion(emotionList)
+                    .adviceContent(advice.get().getAdviceContent())
+                    .status(statusMap).build();
+        } else {
+            return SingleAdviceResponseDto.builder()
+                    .sentence(analyze.getSentence())
+                    .emotion(emotionList)
+                    .adviceContent("조언을 생성하는 중입니다. 분석 완료 알림이 오면 다시 확인해주세요.")
+                    .status(statusMap).build();
+        }
     }
 
     @Transactional

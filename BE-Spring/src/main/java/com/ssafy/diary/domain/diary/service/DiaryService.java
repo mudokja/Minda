@@ -255,7 +255,7 @@ public class DiaryService {
         deleteImageFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
         analyzeRepository.deleteByDiaryIndex(diaryIndex);
-        adviceRepository.deleteByStartDateAndEndDate(diary.getDiarySetDate());
+        adviceRepository.deleteByDate(diary.getDiarySetDate());
         diaryRepository.deleteById(diaryIndex);
     }
 

@@ -57,8 +57,16 @@ public class Diary extends BaseEntity {
     @Column(name = "diary_surprise")
     private Double diarySurprise;
 
+//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JoinColumn(name = "diary_index")
+//    private List<Image> imageList = new ArrayList<>();
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "diary_index")
+    @JoinTable(
+            name = "diary_image", // 조인 테이블 이름
+            joinColumns = @JoinColumn(name = "diary_index"), // Diary 엔티티를 참조하는 외래키
+            inverseJoinColumns = @JoinColumn(name = "image_index") // Image 엔티티를 참조하는 외래키
+    )
     private List<Image> imageList = new ArrayList<>();
 
     @Builder

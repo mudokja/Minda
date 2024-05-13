@@ -31,14 +31,12 @@ public class FirebaseMemberToken {
     private DateField date=new DateField();
 
     @JoinColumn(name = "member_index",nullable = false)
-    private Long memberIndex;
-
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
     @Builder
-    public FirebaseMemberToken(String fireBaseToken, FireBasePlatform fireBasePlatform, Long memberIndex, Member member) {
+    public FirebaseMemberToken(String fireBaseToken, FireBasePlatform fireBasePlatform, Member member) {
         this.fireBaseToken = fireBaseToken;
         this.fireBasePlatform = fireBasePlatform;
-        this.memberIndex = memberIndex;
+        this.member = member;
     }
 }

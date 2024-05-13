@@ -29,8 +29,8 @@ public class MemberController {
     @Operation(summary = "아이디 중복 확인", description = "아이디 및 이메일 중복 확인")
     @GetMapping("/check")
     public ResponseEntity<String> checkMemberOrEmailId(@RequestParam(name= "id",required = false) String id, @RequestParam(name = "email",required = false) String email) {
-        boolean isIdEmpty=id==null||id.isEmpty();
-        boolean isEmailEmpty=email==null||email.isEmpty();
+        boolean isIdEmpty=id==null||id.isBlank();
+        boolean isEmailEmpty=email==null||email.isBlank();
         if(isIdEmpty&&isEmailEmpty) {
             return ResponseEntity.badRequest().body("value cannot be empty");
         }
@@ -52,6 +52,8 @@ public class MemberController {
     @Operation(summary = "회원 가입", description = "회원 가입")
     @PostMapping("/register")
     public ResponseEntity<Object> authJoin(@RequestBody MemberRegisterRequestDto memberRegisterRequestDto) {
+        if(memberRegisterRequestDto.getNickname().isBlank() || memberRegisterRequestDto.getId().isBlank() || memberRegisterRequestDto.getPassword().isBlank() || memberRegisterRequestDto.getEmail().isBlank())
+            throw new IllegalArgumentException("invalid request data");
         memberService.registerMember(memberRegisterRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("register successfully");
     }
@@ -70,7 +72,7 @@ public class MemberController {
     @PutMapping("/auth")
     public ResponseEntity<String> memberPasswordUpdate(@AuthenticationPrincipal PrincipalMember principalMember,
                                                        @RequestBody MemberUpdatePasswordRequestDto memberUpdatePasswordRequestDto) throws BadRequestException {
-        if(!memberUpdatePasswordRequestDto.getMemberNewPassword().isEmpty() &&!memberUpdatePasswordRequestDto.getMemberOldPassword().isEmpty()) {
+        if(!memberUpdatePasswordRequestDto.getMemberNewPassword().isBlank() &&!memberUpdatePasswordRequestDto.getMemberOldPassword().isBlank()) {
             memberService.updateMemberPassword(principalMember.getIndex(), memberUpdatePasswordRequestDto);
 
             return ResponseEntity.ok().body("member password updated successfully");

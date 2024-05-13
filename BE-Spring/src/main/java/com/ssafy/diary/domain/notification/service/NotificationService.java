@@ -1,6 +1,8 @@
 package com.ssafy.diary.domain.notification.service;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.ssafy.diary.domain.member.entity.Member;
+import com.ssafy.diary.domain.member.service.MemberService;
 import com.ssafy.diary.domain.notification.dto.*;
 import com.ssafy.diary.domain.notification.entity.FirebaseMemberToken;
 import com.ssafy.diary.domain.notification.repository.FirebaseMemberTokenRepository;
@@ -22,13 +24,15 @@ public class NotificationService {
     private final static String notificationTokenTopic="diary.notification.token";
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final FirebaseMemberTokenRepository firebaseMemberTokenRepository;
+    private final MemberService memberService;
 
     public void addFirebaseMemberToken(FirebaseMemberTokenRequestDto firebaseMemberToken, Long memberIndex) throws NotificationException.NotificationTokenDuplicatedException {
         if(firebaseMemberTokenRepository.existsByFireBaseToken(firebaseMemberToken.getToken())){
             throw new NotificationException.NotificationTokenDuplicatedException("duplicate firebase token");
         }
+
         firebaseMemberTokenRepository.save(FirebaseMemberToken.builder()
-                .memberIndex(memberIndex)
+                .member(memberService.getMemberCheck(memberIndex))
                 .fireBaseToken(firebaseMemberToken.getToken())
                 .fireBasePlatform(firebaseMemberToken.getPlatform())
                 .build());

@@ -10,6 +10,8 @@ import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
+import com.ssafy.diary.domain.openAI.dto.ChatGPTResponseDto;
+import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ public class AdviceService {
     private final DiaryRepository diaryRepository;
     private final AdviceRepository adviceRepository;
     private final AnalyzeRepository analyzeRepository;
+    private final OpenAIService openAIService;
 
     private String[] emotionArray = {"중립","분노","슬픔","놀람","불안","기쁨"};
 
@@ -62,25 +65,20 @@ public class AdviceService {
 
         Optional<Advice> advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate());
 
+        String adviceContent = "조언을 생성하는 중입니다. 분석 완료 알림이 오면 다시 확인해주세요.";
         if (advice.isPresent()) {
-            return SingleAdviceResponseDto.builder()
-                    .sentence(analyze.getSentence())
-                    .emotion(emotionList)
-                    .adviceContent(advice.get().getAdviceContent())
-                    .status(statusMap).build();
-        } else {
-            return SingleAdviceResponseDto.builder()
-                    .sentence(analyze.getSentence())
-                    .emotion(emotionList)
-                    .adviceContent("조언을 생성하는 중입니다. 분석 완료 알림이 오면 다시 확인해주세요.")
-                    .status(statusMap).build();
+            adviceContent = advice.get().getAdviceContent();
         }
+
+        return SingleAdviceResponseDto.builder()
+                .sentence(analyze.getSentence())
+                .emotion(emotionList)
+                .adviceContent(adviceContent)
+                .status(statusMap).build();
     }
 
     @Transactional
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {
-//        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate())
-//                .orElseThrow(()-> new IllegalStateException("저장된 조언을 찾을 수 없습니다."));
 
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
@@ -106,9 +104,19 @@ public class AdviceService {
             statusMap.put("기쁨", statusMap.getOrDefault("기쁨", 0.0) / diaryCount);
         }
 
+        Optional<Advice> optionalAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+
+        String adviceContent = "";
+        if(!optionalAdvice.isPresent()) {
+            ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).block();
+            adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+        } else {
+            adviceContent = optionalAdvice.get().getAdviceContent();
+        }
+
         return AdviceResponseDto.builder()
-                .adviceContent("null")
-//                .adviceContent(advice.getAdviceContent())
+//                .adviceContent(chatGPTResponseDto.getChoices().get(0).getMessage().getContent())
+                .adviceContent(adviceContent)
                 .status(statusMap).build();
     }
 }

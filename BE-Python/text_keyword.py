@@ -7,15 +7,6 @@ from kiwipiepy import Kiwi
 
 print("호출: text_keyword.py")
 
-# def split_sentences(text):  #정규표현식 
-#     try:
-#         sentences = re.split(r'(?<!\d)\.(?!\d)(?=\s)|(?<=[?!])', text)
-#         # 각 문장 앞뒤의 공백 제거
-#         sentences = [sentence.strip() for sentence in sentences if sentence.strip() != '']
-#         return sentences
-#     except Exception as e:
-#         print ({str(e)})
-
 kiwi=Kiwi()
 
 def split_sentences(text):
@@ -34,22 +25,20 @@ def noun_sentences(sentences):
         for sentence in sentences:
             if len(sentence) == 0:
                 continue
-            sentence_pos = okt.pos(sentence, stem=True)
-            nouns = [word for word, pos in sentence_pos if pos == 'Noun']
-            if len(nouns) == 1:
+            nouns = okt.nouns(sentence)
+            if len(nouns) == 0:
                 continue
             noun_sentences.append(' '.join(nouns) + '.')
-
         return noun_sentences
     except Exception as e:
         print ({str(e)})
 
-async def get_keyword(texts):
+def get_keyword(texts):
     try:
         # print(texts)
         keywords = summarize_with_keywords(texts, min_count=1, max_length=10,
             beta=0.85, max_iter=10, stopwords=None, verbose=True)  #min_count로 민감도 조절, 20보다 늘리면 에러
-        print(keywords)
+        # print(keywords)
         # krwordrank_cloud = WordCloud(
         #     font_path = "malgunbd.ttf",
         #     width = 800,

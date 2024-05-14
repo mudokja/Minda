@@ -88,6 +88,7 @@ public class DiaryService {
     }
 
     //일기 등록
+    @Transactional
     public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex){
 
         if(diaryRepository.findByDiarySetDateAndMemberIndex(diaryAddRequestDto.getDiarySetDate(), memberIndex).isPresent()) {

@@ -24,10 +24,11 @@ public class AnalyzeService {
     @Qualifier("webClient")
     private final WebClient webClient;
 
-    public Mono<String> addAnalyze(AnalyzeRequestDto analyzeRequestDto){
+    public Mono<String> addAnalyze(AnalyzeRequestDto analyzeRequestDto) {
         return requestAnalyzeToFastAPI(analyzeRequestDto);
     }
-    public Analyze getAnalyze(Long diaryIndex){
+
+    public Analyze getAnalyze(Long diaryIndex) {
         return analyzeRepository.findByDiaryIndex(diaryIndex).orElse(null);
     }
 
@@ -35,18 +36,21 @@ public class AnalyzeService {
 
         Analyze analyze = this.getAnalyze(diary.getDiaryIndex());
         HashMap<String, Double[]> emotion = analyze.getEmotion();
-
+        String[] sentences = analyze.getSentence();
+        double count = 0;
         if (diary.getDiaryHappiness() == null) {
             double[] sumArray = new double[5];
+            int cur = 0;
             for (Double[] value : emotion.values()) {
                 for (int i = 1; i < value.length; i++) {
-                    sumArray[i - 1] += value[i];
+                    sumArray[i - 1] += value[i] * sentences[cur].length();
                 }
+                count += sentences[cur++].length();
             }
             log.info("array={}", Arrays.toString(sumArray));
             log.info("sentence={}", analyze.getSentence().length);
             for (int i = 0; i < sumArray.length; i++)
-                sumArray[i] /= analyze.getSentence().length;
+                sumArray[i] /= count;
             diary.setDiaryAnger(sumArray[0]);
             diary.setDiarySadness(sumArray[1]);
             diary.setDiarySurprise(sumArray[2]);
@@ -56,13 +60,14 @@ public class AnalyzeService {
     }
 
 
-//    public void addAnalyze(){
+    //    public void addAnalyze(){
 //        Analyze analyze = Analyze.builder().diaryIndex(11L).emotion(null).build();
 //        analyzeRepository.save(analyze);
 //    }
-    public void updateAnalyze(){
+    public void updateAnalyze() {
     }
-    public void removeAnalyze(){
+
+    public void removeAnalyze() {
     }
 
     //Fast API로 요청 보내기

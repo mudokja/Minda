@@ -34,6 +34,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
   Dio dio = Dio(); // Dio 인스턴스 생성
   bool showConfirmationView = false; // 상태를 관리하는 변수
   bool isLoading = false; //로딩 상태 관리
+  bool hasPrevious = true; // 이전 일기가 있는지 여부
+  bool hasNext = true; // 다음 일기가 있는지 여부
   String imageUrl = ''; // 생성된 이미지 URL 저장
   ApiService apiService = ApiService();
 
@@ -41,12 +43,6 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
   String diaryDate = '';
   String diaryTitle = '';
   String diaryContent = '';
-
-  // 상태 변수로 변경
-  // late DateTime selectedDay;
-  // late String diaryTitle;
-  // late String diaryContent;
-  // late int diaryIndex;
 
   // 컨트롤러 선언
   final TextEditingController titleController = TextEditingController();
@@ -160,6 +156,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
         setState(() {
           imageUrl = response.data;
           isLoading = false;
+          print('Image generated successfully: $imageUrl'); // 디버깅용 로그
         });
       } else {
         print('Invalid image URL');
@@ -176,47 +173,47 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
       }
       print('Error generating image: $e');
 
-      // 추가적인 디버깅 정보 출력
-      if (e is DioException) {
-        print(
-            'DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
-        print('Request Headers: ${e.requestOptions.headers}');
-        print('Request Data: ${e.requestOptions.data}');
-      }
+      // // 추가적인 디버깅 정보 출력
+      // if (e is DioException) {
+      //   print(
+      //       'DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
+      //   print('Request Headers: ${e.requestOptions.headers}');
+      //   print('Request Data: ${e.requestOptions.data}');
+      // }
     }
   }
 
-  Future<void> updateDiary() async {
-    try {
-      const url = '/api/diary';
-      final data = {
-        'diaryIndex': widget.diaryIndex,
-        'diarySetDate': diaryDate,
-        'diaryTitle': titleController.text,
-        'diaryContent': contentController.text,
-      };
-      Response response = await apiService.put(url, data: data);
+  // Future<void> updateDiary() async {
+  //   try {
+  //     const url = '/api/diary';
+  //     final data = {
+  //       'diaryIndex': widget.diaryIndex,
+  //       'diarySetDate': diaryDate,
+  //       'diaryTitle': titleController.text,
+  //       'diaryContent': contentController.text,
+  //     };
+  //     Response response = await apiService.put(url, data: data);
 
-      if (response.statusCode == 200) {
-        print('Diary updated successfully');
-        setState(() {
-          diaryTitle = titleController.text;
-          diaryContent = contentController.text;
-          showConfirmationView = false;
-        });
-        Navigator.of(context).pop({
-          'action': 'update',
-          'diaryIndex': widget.diaryIndex,
-          'diaryTitle': diaryTitle,
-          'diaryContent': diaryContent,
-        });
-      } else {
-        print('Failed to update diary');
-      }
-    } catch (e) {
-      print('Error updating diary: $e');
-    }
-  }
+  //     if (response.statusCode == 200) {
+  //       print('Diary updated successfully');
+  //       setState(() {
+  //         diaryTitle = titleController.text;
+  //         diaryContent = contentController.text;
+  //         showConfirmationView = false;
+  //       });
+  //       Navigator.of(context).pop({
+  //         'action': 'update',
+  //         'diaryIndex': widget.diaryIndex,
+  //         'diaryTitle': diaryTitle,
+  //         'diaryContent': diaryContent,
+  //       });
+  //     } else {
+  //       print('Failed to update diary');
+  //     }
+  //   } catch (e) {
+  //     print('Error updating diary: $e');
+  //   }
+  // }
 
   Future<void> deleteDiary() async {
     try {
@@ -238,146 +235,109 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
     }
   }
 
-  // void onPreviousButtonPressed() {
-  //   DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
-  //   DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
-  //   navigateToDiary(startDate, endDate, false);
-  // }
-
-  // void onNextButtonPressed() {
-  //   DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
-  //   DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
-  //   navigateToDiary(startDate, endDate, true);
-  // }
-
-  // Future<void> navigateToDiary(
-  //     DateTime startDate, DateTime endDate, bool next) async {
-  //   try {
-  //     List<DiaryEntry> diaries = await fetchDiaries(startDate, endDate);
-  //     DiaryEntry? closestDiary =
-  //         findClosestDiary(diaries, widget.selectedDay, next);
-  //     if (closestDiary != null) {
-  //       _animation = Tween<Offset>(
-  //         begin: Offset.zero,
-  //         end: next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
-  //       ).animate(CurvedAnimation(
-  //         parent: _animationController,
-  //         curve: Curves.easeInOut,
-  //       ));
-  //       _animationController.forward(from: 0.0).then((_) {
-  //         Navigator.pushReplacement(
-  //           context,
-  //           PageRouteBuilder(
-  //             pageBuilder: (context, animation, secondaryAnimation) =>
-  //                 DiaryDetailPage(
-  //               selectedDay: DateTime.parse(closestDiary.diarySetDate),
-  //               diaryTitle: closestDiary.diaryTitle,
-  //               diaryContent: closestDiary.diaryContent,
-  //               diaryIndex: closestDiary.diaryIndex,
-  //             ),
-  //             transitionsBuilder:
-  //                 (context, animation, secondaryAnimation, child) {
-  //               var begin =
-  //                   next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0);
-  //               var end = Offset.zero;
-  //               var curve = Curves.ease;
-
-  //               var tween = Tween(begin: begin, end: end)
-  //                   .chain(CurveTween(curve: curve));
-  //               return SlideTransition(
-  //                 position: animation.drive(tween),
-  //                 child: child,
-  //               );
-  //             },
-  //             transitionDuration: const Duration(milliseconds: 500),
-  //           ),
-  //         );
-  //       });
-  //     } else {
-  //       print("No diary entry found close to the selected date.");
-  //     }
-  //   } catch (error) {
-  //     print('Error navigating to diary entry: $error');
-  //   }
-  // }
-
   void onPreviousButtonPressed() async {
-  DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
-  DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
-  DiaryEntry? closestDiary = await navigateToDiary(startDate, endDate, false);
-  if (closestDiary == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("첫 일기입니다."),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-}
-
-void onNextButtonPressed() async {
-  DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
-  DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
-  DiaryEntry? closestDiary = await navigateToDiary(startDate, endDate, true);
-  if (closestDiary == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("마지막 일기입니다."),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-}
-
-Future<DiaryEntry?> navigateToDiary(
-    DateTime startDate, DateTime endDate, bool next) async {
-  try {
-    List<DiaryEntry> diaries = await fetchDiaries(startDate, endDate);
-    DiaryEntry? closestDiary =
-        findClosestDiary(diaries, widget.selectedDay, next);
-    if (closestDiary != null) {
-      _animation = Tween<Offset>(
-        begin: Offset.zero,
-        end: next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
-      ).animate(CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ));
-      await _animationController.forward(from: 0.0);
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              DiaryDetailPage(
-            selectedDay: DateTime.parse(closestDiary.diarySetDate),
-            diaryTitle: closestDiary.diaryTitle,
-            diaryContent: closestDiary.diaryContent,
-            diaryIndex: closestDiary.diaryIndex,
-          ),
-          transitionsBuilder:
-              (context, animation, secondaryAnimation, child) {
-            var begin = next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0);
-            var end = Offset.zero;
-            var curve = Curves.ease;
-
-            var tween = Tween(begin: begin, end: end)
-                .chain(CurveTween(curve: curve));
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 500),
+    if (isLoading || !hasPrevious) return; // 로딩 중이거나 이전 일기가 없으면 return
+    DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
+    DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
+    DiaryEntry? closestDiary = await navigateToDiary(startDate, endDate, false);
+//   if (closestDiary == null) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(
+//         content: Text("첫 일기입니다."),
+//         duration: Duration(seconds: 2),
+//       ),
+//     );
+//   }
+// }
+    if (closestDiary == null) {
+      setState(() {
+        hasPrevious = false; // 이전 일기가 없음을 설정
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("첫 일기입니다."),
+          duration: Duration(seconds: 2),
         ),
       );
     }
-    return closestDiary;
-  } catch (error) {
-    print('Error navigating to diary entry: $error');
-    return null;
   }
-}
 
+  void onNextButtonPressed() async {
+    if (isLoading || !hasNext) return; // 로딩 중이거나 다음 일기가 없으면 return
+    DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
+    DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
+    DiaryEntry? closestDiary = await navigateToDiary(startDate, endDate, true);
+//   if (closestDiary == null) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(
+//         content: Text("마지막 일기입니다."),
+//         duration: Duration(seconds: 2),
+//       ),
+//     );
+//   }
+// }
+    if (closestDiary == null) {
+      setState(() {
+        hasNext = false; // 다음 일기가 없음을 설정
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("마지막 일기입니다."),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<DiaryEntry?> navigateToDiary(
+      DateTime startDate, DateTime endDate, bool next) async {
+    try {
+      List<DiaryEntry> diaries = await fetchDiaries(startDate, endDate);
+      DiaryEntry? closestDiary =
+          findClosestDiary(diaries, widget.selectedDay, next);
+      if (closestDiary != null) {
+        _animation = Tween<Offset>(
+          begin: Offset.zero,
+          end: next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
+        ).animate(CurvedAnimation(
+          parent: _animationController,
+          curve: Curves.easeInOut,
+        ));
+        await _animationController.forward(from: 0.0);
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                DiaryDetailPage(
+              selectedDay: DateTime.parse(closestDiary.diarySetDate),
+              diaryTitle: closestDiary.diaryTitle,
+              diaryContent: closestDiary.diaryContent,
+              diaryIndex: closestDiary.diaryIndex,
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              var begin =
+                  next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0);
+              var end = Offset.zero;
+              var curve = Curves.ease;
+
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
+        );
+      }
+      return closestDiary;
+    } catch (error) {
+      print('Error navigating to diary entry: $error');
+      return null;
+    }
+  }
 
   Future<List<DiaryEntry>> fetchDiaries(
       DateTime startDate, DateTime endDate) async {
@@ -422,37 +382,38 @@ Future<DiaryEntry?> navigateToDiary(
   @override
   Widget build(BuildContext context) {
     ThemeColors themeColors = ThemeColors(); // 테마 색상 인스턴스
-    double modalWidth =
-        MediaQuery.of(context).size.width * 0.9; // modalWidth를 여기에서 정의
 
+////////////////////////////////////////////////////////////////
     return Scaffold(
       body: Stack(
         children: [
           const Background(), // 배경 위젯
           Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.9, // 최대 높이 설정
-              ),
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.9, // 화면의 90% 크기
-                decoration: BoxDecoration(
-                  color: Colors.white, // 컨테이너의 배경색
-                  borderRadius: BorderRadius.circular(35), // 모서리 둥글게
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3), // 그림자 위치 조정
-                    ),
-                  ],
+            child: SingleChildScrollView(
+              // 전체 화면을 스크롤 가능하도록 감싸줍니다
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight:
+                      MediaQuery.of(context).size.height * 0.9, // 최대 높이 설정
                 ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: SingleChildScrollView(
-                    // 여기를 SingleChildScrollView로 감싸줍니다
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9, // 화면의 90% 크기
+                  height: MediaQuery.of(context).size.height * 0.9, // 고정된 높이 설정
+                  decoration: BoxDecoration(
+                    color: Colors.white, // 컨테이너의 배경색
+                    borderRadius: BorderRadius.circular(35), // 모서리 둥글게
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3), // 그림자 위치 조정
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
                     child: Column(
                       crossAxisAlignment:
                           CrossAxisAlignment.stretch, // 가로로 꽉 차게
@@ -478,7 +439,9 @@ Future<DiaryEntry?> navigateToDiary(
                             IconButton(
                               icon:
                                   const Icon(Icons.keyboard_arrow_left_rounded),
-                              onPressed: onPreviousButtonPressed, // 이전 일기 로드
+                              onPressed: hasPrevious
+                                  ? onPreviousButtonPressed
+                                  : null, // 이전 일기 로드
                               iconSize: 30,
                               padding: EdgeInsets.zero, // 간격 최소화
                             ),
@@ -489,7 +452,9 @@ Future<DiaryEntry?> navigateToDiary(
                             IconButton(
                               icon: const Icon(
                                   Icons.keyboard_arrow_right_rounded),
-                              onPressed: onNextButtonPressed, // 다음 일기 로드
+                              onPressed: hasNext
+                                  ? onNextButtonPressed
+                                  : null, // 다음 일기 로드
                               iconSize: 30,
                               padding: EdgeInsets.zero, // 간격 최소화
                             ),
@@ -500,19 +465,22 @@ Future<DiaryEntry?> navigateToDiary(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.brush),
-                                color: themeColors.color1,
-                                onPressed:
-                                    imageUrl.isEmpty ? generateImage : null,
-                                padding: EdgeInsets.zero, // 간격 최소화
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.brush),
+                                    color: themeColors.color1,
+                                    onPressed:
+                                        imageUrl.isEmpty ? generateImage : null,
+                                    padding: EdgeInsets.zero, // 간격 최소화
+                                  ),
+                                  if (!isLoading && imageUrl.isEmpty)
+                                    const Text(
+                                      'AI로 이미지를\n생성해보세요!',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                ],
                               ),
-                              if (!isLoading && imageUrl.isEmpty)
-                                const Text(
-                                  'AI로 이미지를\n생성해보세요!',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              const SizedBox(width: 90),
                               Row(
                                 children: [
                                   ElevatedButton(
@@ -552,6 +520,7 @@ Future<DiaryEntry?> navigateToDiary(
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(width: 15),
                                 ],
                               ),
                             ],
@@ -608,45 +577,53 @@ Future<DiaryEntry?> navigateToDiary(
                                 },
                               ),
                             ),
-                          )
-                        else
-                          const SizedBox(),
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(16, 5, 16, 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF9D1DD),
-                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: CustomPaint(
-                            painter: LinedPaperPainter(),
-                            foregroundPainter: NotebookHolesPainter(24),
-                            child: SizedBox(
-                              width: modalWidth,
-                              height: 400,
-                              child: Padding(
-                                padding: const EdgeInsets.all(30),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      widget.diaryTitle.isNotEmpty
-                                          ? widget.diaryTitle
-                                          : '${widget.selectedDay.year}년 ${widget.selectedDay.month}월 ${widget.selectedDay.day}일의 일기',
-                                      style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
+                        Flexible(
+                          child: Container(
+                            margin: const EdgeInsets.fromLTRB(16, 5, 16, 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF9D1DD),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: CustomPaint(
+                              painter: LinedPaperPainter(),
+                              foregroundPainter: NotebookHolesPainter(24),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 100, // 최소 높이 설정
+                                ),
+                                child: Scrollbar(
+                                  // 스크롤 바 추가
+                                  child: SingleChildScrollView(
+                                    // 일기 내용이 길어지면 스크롤 가능하도록 설정
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(30),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                            widget.diaryTitle.isNotEmpty
+                                                ? widget.diaryTitle
+                                                : '${widget.selectedDay.year}년 ${widget.selectedDay.month}월 ${widget.selectedDay.day}일의 일기',
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 20),
+                                          Text(
+                                            widget.diaryContent.isNotEmpty
+                                                ? widget.diaryContent
+                                                : '일기가 작성되지 않았어요..',
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                color: Color(0xFFA488AF),
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    const SizedBox(height: 20),
-                                    Text(
-                                      widget.diaryContent.isNotEmpty
-                                          ? widget.diaryContent
-                                          : '일기가 작성되지 않았어요..',
-                                      style: const TextStyle(
-                                          fontSize: 18,
-                                          color: Color(0xFFA488AF),
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),

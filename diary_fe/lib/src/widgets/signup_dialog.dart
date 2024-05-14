@@ -635,7 +635,7 @@ class _SignUpModalState extends State<SignUpModal> {
                           },
                         );
                       },
-                      child: Row(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(

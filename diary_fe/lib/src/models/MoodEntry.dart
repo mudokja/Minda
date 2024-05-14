@@ -6,7 +6,7 @@ class MoodEntry {
   final String? diary_sadness; // 슬픔
   final String? diary_fear; // 불안
   final String? diary_anger; // 분노
-  final String? diary_disgust; // 상처
+  // final String? diary_disgust; // 상처
   final String? diary_surprise; // 놀람
 
   MoodEntry({
@@ -15,7 +15,7 @@ class MoodEntry {
     this.diary_sadness,
     this.diary_fear,
     this.diary_anger,
-    this.diary_disgust,
+    // this.diary_disgust,
     this.diary_surprise,
   });
 
@@ -26,11 +26,12 @@ class MoodEntry {
       case '슬픔':
         return const Color(0xFFBC7FCD); // 연보라
       case '불안':
-        return const Color(0xFFB3B4B4); // 회색
+        // return const Color(0xFFB3B4B4); // 회색
+        return const Color(0xFF86469C); // 진보라
       case '분노':
         return const Color(0xFFDF1E1E); // 빨강
-      case '상처':
-        return const Color(0xFF86469C); // 진보라
+      // case '상처':
+      //   return const Color(0xFF86469C); // 진보라
       case '놀람':
         return const Color(0xFFFC819E); // 분홍
       default:

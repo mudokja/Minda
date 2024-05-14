@@ -90,7 +90,7 @@ public class AdviceService {
 
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
-        if (diaryList.isEmpty()) {
+        if (diaryList == null || diaryList.isEmpty()) {
             return AdviceResponseDto.builder()
                     .adviceContent("다이어리가 없습니다.")
                     .status(new HashMap<>()) // 빈 상태의 statusMap 반환

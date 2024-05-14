@@ -11,8 +11,13 @@ import 'package:flutter/services.dart';
 
 class Pages extends StatefulWidget {
   final int initialPage;
+  final DateTime? selectedDate;
 
-  const Pages({super.key, this.initialPage = 0});
+  const Pages({
+    super.key,
+    this.initialPage = 0,
+    this.selectedDate,
+  });
 
   @override
   State<Pages> createState() => _PagesState();
@@ -20,21 +25,22 @@ class Pages extends StatefulWidget {
 
 class _PagesState extends State<Pages> {
   late final PageController _pageController;
-   late int _selectedIndex;
+  late int _selectedIndex; // 현재 선택된 탭 인덱스
   late List<Widget> widgetOptions;
 
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.initialPage;  // 초기 페이지 인덱스 설정
+    _selectedIndex = widget.initialPage;
     _pageController = PageController(initialPage: widget.initialPage);
+    addWidgets();
   }
 
   void addWidgets() {
     widgetOptions = [
       const MainPage(),
       DiaryListPage(selectedDay: DateTime.now()), // 오늘 날짜를 기본값으로 설정
-      const AnalysisPage(),
+      AnalysisPage(selectedDate: widget.selectedDate),
       const ProfilePage(),
     ];
   }

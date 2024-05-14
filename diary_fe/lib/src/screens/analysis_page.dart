@@ -6,15 +6,26 @@ import 'package:flutter/material.dart';
 enum Calendar { day, week, month, custom }
 
 class AnalysisPage extends StatefulWidget {
-  const AnalysisPage({super.key});
+  final DateTime? selectedDate;
+  const AnalysisPage({
+    super.key,
+    this.selectedDate,
+  });
 
   @override
   State<AnalysisPage> createState() => _AnalysisPageState();
 }
 
 class _AnalysisPageState extends State<AnalysisPage> {
-  Calendar calendarView = Calendar.day;
-  DateTime selectedDate = DateTime.now();
+  late Calendar calendarView;
+  late DateTime selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    calendarView = Calendar.day;
+    selectedDate = widget.selectedDate ?? DateTime.now();
+  }
 
   void updateCalendarView(Calendar newCalendar) {
     setState(() {

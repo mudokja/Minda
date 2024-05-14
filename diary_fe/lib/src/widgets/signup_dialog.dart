@@ -171,9 +171,26 @@ class _SignUpModalState extends State<SignUpModal> {
     super.dispose();
   }
 
+  void emailDuplicate() async {
+    try {
+      ApiService apiService = ApiService();
+      Response response = await apiService.get(
+        '/api/member/check?email=${_emailController.text}',
+      );
+      if (response.statusCode == 200) {
+        verifyEmail();
+      }
+    } catch (e) {
+      if (e is DioException) {
+        _setEmailError('중복된 이메일이에요. 다른 이메일로 시도해보세요.');
+      }
+    }
+  }
+
   void verifyEmail() async {
     try {
       ApiService apiService = ApiService();
+
       Response response = await apiService.post(
         '/api/email/verification',
         data: {
@@ -465,7 +482,7 @@ class _SignUpModalState extends State<SignUpModal> {
                       suffix: IconButton(
                         onPressed:
                             _emailError == '' && _emailController.text != ''
-                                ? verifyEmail
+                                ? emailDuplicate
                                 : null,
                         icon: Text(
                           '인증하기',

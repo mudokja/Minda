@@ -1,5 +1,5 @@
-import 'package:diary_fe/src/screens/analysis_page.dart';
 import 'package:flutter/material.dart';
+import 'package:diary_fe/src/screens/analysis_page.dart'; // 필요한 경우 정확한 경로를 사용하세요.
 
 class SingleChoice extends StatefulWidget {
   final Calendar initialCalendar;
@@ -18,22 +18,20 @@ class SingleChoice extends StatefulWidget {
 class _SingleChoiceState extends State<SingleChoice> {
   late Calendar calendarView;
 
-  DateTime date = DateTime.now();
-
-  void onChangeDate(double num) {
-    setState(() {
-      if (num > 0) {
-        date = date.add(const Duration(days: 1));
-      } else if (num < 0) {
-        date = date.subtract(const Duration(days: 1));
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
     calendarView = widget.initialCalendar;
+  }
+
+  @override
+  void didUpdateWidget(covariant SingleChoice oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialCalendar != widget.initialCalendar) {
+      setState(() {
+        calendarView = widget.initialCalendar;
+      });
+    }
   }
 
   @override

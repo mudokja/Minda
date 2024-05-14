@@ -208,7 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               return AlertDialog(
                                 title: const Text('알림'),
                                 content: const Text(
-                                    '탈퇴하게 되면 지금까지 작성한 모든 일기가 사라져요. 그래도 진행할까요?'),
+                                    '탈퇴하게 되면 회원 정보와 지금까지 작성한 모든 일기가 사라져요. 그래도 진행할까요?'),
                                 actions: <Widget>[
                                   TextButton(
                                     child: const Text('확인'),

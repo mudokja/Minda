@@ -1,3 +1,5 @@
+import 'package:diary_fe/src/screens/pages.dart';
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,17 +9,20 @@ import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/widgets/background.dart'; // Background 위젯 import
 import 'package:intl/intl.dart';
 import 'package:diary_fe/src/screens/analysis_page.dart';
+import 'package:diary_fe/src/models/diary_image.dart';
 
 class DiaryDetailPage extends StatefulWidget {
   final DateTime selectedDay;
   final String diaryTitle;
   final String diaryContent;
+  final int diaryIndex; // diaryIndex필드 추가
 
   const DiaryDetailPage({
     super.key,
     required this.selectedDay,
     required this.diaryTitle,
     required this.diaryContent,
+    required this.diaryIndex, //diaryIndex 필드 추가
   });
 
   @override
@@ -26,8 +31,19 @@ class DiaryDetailPage extends StatefulWidget {
 
 class _DiaryDetailPageState extends State<DiaryDetailPage> {
   Dio dio = Dio(); // Dio 인스턴스 생성
-
   bool showConfirmationView = false; // 상태를 관리하는 변수
+  bool isLoading = false; //로딩 상태 관리
+  String imageUrl = ''; // 생성된 이미지 URL 저장
+  ApiService apiService = ApiService();
+
+  // 여기에 추가
+  String diaryDate = '';
+  String diaryTitle = '';
+  String diaryContent = '';
+
+  // 컨트롤러 선언
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController contentController = TextEditingController();
 
   void _toggleConfirmationView() {
     setState(() {
@@ -37,19 +53,170 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
 
   Future<void> sendContent() async {
     try {
-      Response response =
-          await dio.get('https://k10b205.p.ssafy.io/api/analyze');
+      // Response response = await dio.get('https://k10b205.p.ssafy.io/api/analyze');
+      //이렇게 쓰면 안됨..
       // 성공적으로 데이터를 받아오면 AnalysisPage로 이동
+      // Response response = await apiService.get('/api/analyze');
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const AnalysisPage(),
+          builder: (context) => Pages(
+            initialPage: 2,
+            selectedDate: DateTime.parse(diaryDate),
+          ),
         ),
       );
     } catch (e) {
       // 요청 실패 처리
       print('Error fetching analysis: $e');
     }
+  }
+
+  Future<void> generateImage() async {
+    // ApiService apiService =ApiService();
+    print('diaryIndex: ${widget.diaryIndex}'); // 디버깅용 출력
+    setState(() {
+      isLoading = true;
+      imageUrl = ''; // 이전 이미지를 초기화
+    });
+
+    try {
+      final url = '/api/openAI/image?diaryIndex=${widget.diaryIndex}';
+      print('Request URL: $url'); // 디버깅용 출력
+      Response response = await apiService.get(url);
+
+      // 응답 데이터가 올바른 URL인지 확인
+      if (response.data is String && response.data.isNotEmpty) {
+        setState(() {
+          imageUrl = response.data;
+          isLoading = false;
+        });
+      } else {
+        print('Invalid image URL');
+        setState(() {
+          isLoading = false;
+          imageUrl = ''; // 오류 시 빈 이미지 URL
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+      print('Error generating image: $e');
+
+      // 추가적인 디버깅 정보 출력
+      if (e is DioException) {
+        print(
+            'DioException [${e.type}] - ${e.response?.statusCode}: ${e.response?.data}');
+        print('Request Headers: ${e.requestOptions.headers}');
+        print('Request Data: ${e.requestOptions.data}');
+      }
+    }
+  }
+
+// 일기 하나 조회
+  Future<void> fetchDiaryEntry() async {
+    print('Fetching diary entry with index: ${widget.diaryIndex}');
+    setState(() {
+      isLoading = true;
+      // imageUrl = ''; // 이전 이미지를 초기화
+    });
+
+    try {
+      final url = '/api/diary?diaryIndex=${widget.diaryIndex}';
+      print('Request URL: $url');
+      Response response = await apiService.get(url);
+
+      // 전체 데이터 출력
+      print('Response Data: ${response.data}');
+
+      if (response.data != null) {
+        final data = response.data;
+        final imageList = data['imageList'] as List;
+        if (imageList.isNotEmpty) {
+          final imageLink = imageList[0]['imageLink'];
+          setState(() {
+            imageUrl = imageLink;
+          });
+        }
+        // 날짜, 제목, 내용도 상태 변수에 저장
+        setState(() {
+          diaryDate = data['diarySetDate']; // 날짜 형식에 맞게 조정해야 할 수 있음
+          diaryTitle = data['diaryTitle'];
+          diaryContent = data['diaryContent'];
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching diary entry: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> updateDiary() async {
+    try {
+      const url = '/api/diary';
+      final data = {
+        'diaryIndex': widget.diaryIndex,
+        'diarySetDate': diaryDate,
+        'diaryTitle': titleController.text,
+        'diaryContent': contentController.text,
+      };
+      Response response = await apiService.put(url, data: data);
+
+      if (response.statusCode == 200) {
+        print('Diary updated successfully');
+        setState(() {
+          diaryTitle = titleController.text;
+          diaryContent = contentController.text;
+          showConfirmationView = false;
+        });
+        Navigator.of(context).pop({
+          'action': 'update',
+          'diaryIndex': widget.diaryIndex,
+          'diaryTitle': diaryTitle,
+          'diaryContent': diaryContent,
+        });
+      } else {
+        print('Failed to update diary');
+      }
+    } catch (e) {
+      print('Error updating diary: $e');
+    }
+  }
+
+  Future<void> deleteDiary() async {
+    try {
+      final url = '/api/diary?diaryIndex=${widget.diaryIndex}';
+      Response response = await apiService.delete(url);
+
+      if (response.statusCode == 200) {
+        print('Diary deleted successfully');
+        // Navigator.of(context).pop(); // 페이지를 닫고 이전 페이지로 돌아감
+        Navigator.of(context).pop({
+          'action': 'delete',
+          'diaryIndex': widget.diaryIndex,
+        });
+      } else {
+        print('Failed to delete diary');
+      }
+    } catch (e) {
+      print('Error deleting diary: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDiaryEntry();
   }
 
   @override
@@ -84,7 +251,10 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0), // 내부 여백 추가
+                  // padding: const EdgeInsets.all(16.0), // 내부 여백 추가
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch, // 가로로 꽉 차게
                     children: [
@@ -98,10 +268,12 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                                   color: Colors
                                       .grey), // Icon color changed to grey
                               onPressed: () => Navigator.of(context).pop(),
+                              padding: EdgeInsets.zero, // 간격 최소화
                             ),
                           ),
                         ],
                       ),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -111,6 +283,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                               // 이전 일기 로드
                             },
                             iconSize: 30,
+                            padding: EdgeInsets.zero, // 간격 최소화
                           ),
                           Text(
                             '${widget.selectedDay.year}.${widget.selectedDay.month.toString().padLeft(2, '0')}.${widget.selectedDay.day.toString().padLeft(2, '0')}',
@@ -123,82 +296,142 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                               // 다음 일기 로드
                             },
                             iconSize: 30,
+                            padding: EdgeInsets.zero, // 간격 최소화
                           ),
                         ],
                       ),
+
                       Align(
                         alignment: Alignment.centerRight,
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                // 일기 삭제
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: themeColors.color2, // 배경색
-                                foregroundColor: Colors.white, // 텍스트색
-                                // padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // 조절된 패딩
-                                minimumSize: const Size(50, 25), // 최소 크기 지정
-                                padding: EdgeInsets.zero, // 최소 패딩
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(45), // 모서리 둥글게
-                                ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '삭제',
-                                  style: TextStyle(fontSize: 16), // 폰트사이즈 설정
-                                ),
-                              ),
-                              // ),
+                            IconButton(
+                              icon: const Icon(Icons.brush),
+                              color: themeColors.color1,
+                              onPressed:
+                                  imageUrl.isEmpty ? generateImage : null,
+                              padding: EdgeInsets.zero, // 간격 최소화
                             ),
-
-                            const SizedBox(width: 10), // 버튼 간 간격 조정
-                            ElevatedButton(
-                              onPressed: _toggleConfirmationView,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: themeColors.color1, // 배경색
-                                minimumSize: const Size(50, 25), // 최소 크기 지정
-                                foregroundColor: Colors.white, // 텍스트색
-                                padding: EdgeInsets.zero, // 최소 패딩
-                                // padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // 조절된 패딩
-                                // fixedSize: const Size(30, 15), // 버튼의 높이 조절
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(45), // 모서리 둥글게
-                                ),
+                            if (!isLoading && imageUrl.isEmpty)
+                              const Text(
+                                'AI로 이미지를\n생성해보세요!',
+                                style: TextStyle(fontSize: 12),
                               ),
-                              child: const Center(
-                                child: Text(
-                                  '수정',
-                                  style: TextStyle(fontSize: 16), // 폰트사이즈 설정
+                            const SizedBox(width: 90),
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: deleteDiary,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: themeColors.color2,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size(50, 25),
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(45),
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '삭제',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              // ),
+                                const SizedBox(width: 10),
+                                ElevatedButton(
+                                  onPressed: _toggleConfirmationView,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: themeColors.color1,
+                                    minimumSize: const Size(50, 25),
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(45),
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '수정',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 20), // 오른쪽에 추가적인 공간을 주기 위해 추가
                           ],
                         ),
                       ),
-
+                      // const SizedBox(height: 15),
+                      if (isLoading)
+                        Container(
+                          width: double.infinity,
+                          height: MediaQuery.of(context).size.height * 0.3,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: themeColors.color2, // 테두리 색상
+                              width: 2, // 테두리 두께
+                            ),
+                          ),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 10),
+                              Text(
+                                '이미지를 생성중입니다.',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (imageUrl.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          height: MediaQuery.of(context).size.height * 0.3,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: themeColors.color2, // 테두리 색상
+                              width: 2, // 테두리 두께
+                            ),
+                          ),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              imageUrl,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('Image loading error: $error');
+                                return const Text('이미지 로딩 실패');
+                              },
+                            ),
+                          ),
+                        )
+                      else
+                        const SizedBox(),
                       Expanded(
                         child: Container(
-                          margin: const EdgeInsets.all(16),
+                          // margin: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.fromLTRB(16, 5, 16, 10),
                           decoration: BoxDecoration(
-                            color: const Color(
-                                0xFFF9D1DD), // Pink background color
-                            borderRadius:
-                                BorderRadius.circular(8), // Rounded corners
+                            color: const Color(0xFFF9D1DD),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: CustomPaint(
                             painter: LinedPaperPainter(),
-                            foregroundPainter: NotebookHolesPainter(
-                                24), // Line spacing for notebook holes
+                            foregroundPainter: NotebookHolesPainter(24),
                             child: SizedBox(
                               width: modalWidth,
-                              height: 400, // Fixed height
+                              height: 400,
                               child: Padding(
                                 padding: const EdgeInsets.all(30),
                                 child: SingleChildScrollView(
@@ -232,11 +465,14 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 25,),
+                      // const SizedBox(
+                      //   height: 50,
+                      // ),
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 50),
                         child: ElevatedButton(
                           onPressed: sendContent,
+                          // onPressed: null, // 버튼 비활성화
                           style: ElevatedButton.styleFrom(
                             backgroundColor: themeColors.color1,
                             shape: RoundedRectangleBorder(
@@ -275,7 +511,7 @@ class NotebookHolesPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     double holeRadius = 5;
-    double xOffset = 20; // 구멍의 x축 위치
+    double xOffset = 20;
 
     for (double y = lineSpacing; y < size.height; y += lineSpacing) {
       canvas.drawCircle(Offset(xOffset, y), holeRadius, paint);

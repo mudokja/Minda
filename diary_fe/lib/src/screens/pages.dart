@@ -4,25 +4,42 @@ import 'package:diary_fe/src/screens/main_page.dart';
 import 'package:diary_fe/src/screens/profile_page.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/widgets/bottom_navbar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class Pages extends StatefulWidget {
-  const Pages({super.key});
+  final int initialPage;
+  final DateTime? selectedDate;
+
+  const Pages({
+    super.key,
+    this.initialPage = 0,
+    this.selectedDate,
+  });
 
   @override
   State<Pages> createState() => _PagesState();
 }
 
 class _PagesState extends State<Pages> {
-  final PageController _pageController = PageController();
-  int _selectedIndex = 0; // 현재 선택된 탭 인덱스
+  late final PageController _pageController;
+  late int _selectedIndex; // 현재 선택된 탭 인덱스
   late List<Widget> widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialPage;
+    _pageController = PageController(initialPage: widget.initialPage);
+    addWidgets();
+  }
 
   void addWidgets() {
     widgetOptions = [
       const MainPage(),
       DiaryListPage(selectedDay: DateTime.now()), // 오늘 날짜를 기본값으로 설정
-      const AnalysisPage(),
+      AnalysisPage(selectedDate: widget.selectedDate),
       const ProfilePage(),
     ];
   }
@@ -59,38 +76,72 @@ class _PagesState extends State<Pages> {
   @override
   Widget build(BuildContext context) {
     addWidgets();
-    return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(
-            () {
-              _selectedIndex = index;
-            },
-          );
-        },
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: widgetOptions,
-      ),
-      floatingActionButton: SizedBox(
-        width: 80,
-        height: 80,
-        child: FloatingActionButton(
-          onPressed: () {
-            showWritingPage(context);
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        Future.microtask(() => {
+              if (kIsWeb)
+                {const Text('.')}
+              else
+                {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('알림'),
+                        content: const Text('앱을 종료할까요?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(context).pop(false), // 앱을 종료하지 않음
+                            child: const Text('아니요'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              SystemNavigator.pop(); // 앱 종료
+                            },
+                            child: const Text('예'),
+                          ),
+                        ],
+                      );
+                    },
+                  )
+                }
+            });
+      },
+      child: Scaffold(
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(
+              () {
+                _selectedIndex = index;
+              },
+            );
           },
-          shape: const StadiumBorder(),
-          backgroundColor: Colors.white,
-          child: Image.asset(
-            'assets/images/write.png',
-            width: 50,
-            height: 50,
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: widgetOptions,
+        ),
+        floatingActionButton: SizedBox(
+          width: 80,
+          height: 80,
+          child: FloatingActionButton(
+            onPressed: () {
+              showWritingPage(context);
+            },
+            shape: const StadiumBorder(),
+            backgroundColor: Colors.white,
+            child: Image.asset(
+              'assets/images/write.png',
+              width: 50,
+              height: 50,
+            ),
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        bottomNavigationBar: BottomNavbar(
+            currentIndex: _selectedIndex, onItemTapped: onItemTapped),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomNavbar(
-          currentIndex: _selectedIndex, onItemTapped: onItemTapped),
     );
   }
 

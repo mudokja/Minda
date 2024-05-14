@@ -84,6 +84,7 @@ class CalendarDialog {
                                   diaryEntries.first.diaryTitle, // 첫 번째 일기의 제목
                               diaryContent: diaryEntries
                                   .first.diaryContent, // 첫 번째 일기의 내용
+                                  diaryIndex: diaryEntries.first.diaryIndex,
                             ),
                           ),
                         );

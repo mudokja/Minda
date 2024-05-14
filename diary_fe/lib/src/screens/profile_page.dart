@@ -165,7 +165,37 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: buttonWidth,
                         height: 55,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierColor: Colors.transparent,
+                              builder: (BuildContext context) {
+                                var mediaQuery = MediaQuery.of(context);
+                                var keyboardHeight =
+                                    mediaQuery.viewInsets.bottom;
+
+                                return AnimatedPadding(
+                                  padding: EdgeInsets.only(
+                                      bottom: keyboardHeight *
+                                          3 /
+                                          5), // 키보드 높이만큼 패딩 조정
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOut,
+                                  child: Theme(
+                                    data: Theme.of(context).copyWith(
+                                      dialogBackgroundColor:
+                                          const Color(0xFFFFFFFF),
+                                      dialogTheme:
+                                          const DialogTheme(elevation: 0),
+                                    ),
+                                    child:
+                                        const ChangePassword(), // 다이얼로그에 표시할 위젯
+                                  ),
+                                );
+                              },
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: themeColors.color1,
                             shape: RoundedRectangleBorder(
@@ -234,7 +264,31 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       TextButton(
                           onPressed: () {
-                            leave();
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('주의'),
+                                  content: const Text(
+                                      '탈퇴하면 일기 등의 모든 정보가 사라져요. 그래도 진행할까요?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text('확인'),
+                                      onPressed: () {
+                                        leave();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: const Text('취소'),
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pop(); // Close the dialog
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                           child: const Text(
                             '회원 탈퇴하기',

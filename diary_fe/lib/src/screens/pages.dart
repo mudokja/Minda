@@ -77,6 +77,7 @@ class _PagesState extends State<Pages> {
   Widget build(BuildContext context) {
     addWidgets();
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {

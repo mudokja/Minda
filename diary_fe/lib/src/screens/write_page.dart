@@ -3,6 +3,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:diary_fe/constants.dart';
+import 'package:diary_fe/src/screens/diary_list_page.dart';
+import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -368,7 +370,7 @@ class _WriteState extends State<Write> {
         child: Padding(
           padding: const EdgeInsets.only(top: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(
                 height: 50,
@@ -410,7 +412,14 @@ class _WriteState extends State<Write> {
                 width: modalWidth * 0.9,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const Pages(
+                                initialPage: 1,
+                              )),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: themeColors.color1,

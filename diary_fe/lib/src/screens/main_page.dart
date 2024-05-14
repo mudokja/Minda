@@ -1,12 +1,14 @@
 import 'package:diary_fe/src/screens/write_page.dart';
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -16,6 +18,25 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  bool isWrite = false;
+
+  void writeCheck() async {
+    ApiService apiService = ApiService();
+    String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    Response response =
+        await apiService.get('/api/diary/check?diarySetDate=$formattedDate');
+
+    if (response.data == true) {
+      setState(() {
+        isWrite = true;
+      });
+    } else {
+      setState(() {
+        isWrite = false;
+      });
+    }
+  }
+
   void showWritingPage(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -45,6 +66,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void initState() {
+    writeCheck();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       RemoteNotification? notification = message.notification;
 
@@ -103,41 +125,82 @@ class _MainPageState extends State<MainPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '어서오세요 ${userProvider.user.nickname}님!',
-                              style: const TextStyle(
-                                fontSize: 19,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            const Text(
-                              '오늘 하루는 어떠셨나요?',
-                              style: TextStyle(
-                                fontSize: 19,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 15,
-                            ),
-                            ElevatedButton(
-                                onPressed: () {
-                                  showWritingPage(context);
-                                },
-                                child: const Text(
-                                  '일기 쓰기',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
+                            !isWrite
+                                ? Column(
+                                    children: [
+                                      Text(
+                                        '어서오세요 ${userProvider.user.nickname}님!',
+                                        style: const TextStyle(
+                                          fontSize: 19,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      const Text(
+                                        '오늘 하루는 어떠셨나요?',
+                                        style: TextStyle(
+                                          fontSize: 19,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 15,
+                                      ),
+                                      ElevatedButton(
+                                          onPressed: () {
+                                            showWritingPage(context);
+                                          },
+                                          child: const Text(
+                                            '일기 쓰기',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          )),
+                                      const SizedBox(
+                                        height: 100,
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '안녕하세요 ${userProvider.user.nickname}님!',
+                                        style: const TextStyle(
+                                          fontSize: 19,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      const Text(
+                                        '오늘은 일기를 작성하셨어요.',
+                                        style: TextStyle(
+                                          fontSize: 19,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const Text(
+                                        '분석들을 살펴보고 조언을 받아봐요.',
+                                        style: TextStyle(
+                                          fontSize: 19,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 50,
+                                      ),
+                                    ],
                                   ),
-                                )),
-                            const SizedBox(
-                              height: 100,
-                            ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [

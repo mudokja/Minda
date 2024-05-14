@@ -31,7 +31,6 @@ class ApiService {
                 "$baseUrl/api/auth/refresh",
                 data: {"refreshToken": refreshToken},
               );
-              print(refreshResponse.data);
               String newAccessToken = refreshResponse.data["accessToken"];
               await storage.write(key: 'ACCESS_TOKEN', value: newAccessToken);
               error.requestOptions.headers['Authorization'] =

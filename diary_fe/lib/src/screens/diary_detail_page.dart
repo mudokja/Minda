@@ -207,10 +207,18 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
       if (response.statusCode == 200) {
         print('Diary deleted successfully');
         // Navigator.of(context).pop(); // 페이지를 닫고 이전 페이지로 돌아감
-        Navigator.of(context).pop({
-          'action': 'delete',
-          'diaryIndex': widget.diaryIndex,
-        });
+        // Navigator.of(context).pop({
+        //   'action': 'delete',
+        //   'diaryIndex': widget.diaryIndex,
+        // });
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const Pages(
+                    initialPage: 1,
+                  )),
+          (Route<dynamic> route) => false,
+        );
       } else {
         print('Failed to delete diary');
       }
@@ -224,81 +232,95 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
     navigateToDiary(startDate, endDate, false);
   }
-   void onNextButtonPressed() {
+
+  void onNextButtonPressed() {
     DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
     DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
     navigateToDiary(startDate, endDate, true);
   }
 
-  Future<void> navigateToDiary(DateTime startDate, DateTime endDate, bool next) async {
-  try {
-    List<DiaryEntry> diaries = await fetchDiaries(startDate, endDate);
-    DiaryEntry? closestDiary = findClosestDiary(diaries, widget.selectedDay, next);
-    if (closestDiary != null) {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => DiaryDetailPage(
-            selectedDay: DateTime.parse(closestDiary.diarySetDate),
-            diaryTitle: closestDiary.diaryTitle,
-            diaryContent: closestDiary.diaryContent,
-            diaryIndex: closestDiary.diaryIndex,
+  Future<void> navigateToDiary(
+      DateTime startDate, DateTime endDate, bool next) async {
+    try {
+      List<DiaryEntry> diaries = await fetchDiaries(startDate, endDate);
+      DiaryEntry? closestDiary =
+          findClosestDiary(diaries, widget.selectedDay, next);
+      if (closestDiary != null) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                DiaryDetailPage(
+              selectedDay: DateTime.parse(closestDiary.diarySetDate),
+              diaryTitle: closestDiary.diaryTitle,
+              diaryContent: closestDiary.diaryContent,
+              diaryIndex: closestDiary.diaryIndex,
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              var begin =
+                  next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0);
+              var end = Offset.zero;
+              var curve = Curves.ease;
+
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
           ),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            var begin = next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0);
-            var end = Offset.zero;
-            var curve = Curves.ease;
-
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
-    } else {
-      // 널 처리 로직 추가: 사용자에게 적절한 메시지 표시 등
-      print("No diary entry found close to the selected date.");
+        );
+      } else {
+        // 널 처리 로직 추가: 사용자에게 적절한 메시지 표시 등
+        print("No diary entry found close to the selected date.");
+      }
+    } catch (error) {
+      print('Error navigating to diary entry: $error');
     }
-  } catch (error) {
-    print('Error navigating to diary entry: $error');
   }
-}
 
-
-  Future<List<DiaryEntry>> fetchDiaries(DateTime startDate, DateTime endDate) async {
+  Future<List<DiaryEntry>> fetchDiaries(
+      DateTime startDate, DateTime endDate) async {
     final response = await apiService.post('/api/diary/list/period', data: {
       'startDate': DateFormat('yyyy-MM-dd').format(startDate),
       'endDate': DateFormat('yyyy-MM-dd').format(endDate),
     });
 
     if (response.statusCode == 200) {
-      return (response.data as List).map((item) => DiaryEntry.fromJson(item)).toList();
+      return (response.data as List)
+          .map((item) => DiaryEntry.fromJson(item))
+          .toList();
     } else {
       throw Exception('Failed to load diaries');
     }
   }
 
-DiaryEntry? findClosestDiary(List<DiaryEntry> diaries, DateTime targetDate, bool next) {
+  DiaryEntry? findClosestDiary(
+      List<DiaryEntry> diaries, DateTime targetDate, bool next) {
     DiaryEntry? closestDiary;
-    int closestDiff  = 10000; // 예를 들어 최대 10000일 차이로 설정, 이는 상황에 따라 조절할 수 있습니다.
-    
+    int closestDiff = 10000; // 예를 들어 최대 10000일 차이로 설정, 이는 상황에 따라 조절할 수 있습니다.
+
     for (var diary in diaries) {
-        DateTime diaryDate = DateTime.parse(diary.diarySetDate);
-        int diff = diaryDate.difference(targetDate).inDays.abs();
-        
-        if (next && diaryDate.isAfter(targetDate) && (closestDiary == null || diff < closestDiff)) {
-            closestDiary = diary;
-            closestDiff = diff;
-        } else if (!next && diaryDate.isBefore(targetDate) && (closestDiary == null || diff < closestDiff)) {
-            closestDiary = diary;
-            closestDiff = diff;
-        }
+      DateTime diaryDate = DateTime.parse(diary.diarySetDate);
+      int diff = diaryDate.difference(targetDate).inDays.abs();
+
+      if (next &&
+          diaryDate.isAfter(targetDate) &&
+          (closestDiary == null || diff < closestDiff)) {
+        closestDiary = diary;
+        closestDiff = diff;
+      } else if (!next &&
+          diaryDate.isBefore(targetDate) &&
+          (closestDiary == null || diff < closestDiff)) {
+        closestDiary = diary;
+        closestDiff = diff;
+      }
     }
     return closestDiary;
-}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -361,25 +383,25 @@ DiaryEntry? findClosestDiary(List<DiaryEntry> diaries, DateTime targetDate, bool
                           IconButton(
                             icon: const Icon(Icons.keyboard_arrow_left_rounded),
                             // 이전 일기 로드
-                              onPressed: onPreviousButtonPressed,
-                      
-                              iconSize: 30,
-                              padding: EdgeInsets.zero, // 간격 최소화
-                            ),
-                            Text(
-                              '${widget.selectedDay.year}.${widget.selectedDay.month.toString().padLeft(2, '0')}.${widget.selectedDay.day.toString().padLeft(2, '0')}',
-                              style: const TextStyle(fontSize: 22),
-                            ),
-                            IconButton(
-                              icon:
-                                  const Icon(Icons.keyboard_arrow_right_rounded),
-                                  // 다음 일기 로드
-                              onPressed: onNextButtonPressed,
-                              iconSize: 30,
-                              padding: EdgeInsets.zero, // 간격 최소화
-                            ),
-                          ],
-                        ),
+                            onPressed: onPreviousButtonPressed,
+
+                            iconSize: 30,
+                            padding: EdgeInsets.zero, // 간격 최소화
+                          ),
+                          Text(
+                            '${widget.selectedDay.year}.${widget.selectedDay.month.toString().padLeft(2, '0')}.${widget.selectedDay.day.toString().padLeft(2, '0')}',
+                            style: const TextStyle(fontSize: 22),
+                          ),
+                          IconButton(
+                            icon:
+                                const Icon(Icons.keyboard_arrow_right_rounded),
+                            // 다음 일기 로드
+                            onPressed: onNextButtonPressed,
+                            iconSize: 30,
+                            padding: EdgeInsets.zero, // 간격 최소화
+                          ),
+                        ],
+                      ),
 
                       Align(
                         alignment: Alignment.centerRight,

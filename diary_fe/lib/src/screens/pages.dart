@@ -2,7 +2,6 @@ import 'package:diary_fe/src/screens/analysis_page.dart';
 import 'package:diary_fe/src/screens/diary_list_page.dart';
 import 'package:diary_fe/src/screens/main_page.dart';
 import 'package:diary_fe/src/screens/profile_page.dart';
-import 'package:diary_fe/src/screens/test2.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/widgets/bottom_navbar.dart';
 import 'package:flutter/foundation.dart';

@@ -55,13 +55,18 @@ class _IntroPageState extends State<IntroPage> {
   final CarouselController _controller = CarouselController();
   final List<Widget> imageSliders = [
     const CarouselElement(
-        imagePath: 'assets/gifs/thinking_face.gif', displayText: '테스트 텍스트 1'),
+        imagePath: 'assets/gifs/thinking_face.gif',
+        displayText: ' 일기를 쓰며 내가 어떤 감정이\n   들었는지 궁금하지 않나요?'),
     const CarouselElement(
-        imagePath: 'assets/gifs/chart.gif', displayText: '테스트 텍스트 2'),
+        imagePath: 'assets/gifs/chart.gif',
+        displayText: 'AI 일기 분석을 통해 감정을 통계로\n나타내고 직관적으로 확인해보세요.'),
     const CarouselElement(
-        imagePath: 'assets/gifs/clap.gif', displayText: '테스트 텍스트 3'),
+        imagePath: 'assets/gifs/clap.gif',
+        displayText:
+            '  일기를 분석해서 어떤 행동이\n기분에 영향을 주는지 파악하고\n     그에 맞는 조언을 해줘요!'),
     const CarouselElement(
-        imagePath: 'assets/gifs/eyes.gif', displayText: '테스트 텍스트 4'),
+        imagePath: 'assets/gifs/eyes.gif',
+        displayText: '일기를 쓰고 내가 어떤 감정을\n  가지고 있는지 확인해봐요.'),
   ];
 
   Future<void> _initFCMToken() async {

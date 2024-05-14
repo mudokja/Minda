@@ -24,16 +24,41 @@ class _ChangeNicknameState extends State<ChangeNickname> {
   }
 
   void updateNickname() async {
+    String nickname = _nicknameController.text.trim(); // 공백 제거
+    if (nickname.isEmpty) {
+      // 닉네임이 비어있으면 사용자에게 알림
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('오류'),
+            content: const Text('닉네임은 반드시 1글자 이상이어야 해요.(공백 불가)'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
+                },
+                child: const Text('확인'),
+              ),
+            ],
+          );
+        },
+      );
+      return; // 함수 종료
+    }
+
+    // 닉네임 업데이트 API 호출
     ApiService apiService = ApiService();
     await apiService.put(
       '/api/member',
       data: {
-        "memberNickname": _nicknameController.text,
+        "memberNickname": nickname,
       },
     );
+    // 사용자 데이터 새로고침
     await Provider.of<UserProvider>(context, listen: false).fetchUserData();
     print(Provider.of<UserProvider>(context, listen: false).user.nickname);
-    Navigator.pop(context);
+    Navigator.pop(context); // 현재 페이지 닫기
   }
 
   @override

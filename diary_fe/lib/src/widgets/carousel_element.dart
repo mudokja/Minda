@@ -25,14 +25,19 @@ class CarouselElement extends StatelessWidget {
             const SizedBox(
               height: 40,
             ),
-            Text(
-              displayText,
-              style: const TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-                decoration: TextDecoration.none,
-                fontWeight: FontWeight.w500,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  displayText,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    decoration: TextDecoration.none,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

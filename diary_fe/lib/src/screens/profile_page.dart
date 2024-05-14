@@ -5,6 +5,7 @@ import 'package:diary_fe/src/services/delete_storage.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/change_nickname.dart';
+import 'package:diary_fe/src/widgets/change_password.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -133,7 +134,23 @@ class _ProfilePageState extends State<ProfilePage> {
                       width: buttonWidth,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            barrierColor: Colors.transparent,
+                            builder: (BuildContext context) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  dialogBackgroundColor:
+                                      const Color(0xFFFFFFFF),
+                                  dialogTheme: const DialogTheme(elevation: 0),
+                                ),
+                                child: const ChangePassword(),
+                              );
+                            },
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: themeColors.color1,
                           shape: RoundedRectangleBorder(

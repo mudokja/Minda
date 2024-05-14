@@ -84,26 +84,17 @@ class _WriteState extends State<Write> {
   void initState() {
     super.initState();
     diaryController.addListener(_handleTextInputChange);
-    // diaryController.addListener(() {
-    //   final String text = diaryController.text;
-    //   diaryController.value = diaryController.value.copyWith(
-    //     text: text,
-    //     selection:
-    //         TextSelection(baseOffset: text.length, extentOffset: text.length),
-    //     composing: TextRange.empty,
-    //   );
-    // });
-    selectedDate = widget.selectedDay; // 페이지를 열 때 전달받은 날짜를 사용
+
+    selectedDate = widget.selectedDay;
   }
 
   void _handleTextInputChange() {
     String currentText = diaryController.text;
     int newLineIndex = currentText.lastIndexOf('\n');
-    // 새로운 줄바꿈 인덱스가 마지막 인덱스보다 큰지 확인하고, 유효한 인덱스인지 검사
+
     if (newLineIndex > lastNewLineIndex &&
         newLineIndex > 0 &&
         newLineIndex <= currentText.length - 1) {
-      // 문자열 추출 전에 인덱스가 유효한지 확인
       if (lastNewLineIndex < currentText.length &&
           newLineIndex > lastNewLineIndex) {
         String lineText =
@@ -111,17 +102,15 @@ class _WriteState extends State<Write> {
         if (lineText.isNotEmpty) {
           _sendTextToAPI(lineText);
         }
-        lastNewLineIndex = newLineIndex + 1; // 줄바꿈 문자 다음 위치를 저장
+        lastNewLineIndex = newLineIndex + 1;
       }
     }
   }
 
   Future<void> _sendTextToAPI(String text) async {
-    // 여기에 API 요청 로직을 구현하세요.
-
     ApiService apiService = ApiService();
     Response response = await apiService.get('/api/ai/chatbot?input=$text');
-    print(response.data);
+
     if (response.data == '0') {
       setState(() {
         chatbotmessage = '너무 짧은 대화에는 답변할 수 없어요..';
@@ -131,10 +120,6 @@ class _WriteState extends State<Write> {
         chatbotmessage = response.data;
       });
     }
-
-    // 예를 들어, HTTP 클라이언트를 사용한 요청:
-    // final response = await http.post('https://your.api.url/diary', body: {'text': text});
-    // print('Response status: ${response.statusCode}');
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -177,7 +162,7 @@ class _WriteState extends State<Write> {
         "exampleTag1", // 예시 태그, 실제 사용 시 적절한 데이터로 교체
       ]
     };
-    // diaryAddRequestDto JSON 객체를 FormData에 추가
+
     formData.fields.add(MapEntry("data", json.encode(diaryData)));
 
     formData.fields.add(const MapEntry("imageFiles", "string"));

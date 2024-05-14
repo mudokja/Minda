@@ -42,7 +42,7 @@ public class MemberService {
     @Transactional
     public void updateMemberPassword(Long memberIndex, MemberUpdatePasswordRequestDto memberUpdatePasswordRequestDto) throws BadRequestException {
         Member member= getMemberCheck(memberIndex);
-        if(!passwordEncoder.matches(member.getPassword(), memberUpdatePasswordRequestDto.getMemberOldPassword()))
+        if(!passwordEncoder.matches(memberUpdatePasswordRequestDto.getMemberOldPassword(),member.getPassword()))
         {
             throw new BadRequestException("member password incorrect");
         }

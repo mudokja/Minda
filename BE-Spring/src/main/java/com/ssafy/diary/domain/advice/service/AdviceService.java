@@ -120,7 +120,8 @@ public class AdviceService {
         payload.put("diary_index_list", diaryIndexList);
 
         Mono<String> response = webClient.post()
-                .uri("http://192.168.31.35:8000/api/ai/wordcloud")
+//                .uri("http://192.168.31.35:8000/api/ai/wordcloud")
+                .uri("https://k10b205.p.ssafy.io/api/ai/wordcloud")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class);

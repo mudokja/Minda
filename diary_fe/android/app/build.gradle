@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id 'com.google.gms.google-services'
 }
 
 def localProperties = new Properties()
@@ -25,6 +26,7 @@ if (flutterVersionName == null) {
 android {
     namespace "com.example.diary_fe"
     compileSdk flutter.compileSdkVersion
+    // compileSdkVersion 3
     ndkVersion flutter.ndkVersion
 
     compileOptions {

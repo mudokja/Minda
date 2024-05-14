@@ -35,13 +35,9 @@ public class AnalyzeService {
 
         Analyze analyze = this.getAnalyze(diary.getDiaryIndex());
         HashMap<String, Double[]> emotion = analyze.getEmotion();
-        String[] sentence = analyze.getSentence();
 
         if (diary.getDiaryHappiness() == null) {
             double[] sumArray = new double[5];
-            //emotion: 문장별 감정 수치 리스트
-            //value: 문장 하나의 감정별 수치 리스트
-            //sumArray: 감정별 합계 리스트
             for (Double[] value : emotion.values()) {
                 for (int i = 1; i < value.length; i++) {
                     sumArray[i - 1] += value[i];
@@ -51,7 +47,6 @@ public class AnalyzeService {
             log.info("sentence={}", analyze.getSentence().length);
             for (int i = 0; i < sumArray.length; i++)
                 sumArray[i] /= analyze.getSentence().length;
-
             diary.setDiaryAnger(sumArray[0]);
             diary.setDiarySadness(sumArray[1]);
             diary.setDiarySurprise(sumArray[2]);

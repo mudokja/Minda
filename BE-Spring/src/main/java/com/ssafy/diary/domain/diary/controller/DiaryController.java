@@ -70,7 +70,7 @@ public class DiaryController {
     }
 
     //일기 수정
-    @Operation(summary = "일기 수정", description = "일기 수정. diaryIndex, diarySetDate, diaryTitle, diaryContent 필수")
+    @Operation(summary = "일기 수정", description = "일기 수정. diaryIndex, diaryTitle, diaryContent 필수")
     @PutMapping(consumes = "multipart/form-data")
     public ResponseEntity<Object> putDiary(@RequestPart DiaryUpdateRequestDto diaryUpdateRequestDto, @RequestPart(value = "imageFiles",required = false) MultipartFile[] imageFiles, @AuthenticationPrincipal PrincipalMember principalMember) {
         Long memberIndex = principalMember.getIndex();

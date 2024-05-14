@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -82,6 +83,13 @@ public class AdviceService {
 
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
+        if (diaryList.isEmpty()) {
+            return AdviceResponseDto.builder()
+                    .adviceContent("다이어리가 없습니다.")
+                    .status(new HashMap<>()) // 빈 상태의 statusMap 반환
+                    .build();
+        }
+
         HashMap<String,Double> statusMap = new HashMap<>();
 
         for(Diary diary: diaryList) {
@@ -118,5 +126,26 @@ public class AdviceService {
 //                .adviceContent(chatGPTResponseDto.getChoices().get(0).getMessage().getContent())
                 .adviceContent(adviceContent)
                 .status(statusMap).build();
+    }
+
+    @Transactional
+    public void updateAdviceByPeriod(Long memberIndex, LocalDate diarySetDate) {
+        List<Advice> adviceList = adviceRepository.findAdvicesByMemberIndexAndDate(memberIndex, diarySetDate);
+
+        if(adviceList != null && !adviceList.isEmpty()) {
+            for(Advice advice: adviceList) {
+
+                List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, advice.getStartDate(), advice.getEndDate());
+                adviceRepository.deleteByMemberIndexAndDate(memberIndex, advice.getStartDate(), advice.getEndDate());
+
+                if(diaryList != null && !diaryList.isEmpty()) {
+
+                    openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
+                }
+//                else {
+//                    adviceRepository.deleteByMemberIndexAndDate(memberIndex, advice.getStartDate(), advice.getEndDate());
+//                }
+            }
+        }
     }
 }

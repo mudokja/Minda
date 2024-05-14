@@ -15,7 +15,7 @@ public class DiaryUpdateRequestDto {
 
     private Long diaryIndex;
 
-    private LocalDate diarySetDate;
+//    private LocalDate diarySetDate;
 
     private String diaryTitle;
 
@@ -27,7 +27,7 @@ public class DiaryUpdateRequestDto {
     public Diary toEntity(List<Image> imageList, Long memberIndex) {
         return Diary.builder()
                 .memberIndex(memberIndex)
-                .diarySetDate(diarySetDate)
+//                .diarySetDate(diarySetDate)
                 .diaryTitle(diaryTitle)
                 .diaryContent(diaryContent)
                 .imageList(imageList)

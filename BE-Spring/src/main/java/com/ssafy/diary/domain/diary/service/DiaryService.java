@@ -2,6 +2,7 @@ package com.ssafy.diary.domain.diary.service;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.ssafy.diary.domain.advice.repository.AdviceRepository;
+import com.ssafy.diary.domain.advice.service.AdviceService;
 import com.ssafy.diary.domain.analyze.dto.AnalyzeRequestDto;
 import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.analyze.service.AnalyzeService;
@@ -44,6 +45,7 @@ public class DiaryService {
     private final S3Service s3Service;
     private final AnalyzeService analyzeService;
     private final AnalyzeRepository analyzeRepository;
+    private final AdviceService adviceService;
     private final AdviceRepository adviceRepository;
     private final OpenAIService openAIService;
     private final NotificationService notificationService;
@@ -114,19 +116,21 @@ public class DiaryService {
             diaryRepository.save(diary);
             openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
                     .subscribe(ChatGPTRequestDto -> {
-                                try {
-                                    notificationService.sendFirebaseMemberNotificationMessage(
-                                            KafkaMemberNotificationMessageRequestDto.builder()
-                                                    .title("분석 완료")
-                                                    .body("일기 분석이 완료되었어요!")
-                                                    .memberIndex(memberIndex)
-                                                    .build()
-                                    );
-                                } catch (FirebaseMessagingException e) {
-                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
-                                }
+//                                try {
+//                                    notificationService.sendFirebaseMemberNotificationMessage(
+//                                            KafkaMemberNotificationMessageRequestDto.builder()
+//                                                    .title("분석 완료")
+//                                                    .body("일기 분석이 완료되었어요!")
+//                                                    .memberIndex(memberIndex)
+//                                                    .build()
+//                                    );
+//                                } catch (FirebaseMessagingException e) {
+//                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
+//                                }
                             }
                     );
+
+            adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
         });
     }
 
@@ -241,6 +245,7 @@ public class DiaryService {
         diaryHashtagRepository.save(diaryHashtag);
 //
 //        System.out.println("DiaryHashtag after update: " + diaryHashtag.getHashtagIndex());
+        adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
     }
 
     //일기 삭제
@@ -255,8 +260,10 @@ public class DiaryService {
         deleteImageFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
         analyzeRepository.deleteByDiaryIndex(diaryIndex);
-        adviceRepository.deleteByDate(diary.getDiarySetDate());
+        adviceRepository.deleteByMemberIndexAndDate(memberIndex, diary.getDiarySetDate(), diary.getDiarySetDate());
         diaryRepository.deleteById(diaryIndex);
+
+        adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
     }
 
     //일기 목록 조회

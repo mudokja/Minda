@@ -90,6 +90,7 @@ public class DiaryService {
     }
 
     //일기 등록
+    @Transactional
     public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex){
 
         if(diaryRepository.findByDiarySetDateAndMemberIndex(diaryAddRequestDto.getDiarySetDate(), memberIndex).isPresent()) {
@@ -305,6 +306,24 @@ public class DiaryService {
     //제목으로 검색
     public List<DiaryResponseDto> searchDiaryListByTitle(Long memberIndex, String keyword) {
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiaryTitleContainingOrderByDiarySetDate(memberIndex, keyword);
+
+        List<DiaryResponseDto> responseDtoList = new ArrayList<>();
+        for (Diary diary : diaryList) {
+            DiaryResponseDto diaryResponseDto = diary.toDto();
+
+            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+
+            if (diaryHashtag != null) {
+                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+            }
+            responseDtoList.add(diaryResponseDto);
+        }
+        return responseDtoList;
+    }
+
+    //제목+내용으로 검색
+    public List<DiaryResponseDto> searchDiaryListByTitleAndTitle(Long memberIndex, String keyword) {
+        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiaryTitleAndContentContainingOrderByDiarySetDate(memberIndex, keyword);
 
         List<DiaryResponseDto> responseDtoList = new ArrayList<>();
         for (Diary diary : diaryList) {

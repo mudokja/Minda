@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +53,12 @@ public class MemberController {
     @Operation(summary = "회원 가입", description = "회원 가입")
     @PostMapping("/register")
     public ResponseEntity<Object> authJoin(@RequestBody MemberRegisterRequestDto memberRegisterRequestDto) {
-        if(memberRegisterRequestDto.getNickname().isBlank() || memberRegisterRequestDto.getId().isBlank() || memberRegisterRequestDto.getPassword().isBlank() || memberRegisterRequestDto.getEmail().isBlank())
+        if(StringUtils.isAnyBlank(
+                memberRegisterRequestDto.getNickname(),
+                memberRegisterRequestDto.getId(),
+                memberRegisterRequestDto.getPassword(),
+                memberRegisterRequestDto.getEmail())
+        )
             throw new IllegalArgumentException("invalid request data");
         memberService.registerMember(memberRegisterRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("register successfully");
@@ -72,7 +78,10 @@ public class MemberController {
     @PutMapping("/auth")
     public ResponseEntity<String> memberPasswordUpdate(@AuthenticationPrincipal PrincipalMember principalMember,
                                                        @RequestBody MemberUpdatePasswordRequestDto memberUpdatePasswordRequestDto) throws BadRequestException {
-        if(!memberUpdatePasswordRequestDto.getMemberNewPassword().isBlank() &&!memberUpdatePasswordRequestDto.getMemberOldPassword().isBlank()) {
+        if(!StringUtils.isAnyBlank(
+                memberUpdatePasswordRequestDto.getMemberNewPassword(),
+                memberUpdatePasswordRequestDto.getMemberOldPassword()
+        )) {
             memberService.updateMemberPassword(principalMember.getIndex(), memberUpdatePasswordRequestDto);
 
             return ResponseEntity.ok().body("member password updated successfully");

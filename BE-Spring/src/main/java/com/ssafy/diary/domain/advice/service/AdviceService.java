@@ -15,11 +15,15 @@ import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,9 @@ public class AdviceService {
     private final AdviceRepository adviceRepository;
     private final AnalyzeRepository analyzeRepository;
     private final OpenAIService openAIService;
+
+    @Autowired
+    private final WebClient webClient;
 
     private String[] emotionArray = {"중립","분노","슬픔","놀람","불안","기쁨"};
 
@@ -148,4 +155,22 @@ public class AdviceService {
             }
         }
     }
+
+    public String getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {
+        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
+        List<Integer> diaryIndexList = diaryList.stream().map(Diary::getDiaryIndex).map(Long::intValue).collect(Collectors.toList());
+
+        Map<String, List<Integer>> payload = new HashMap<>();
+        payload.put("diary_index_list", diaryIndexList);
+
+        Mono<String> response = webClient.post()
+//                .uri("http://192.168.31.35:8000/api/ai/wordcloud")
+                .uri("https://k10b205.p.ssafy.io/api/ai/wordcloud")
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(String.class);
+
+        return response.block();  // 이 부분은 비동기 처리로 변경하는 것이 바람직
+    }
+
 }

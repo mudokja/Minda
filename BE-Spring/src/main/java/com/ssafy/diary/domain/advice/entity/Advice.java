@@ -35,6 +35,9 @@ public class Advice extends BaseEntity {
     @Column(name = "advice_content", columnDefinition = "TEXT")
     private String adviceContent;
 
+    @Column(name = "image_link")
+    private String imageLink;
+
     @Builder
     public Advice (Long memberIndex, LocalDate startDate, LocalDate endDate, String adviceContent){
         this.memberIndex = memberIndex;

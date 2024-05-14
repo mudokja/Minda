@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "Advice", description = "조언 API")
@@ -43,4 +44,9 @@ public class AdviceController {
         return ResponseEntity.ok(advice);
     }
 
+    @GetMapping("test")
+    public String test(){
+        String response = adviceService.getWordcloudByPeriod(2L,LocalDate.parse("2024-05-01"),LocalDate.parse("2024-05-14"));
+        return response;
+    }
 }

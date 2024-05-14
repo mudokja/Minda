@@ -114,6 +114,15 @@ public class DiaryController {
         return ResponseEntity.ok(diaryList);
     }
 
+    //일기 검색(제목+내용)
+    @Operation(summary = "일기 검색(제목+내용)", description = "제목과 내용에 특정 키워드를 포함하는 일기 조회")
+    @GetMapping("search/title+content")
+    public ResponseEntity<List<DiaryResponseDto>> getDiaryListByTitleAndContent(@RequestParam String keyword, @AuthenticationPrincipal PrincipalMember principalMember) {
+        Long memberIndex = principalMember.getIndex();
+        List<DiaryResponseDto> diaryList = diaryService.searchDiaryListByTitleAndTitle(memberIndex, keyword);
+        return ResponseEntity.ok(diaryList);
+    }
+
     //일기 검색(해시태그)
     @Operation(summary = "일기 검색(해시태그)", description = "'싸피'를 검색했을 때 정확하게 '싸피'라는 해시태그가 있는 일기만 검색됨. 해시태그를 카테고리 느낌으로 사용")
     @GetMapping("search/hashtag")

@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -55,6 +56,7 @@ public class OpenAIService {
     private String[] emotionArray = {"중립", "분노", "슬픔", "놀람", "불안", "기쁨"};
     private String[] totalEmotionArray = {"분노",};
 
+    @Transactional
     public Mono<ChatGPTResponseDto> generateAdvice(Long diaryIndex, Long memberIndex) {
         Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex).orElseThrow(() ->
                 new IllegalArgumentException("존재하지 않는 다이어리입니다."));
@@ -102,6 +104,7 @@ public class OpenAIService {
                 });
     }
 
+    @Transactional
     public Mono<ChatGPTResponseDto> generatePeriodAdvice(Long memberIndex, LocalDate startDate, LocalDate endDate) {
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
         List<Long> diaryIndexList = diaryList.stream().map(Diary::getDiaryIndex).collect(Collectors.toList());
@@ -150,6 +153,7 @@ public class OpenAIService {
                 });
     }
 
+    @Transactional
     public String generateImage(Long diaryIndex, Long memberIndex) {
         if (imageRepository.existsByDiaryIndex(diaryIndex)) {
             throw new AlreadyExistsImageException("이미 이미지가 존재합니다.");

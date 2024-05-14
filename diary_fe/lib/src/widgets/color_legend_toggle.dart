@@ -65,7 +65,8 @@ class _ColorLegendToggleState extends State<ColorLegendToggle> {
                 TextSpan(
                   text: "●",
                   style: TextStyle(
-                    color: Color(0xFFB3B4B4), // 불안에 회색
+                    // color: Color(0xFFB3B4B4), // 불안에 회색
+                    color: Color(0xFF86469C), // 불안에 진보라
                     fontSize: 24,
                   ),
                 ),
@@ -90,20 +91,20 @@ class _ColorLegendToggleState extends State<ColorLegendToggle> {
                     fontSize: 16,
                   ),
                 ),
-                TextSpan(
-                  text: "●",
-                  style: TextStyle(
-                    color: Color(0xFF86469C), // 상처에 진보라
-                    fontSize: 24,
-                  ),
-                ),
-                TextSpan(
-                  text: " : 상처       ",
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 122, 122, 122),
-                    fontSize: 16,
-                  ),
-                ),
+                // TextSpan(
+                //   text: "●",
+                //   style: TextStyle(
+                //     color: Color(0xFF86469C), // 상처에 진보라
+                //     fontSize: 24,
+                //   ),
+                // ),
+                // TextSpan(
+                //   text: " : 상처       ",
+                //   style: TextStyle(
+                //     color: Color.fromARGB(255, 122, 122, 122),
+                //     fontSize: 16,
+                //   ),
+                // ),
                 TextSpan(
                   text: "●",
                   style: TextStyle(

@@ -380,38 +380,3 @@ class _DiaryListPageState extends State<DiaryListPage> {
     );
   }
 }               
-//                 // 페이지네이션 바
-//                 Row(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: List.generate(
-//                     totalPages,
-//                     (index) => Padding(
-//                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-//                       child: GestureDetector(
-//                         onTap: () {
-//                           setState(() {
-//                             _currentPageIndex = index;
-//                           });
-//                         },
-//                         child: Text(
-//                           '${index + 1}',
-//                           style: TextStyle(
-//                             fontSize: 18,
-//                             fontWeight: FontWeight.bold,
-//                             color: _currentPageIndex == index
-//                                 ? const Color(0xff7769D4)
-//                                 : Colors.white,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

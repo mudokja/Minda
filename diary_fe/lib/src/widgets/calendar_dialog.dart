@@ -13,9 +13,9 @@ class CalendarDialog {
     final List<Color> colors = [
       const Color(0xFFF5AC25), // 기쁨에 노랑
       const Color(0xFFFC819E), // 놀람에 핑크
-      const Color(0xFFB3B4B4), // 불안에 회색
+      // const Color(0xFFB3B4B4), // 불안에 회색
       const Color(0xFFBC7FCD), // 슬픔에 연보라
-      const Color(0xFF86469C), // 상처에 진보라
+      const Color(0xFF86469C), // 불안에 진보라
       const Color(0xFFDF1E1E), // 분노에 빨강
     ];
 

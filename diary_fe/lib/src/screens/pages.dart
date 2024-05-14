@@ -10,16 +10,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class Pages extends StatefulWidget {
-  const Pages({super.key});
+  final int initialPage;
+
+  const Pages({super.key, this.initialPage = 0});
 
   @override
   State<Pages> createState() => _PagesState();
 }
 
 class _PagesState extends State<Pages> {
-  final PageController _pageController = PageController();
-  int _selectedIndex = 0; // 현재 선택된 탭 인덱스
+  late final PageController _pageController;
+   late int _selectedIndex;
   late List<Widget> widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialPage;  // 초기 페이지 인덱스 설정
+    _pageController = PageController(initialPage: widget.initialPage);
+  }
 
   void addWidgets() {
     widgetOptions = [

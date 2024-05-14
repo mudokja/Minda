@@ -39,7 +39,7 @@ class _PagesState extends State<Pages> {
     widgetOptions = [
       const MainPage(),
       DiaryListPage(selectedDay: DateTime.now()), // 오늘 날짜를 기본값으로 설정
-      AnalysisPage(selectedDate: widget.selectedDate),
+      const AnalysisPage(),
       const ProfilePage(),
     ];
   }
@@ -76,72 +76,38 @@ class _PagesState extends State<Pages> {
   @override
   Widget build(BuildContext context) {
     addWidgets();
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        Future.microtask(() => {
-              if (kIsWeb)
-                {const Text('.')}
-              else
-                {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('알림'),
-                        content: const Text('앱을 종료할까요?'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.of(context).pop(false), // 앱을 종료하지 않음
-                            child: const Text('아니요'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              SystemNavigator.pop(); // 앱 종료
-                            },
-                            child: const Text('예'),
-                          ),
-                        ],
-                      );
-                    },
-                  )
-                }
-            });
-      },
-      child: Scaffold(
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(
-              () {
-                _selectedIndex = index;
-              },
-            );
-          },
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: widgetOptions,
-        ),
-        floatingActionButton: SizedBox(
-          width: 80,
-          height: 80,
-          child: FloatingActionButton(
-            onPressed: () {
-              showWritingPage(context);
+    return Scaffold(
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(
+            () {
+              _selectedIndex = index;
             },
-            shape: const StadiumBorder(),
-            backgroundColor: Colors.white,
-            child: Image.asset(
-              'assets/images/write.png',
-              width: 50,
-              height: 50,
-            ),
+          );
+        },
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: widgetOptions,
+      ),
+      floatingActionButton: SizedBox(
+        width: 80,
+        height: 80,
+        child: FloatingActionButton(
+          onPressed: () {
+            showWritingPage(context);
+          },
+          shape: const StadiumBorder(),
+          backgroundColor: Colors.white,
+          child: Image.asset(
+            'assets/images/write.png',
+            width: 50,
+            height: 50,
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: BottomNavbar(
-            currentIndex: _selectedIndex, onItemTapped: onItemTapped),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomNavbar(
+          currentIndex: _selectedIndex, onItemTapped: onItemTapped),
     );
   }
 

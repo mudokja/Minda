@@ -7,6 +7,8 @@ import 'package:diary_fe/src/services/user_provider.dart';
 import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +21,9 @@ class LoginModal extends StatefulWidget {
 }
 
 class _LoginModalState extends State<LoginModal> {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  String platform = '';
+  ApiService apiService = ApiService();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
   bool _isButtonEnabled = true;

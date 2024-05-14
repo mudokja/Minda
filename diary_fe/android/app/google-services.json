@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901079657910",
+    "project_id": "coldiary-72f1c",
+    "storage_bucket": "coldiary-72f1c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901079657910:android:3ebd6f43c7ea08cb80a517",
+        "android_client_info": {
+          "package_name": "com.example.diary_fe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtFlSBsRMF1f9Mbl-07vLCPVRJpSPu0PY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

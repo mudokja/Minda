@@ -1,9 +1,13 @@
+import 'dart:developer';
+
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/carousel_element.dart';
 import 'package:diary_fe/src/widgets/login_dialog.dart';
 import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +24,7 @@ class _IntroPageState extends State<IntroPage> {
   @override
   void initState() {
     super.initState();
+    _initFCMToken();
     requestPermissions();
   }
 
@@ -58,6 +63,12 @@ class _IntroPageState extends State<IntroPage> {
     const CarouselElement(
         imagePath: 'assets/gifs/eyes.gif', displayText: '테스트 텍스트 4'),
   ];
+
+  Future<void> _initFCMToken() async {
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+    // 여기에서 _fcmToken을 사용하여 필요한 작업을 수행할 수 있습니다.
+    log(fcmToken!); // 로거를 사용하여 토큰을 출력
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -29,7 +29,8 @@ class DiaryDetailPage extends StatefulWidget {
   State<DiaryDetailPage> createState() => _DiaryDetailPageState();
 }
 
-class _DiaryDetailPageState extends State<DiaryDetailPage> {
+class _DiaryDetailPageState extends State<DiaryDetailPage>
+    with SingleTickerProviderStateMixin {
   Dio dio = Dio(); // Dio 인스턴스 생성
   bool showConfirmationView = false; // 상태를 관리하는 변수
   bool isLoading = false; //로딩 상태 관리
@@ -41,14 +42,32 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
   String diaryTitle = '';
   String diaryContent = '';
 
+  // 상태 변수로 변경
+  // late DateTime selectedDay;
+  // late String diaryTitle;
+  // late String diaryContent;
+  // late int diaryIndex;
+
   // 컨트롤러 선언
   final TextEditingController titleController = TextEditingController();
   final TextEditingController contentController = TextEditingController();
+
+  late AnimationController _animationController; // 애니메이션 컨트롤러
+  late Animation<Offset> _animation; // 애니메이션
 
   @override
   void initState() {
     super.initState();
     fetchDiaryEntry();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _animation = Tween<Offset>(begin: Offset.zero, end: Offset.zero)
+        .animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
   }
 
   void _toggleConfirmationView() {
@@ -219,37 +238,130 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
     }
   }
 
-  void onPreviousButtonPressed() {
-    DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
-    DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
-    navigateToDiary(startDate, endDate, false);
-  }
-   void onNextButtonPressed() {
-    DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
-    DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
-    navigateToDiary(startDate, endDate, true);
-  }
+  // void onPreviousButtonPressed() {
+  //   DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
+  //   DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
+  //   navigateToDiary(startDate, endDate, false);
+  // }
 
-  Future<void> navigateToDiary(DateTime startDate, DateTime endDate, bool next) async {
+  // void onNextButtonPressed() {
+  //   DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
+  //   DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
+  //   navigateToDiary(startDate, endDate, true);
+  // }
+
+  // Future<void> navigateToDiary(
+  //     DateTime startDate, DateTime endDate, bool next) async {
+  //   try {
+  //     List<DiaryEntry> diaries = await fetchDiaries(startDate, endDate);
+  //     DiaryEntry? closestDiary =
+  //         findClosestDiary(diaries, widget.selectedDay, next);
+  //     if (closestDiary != null) {
+  //       _animation = Tween<Offset>(
+  //         begin: Offset.zero,
+  //         end: next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
+  //       ).animate(CurvedAnimation(
+  //         parent: _animationController,
+  //         curve: Curves.easeInOut,
+  //       ));
+  //       _animationController.forward(from: 0.0).then((_) {
+  //         Navigator.pushReplacement(
+  //           context,
+  //           PageRouteBuilder(
+  //             pageBuilder: (context, animation, secondaryAnimation) =>
+  //                 DiaryDetailPage(
+  //               selectedDay: DateTime.parse(closestDiary.diarySetDate),
+  //               diaryTitle: closestDiary.diaryTitle,
+  //               diaryContent: closestDiary.diaryContent,
+  //               diaryIndex: closestDiary.diaryIndex,
+  //             ),
+  //             transitionsBuilder:
+  //                 (context, animation, secondaryAnimation, child) {
+  //               var begin =
+  //                   next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0);
+  //               var end = Offset.zero;
+  //               var curve = Curves.ease;
+
+  //               var tween = Tween(begin: begin, end: end)
+  //                   .chain(CurveTween(curve: curve));
+  //               return SlideTransition(
+  //                 position: animation.drive(tween),
+  //                 child: child,
+  //               );
+  //             },
+  //             transitionDuration: const Duration(milliseconds: 500),
+  //           ),
+  //         );
+  //       });
+  //     } else {
+  //       print("No diary entry found close to the selected date.");
+  //     }
+  //   } catch (error) {
+  //     print('Error navigating to diary entry: $error');
+  //   }
+  // }
+
+  void onPreviousButtonPressed() async {
+  DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
+  DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
+  DiaryEntry? closestDiary = await navigateToDiary(startDate, endDate, false);
+  if (closestDiary == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("첫 일기입니다."),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+void onNextButtonPressed() async {
+  DateTime startDate = widget.selectedDay.subtract(const Duration(days: 30));
+  DateTime endDate = widget.selectedDay.add(const Duration(days: 30));
+  DiaryEntry? closestDiary = await navigateToDiary(startDate, endDate, true);
+  if (closestDiary == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("마지막 일기입니다."),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+Future<DiaryEntry?> navigateToDiary(
+    DateTime startDate, DateTime endDate, bool next) async {
   try {
     List<DiaryEntry> diaries = await fetchDiaries(startDate, endDate);
-    DiaryEntry? closestDiary = findClosestDiary(diaries, widget.selectedDay, next);
+    DiaryEntry? closestDiary =
+        findClosestDiary(diaries, widget.selectedDay, next);
     if (closestDiary != null) {
+      _animation = Tween<Offset>(
+        begin: Offset.zero,
+        end: next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0),
+      ).animate(CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ));
+      await _animationController.forward(from: 0.0);
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => DiaryDetailPage(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              DiaryDetailPage(
             selectedDay: DateTime.parse(closestDiary.diarySetDate),
             diaryTitle: closestDiary.diaryTitle,
             diaryContent: closestDiary.diaryContent,
             diaryIndex: closestDiary.diaryIndex,
           ),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          transitionsBuilder:
+              (context, animation, secondaryAnimation, child) {
             var begin = next ? const Offset(1.0, 0.0) : const Offset(-1.0, 0.0);
             var end = Offset.zero;
             var curve = Curves.ease;
 
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(begin: begin, end: end)
+                .chain(CurveTween(curve: curve));
             return SlideTransition(
               position: animation.drive(tween),
               child: child,
@@ -258,634 +370,322 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
           transitionDuration: const Duration(milliseconds: 500),
         ),
       );
-    } else {
-      // 널 처리 로직 추가: 사용자에게 적절한 메시지 표시 등
-      print("No diary entry found close to the selected date.");
     }
+    return closestDiary;
   } catch (error) {
     print('Error navigating to diary entry: $error');
+    return null;
   }
 }
 
 
-  Future<List<DiaryEntry>> fetchDiaries(DateTime startDate, DateTime endDate) async {
+  Future<List<DiaryEntry>> fetchDiaries(
+      DateTime startDate, DateTime endDate) async {
     final response = await apiService.post('/api/diary/list/period', data: {
       'startDate': DateFormat('yyyy-MM-dd').format(startDate),
       'endDate': DateFormat('yyyy-MM-dd').format(endDate),
     });
 
     if (response.statusCode == 200) {
-      return (response.data as List).map((item) => DiaryEntry.fromJson(item)).toList();
+      return (response.data as List)
+          .map((item) => DiaryEntry.fromJson(item))
+          .toList();
     } else {
       throw Exception('Failed to load diaries');
     }
   }
 
-DiaryEntry? findClosestDiary(List<DiaryEntry> diaries, DateTime targetDate, bool next) {
+  DiaryEntry? findClosestDiary(
+      List<DiaryEntry> diaries, DateTime targetDate, bool next) {
     DiaryEntry? closestDiary;
-    int closestDiff  = 10000; // 예를 들어 최대 10000일 차이로 설정, 이는 상황에 따라 조절할 수 있습니다.
-    
+    int closestDiff = 10000; // 예를 들어 최대 10000일 차이로 설정, 이는 상황에 따라 조절할 수 있습니다.
+
     for (var diary in diaries) {
-        DateTime diaryDate = DateTime.parse(diary.diarySetDate);
-        int diff = diaryDate.difference(targetDate).inDays.abs();
-        
-        if (next && diaryDate.isAfter(targetDate) && (closestDiary == null || diff < closestDiff)) {
-            closestDiary = diary;
-            closestDiff = diff;
-        } else if (!next && diaryDate.isBefore(targetDate) && (closestDiary == null || diff < closestDiff)) {
-            closestDiary = diary;
-            closestDiff = diff;
-        }
+      DateTime diaryDate = DateTime.parse(diary.diarySetDate);
+      int diff = diaryDate.difference(targetDate).inDays.abs();
+
+      if (next &&
+          diaryDate.isAfter(targetDate) &&
+          (closestDiary == null || diff < closestDiff)) {
+        closestDiary = diary;
+        closestDiff = diff;
+      } else if (!next &&
+          diaryDate.isBefore(targetDate) &&
+          (closestDiary == null || diff < closestDiff)) {
+        closestDiary = diary;
+        closestDiff = diff;
+      }
     }
     return closestDiary;
-}
+  }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   ThemeColors themeColors = ThemeColors(); // 테마 색상 인스턴스
-  //   double modalWidth =
-  //       MediaQuery.of(context).size.width * 0.8; // modalWidth를 여기에서 정의
-  //   // double contentWidth = modalWidth - 60; // 실제 컨텐츠 영역의 넓이 계산
-  //   // double contentWidth  = modalWidth - 32; // 16px 마진을 양쪽에서 빼줍니다
+  @override
+  Widget build(BuildContext context) {
+    ThemeColors themeColors = ThemeColors(); // 테마 색상 인스턴스
+    double modalWidth =
+        MediaQuery.of(context).size.width * 0.9; // modalWidth를 여기에서 정의
 
-//     return Scaffold(
-//       body: Stack(
-//         children: [
-//           const Background(), // 배경 위젯
-//           Center(
-//             child: ConstrainedBox(
-//               constraints: BoxConstraints(
-//                 maxHeight: MediaQuery.of(context).size.height * 0.9, // 최대 높이 설정
-//               ),
-//               child: Container(
-//                 width: MediaQuery.of(context).size.width * 0.9, // 화면의 90% 크기
-//                 decoration: BoxDecoration(
-//                   color: Colors.white, // 컨테이너의 배경색
-//                   borderRadius: BorderRadius.circular(35), // 모서리 둥글게
-//                   boxShadow: [
-//                     BoxShadow(
-//                       color: Colors.black.withOpacity(0.2),
-//                       spreadRadius: 1,
-//                       blurRadius: 5,
-//                       offset: const Offset(0, 3), // 그림자 위치 조정
-//                     ),
-//                   ],
-//                 ),
-//                 child: Padding(
-//                   // padding: const EdgeInsets.all(16.0), // 내부 여백 추가
-//                   padding:
-//                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-
-//                   child: Column(
-//                     crossAxisAlignment: CrossAxisAlignment.stretch, // 가로로 꽉 차게
-//                     children: [
-//                       Stack(
-//                         children: [
-//                           // Position the close button on the right
-//                           Align(
-//                             alignment: Alignment.centerRight,
-//                             child: IconButton(
-//                               icon: const Icon(Icons.close_sharp,
-//                                   color: Colors
-//                                       .grey), // Icon color changed to grey
-//                               onPressed: () => Navigator.of(context).pop(),
-//                               padding: EdgeInsets.zero, // 간격 최소화
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-
-//                       Row(
-//                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                         children: [
-//                           IconButton(
-//                             icon: const Icon(Icons.keyboard_arrow_left_rounded),
-//                             // 이전 일기 로드
-//                               onPressed: onPreviousButtonPressed,
-                      
-//                               iconSize: 30,
-//                               padding: EdgeInsets.zero, // 간격 최소화
-//                             ),
-//                             Text(
-//                               '${widget.selectedDay.year}.${widget.selectedDay.month.toString().padLeft(2, '0')}.${widget.selectedDay.day.toString().padLeft(2, '0')}',
-//                               style: const TextStyle(fontSize: 22),
-//                             ),
-//                             IconButton(
-//                               icon:
-//                                   const Icon(Icons.keyboard_arrow_right_rounded),
-//                                   // 다음 일기 로드
-//                               onPressed: onNextButtonPressed,
-//                               iconSize: 30,
-//                               padding: EdgeInsets.zero, // 간격 최소화
-//                             ),
-//                           ],
-//                         ),
-
-//                       Align(
-//                         alignment: Alignment.centerRight,
-//                         child: Row(
-//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                           children: [
-//                             IconButton(
-//                               icon: const Icon(Icons.brush),
-//                               color: themeColors.color1,
-//                               onPressed:
-//                                   imageUrl.isEmpty ? generateImage : null,
-//                               padding: EdgeInsets.zero, // 간격 최소화
-//                             ),
-//                             if (!isLoading && imageUrl.isEmpty)
-//                               const Text(
-//                                 'AI로 이미지를\n생성해보세요!',
-//                                 style: TextStyle(fontSize: 12),
-//                               ),
-//                             const SizedBox(width: 90),
-//                             Row(
-//                               children: [
-//                                 ElevatedButton(
-//                                   onPressed: deleteDiary,
-//                                   style: ElevatedButton.styleFrom(
-//                                     backgroundColor: themeColors.color2,
-//                                     foregroundColor: Colors.white,
-//                                     minimumSize: const Size(50, 25),
-//                                     padding: EdgeInsets.zero,
-//                                     shape: RoundedRectangleBorder(
-//                                       borderRadius: BorderRadius.circular(45),
-//                                     ),
-//                                   ),
-//                                   child: const Center(
-//                                     child: Text(
-//                                       '삭제',
-//                                       style: TextStyle(fontSize: 16),
-//                                     ),
-//                                   ),
-//                                 ),
-//                                 const SizedBox(width: 10),
-//                                 ElevatedButton(
-//                                   onPressed: _toggleConfirmationView,
-//                                   style: ElevatedButton.styleFrom(
-//                                     backgroundColor: themeColors.color1,
-//                                     minimumSize: const Size(50, 25),
-//                                     foregroundColor: Colors.white,
-//                                     padding: EdgeInsets.zero,
-//                                     shape: RoundedRectangleBorder(
-//                                       borderRadius: BorderRadius.circular(45),
-//                                     ),
-//                                   ),
-//                                   child: const Center(
-//                                     child: Text(
-//                                       '수정',
-//                                       style: TextStyle(fontSize: 16),
-//                                     ),
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                       // const SizedBox(height: 15),
-//                       if (isLoading)
-//                         Container(
-//                           width: double.infinity,
-//                           height: MediaQuery.of(context).size.height * 0.3,
-//                           decoration: BoxDecoration(
-//                             color: Colors.grey.shade200,
-//                             borderRadius: BorderRadius.circular(10),
-//                             border: Border.all(
-//                               color: themeColors.color2, // 테두리 색상
-//                               width: 2, // 테두리 두께
-//                             ),
-//                           ),
-//                           margin: const EdgeInsets.symmetric(
-//                               horizontal: 20, vertical: 10),
-//                           child: const Column(
-//                             mainAxisAlignment: MainAxisAlignment.center,
-//                             children: [
-//                               CircularProgressIndicator(),
-//                               SizedBox(height: 10),
-//                               Text(
-//                                 '이미지를 생성중입니다.',
-//                                 style: TextStyle(fontSize: 14),
-//                               ),
-//                             ],
-//                           ),
-//                         )
-//                       else if (imageUrl.isNotEmpty)
-//                         Container(
-//                           width: double.infinity,
-//                           height: MediaQuery.of(context).size.height * 0.3,
-//                           decoration: BoxDecoration(
-//                             color: Colors.grey.shade200,
-//                             borderRadius: BorderRadius.circular(10),
-//                             border: Border.all(
-//                               color: themeColors.color2, // 테두리 색상
-//                               width: 2, // 테두리 두께
-//                             ),
-//                           ),
-//                           margin: const EdgeInsets.symmetric(
-//                               horizontal: 20, vertical: 10),
-//                           child: ClipRRect(
-//                             borderRadius: BorderRadius.circular(10),
-//                             child: Image.network(
-//                               imageUrl,
-//                               fit: BoxFit.contain,
-//                               errorBuilder: (context, error, stackTrace) {
-//                                 print('Image loading error: $error');
-//                                 return const Text('이미지 로딩 실패');
-//                               },
-//                             ),
-//                           ),
-//                         )
-//                       else
-//                         const SizedBox(),
-
-//                           // 여기를 SingleChildScrollView로 감싸줍니다
-//                       // Expanded(
-//                         // child: 
-//                         SingleChildScrollView(
-//                           child: Column(
-//                             children: [
-//                               Container(
-//                                 // margin: const EdgeInsets.all(16),
-//                                 margin: const EdgeInsets.fromLTRB(16, 5, 16, 10),
-//                                 decoration: BoxDecoration(
-//                                   color: const Color(0xFFF9D1DD),
-//                                   borderRadius: BorderRadius.circular(8),
-//                                 ),
-//                                 child: CustomPaint(
-//                                   painter: LinedPaperPainter(),
-//                                   foregroundPainter: NotebookHolesPainter(24),
-//                                   child: SizedBox(
-//                                     width: modalWidth,
-//                                     height: 400,
-//                                     child: Padding(
-//                                       padding: const EdgeInsets.all(30),
-//                                       child: Column(
-//                                         crossAxisAlignment:
-//                                             CrossAxisAlignment.start,
-//                                         children: <Widget>[
-//                                           Text(
-//                                             widget.diaryTitle.isNotEmpty
-//                                                 ? widget.diaryTitle
-//                                                 : '${widget.selectedDay.year}년 ${widget.selectedDay.month}월 ${widget.selectedDay.day}일의 일기',
-//                                             style: const TextStyle(
-//                                                 fontSize: 18,
-//                                                 fontWeight: FontWeight.bold),
-//                                           ),
-//                                           const SizedBox(height: 20),
-//                                           Text(
-//                                             widget.diaryContent.isNotEmpty
-//                                                 ? widget.diaryContent
-//                                                 : '일기가 작성되지 않았어요..',
-//                                             style: const TextStyle(
-//                                                 fontSize: 18,
-//                                                 color: Color(0xFFA488AF),
-//                                                 fontWeight: FontWeight.w600),
-//                                           ),
-//                                         ],
-//                                       ),
-//                                     ),
-//                                   ),
-//                                 ),
-//                               ),
-//                               Container(
-//                                 margin: const EdgeInsets.symmetric(horizontal: 50),
-//                                 child: ElevatedButton(
-//                                   onPressed: sendContent,
-//                                   // onPressed: null, // 버튼 비활성화
-//                                   style: ElevatedButton.styleFrom(
-//                                     backgroundColor: themeColors.color1,
-//                                     shape: RoundedRectangleBorder(
-//                                       borderRadius: BorderRadius.circular(10),
-//                                     ),
-//                                   ),
-//                                   child: const Text(
-//                                     '일기 분석 보기',
-//                                     style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontWeight: FontWeight.w600),
-//                                   ),
-//                                 ),
-//                               ),
-//                             ],
-//                           ),
-//                         ),
-//                       // ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-
-
-                      
-
-// class NotebookHolesPainter extends CustomPainter {
-//   final double lineSpacing;
-
-//   NotebookHolesPainter(this.lineSpacing);
-
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final paint = Paint()
-//       ..color = Colors.white
-//       ..style = PaintingStyle.fill;
-
-//     double holeRadius = 5;
-//     double xOffset = 20;
-
-//     for (double y = lineSpacing; y < size.height; y += lineSpacing) {
-//       canvas.drawCircle(Offset(xOffset, y), holeRadius, paint);
-//     }
-//   }
-
-//   @override
-//   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-// }
-
-// class LinedPaperPainter extends CustomPainter {
-//   final double lineSpacing = 24;
-
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final paint = Paint()
-//       ..color = Colors.grey.shade300
-//       ..strokeWidth = 1.5;
-
-//     for (double y = lineSpacing; y < size.height; y += lineSpacing) {
-//       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-//     }
-//   }
-
-//   @override
-//   bool shouldRepaint(CustomPainter oldDelegate) => false;
-// }
-
- @override
-Widget build(BuildContext context) {
-  ThemeColors themeColors = ThemeColors(); // 테마 색상 인스턴스
-  double modalWidth =
-      MediaQuery.of(context).size.width * 0.9; // modalWidth를 여기에서 정의
-
-  return Scaffold(
-    body: Stack(
-      children: [
-        const Background(), // 배경 위젯
-        Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.9, // 최대 높이 설정
-            ),
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.9, // 화면의 90% 크기
-              decoration: BoxDecoration(
-                color: Colors.white, // 컨테이너의 배경색
-                borderRadius: BorderRadius.circular(35), // 모서리 둥글게
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    spreadRadius: 1,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3), // 그림자 위치 조정
-                  ),
-                ],
+    return Scaffold(
+      body: Stack(
+        children: [
+          const Background(), // 배경 위젯
+          Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.9, // 최대 높이 설정
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: SingleChildScrollView( // 여기를 SingleChildScrollView로 감싸줍니다
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch, // 가로로 꽉 차게
-                    children: [
-                      Stack(
-                        children: [
-                          // Position the close button on the right
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                              icon: const Icon(Icons.close_sharp,
-                                  color: Colors
-                                      .grey), // Icon color changed to grey
-                              onPressed: () => Navigator.of(context).pop(),
-                              padding: EdgeInsets.zero, // 간격 최소화
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.keyboard_arrow_left_rounded),
-                            onPressed: onPreviousButtonPressed, // 이전 일기 로드
-                            iconSize: 30,
-                            padding: EdgeInsets.zero, // 간격 최소화
-                          ),
-                          Text(
-                            '${widget.selectedDay.year}.${widget.selectedDay.month.toString().padLeft(2, '0')}.${widget.selectedDay.day.toString().padLeft(2, '0')}',
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.keyboard_arrow_right_rounded),
-                            onPressed: onNextButtonPressed, // 다음 일기 로드
-                            iconSize: 30,
-                            padding: EdgeInsets.zero, // 간격 최소화
-                          ),
-                        ],
-                      ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.9, // 화면의 90% 크기
+                decoration: BoxDecoration(
+                  color: Colors.white, // 컨테이너의 배경색
+                  borderRadius: BorderRadius.circular(35), // 모서리 둥글게
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3), // 그림자 위치 조정
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: SingleChildScrollView(
+                    // 여기를 SingleChildScrollView로 감싸줍니다
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.stretch, // 가로로 꽉 차게
+                      children: [
+                        Stack(
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.brush),
-                              color: themeColors.color1,
-                              onPressed: imageUrl.isEmpty ? generateImage : null,
-                              padding: EdgeInsets.zero, // 간격 최소화
-                            ),
-                            if (!isLoading && imageUrl.isEmpty)
-                              const Text(
-                                'AI로 이미지를\n생성해보세요!',
-                                style: TextStyle(fontSize: 12),
+                            // Position the close button on the right
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
+                                icon: const Icon(Icons.close_sharp,
+                                    color: Colors
+                                        .grey), // Icon color changed to grey
+                                onPressed: () => Navigator.of(context).pop(),
+                                padding: EdgeInsets.zero, // 간격 최소화
                               ),
-                            const SizedBox(width: 90),
-                            Row(
-                              children: [
-                                ElevatedButton(
-                                  onPressed: deleteDiary,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: themeColors.color2,
-                                    foregroundColor: Colors.white,
-                                    minimumSize: const Size(50, 25),
-                                    padding: EdgeInsets.zero,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(45),
-                                    ),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      '삭제',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                ElevatedButton(
-                                  onPressed: _toggleConfirmationView,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: themeColors.color1,
-                                    minimumSize: const Size(50, 25),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.zero,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(45),
-                                    ),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      '수정',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),
-                      ),
-                      if (isLoading)
-                        Container(
-                          width: double.infinity,
-                          height: MediaQuery.of(context).size.height * 0.3,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: themeColors.color2, // 테두리 색상
-                              width: 2, // 테두리 두께
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon:
+                                  const Icon(Icons.keyboard_arrow_left_rounded),
+                              onPressed: onPreviousButtonPressed, // 이전 일기 로드
+                              iconSize: 30,
+                              padding: EdgeInsets.zero, // 간격 최소화
                             ),
-                          ),
-                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 10),
-                              Text(
-                                '이미지를 생성중입니다.',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
-                        )
-                      else if (imageUrl.isNotEmpty)
-                        Container(
-                          width: double.infinity,
-                          height: MediaQuery.of(context).size.height * 0.3,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: themeColors.color2, // 테두리 색상
-                              width: 2, // 테두리 두께
+                            Text(
+                              '${widget.selectedDay.year}.${widget.selectedDay.month.toString().padLeft(2, '0')}.${widget.selectedDay.day.toString().padLeft(2, '0')}',
+                              style: const TextStyle(fontSize: 22),
                             ),
-                          ),
-                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                print('Image loading error: $error');
-                                return const Text('이미지 로딩 실패');
-                              },
+                            IconButton(
+                              icon: const Icon(
+                                  Icons.keyboard_arrow_right_rounded),
+                              onPressed: onNextButtonPressed, // 다음 일기 로드
+                              iconSize: 30,
+                              padding: EdgeInsets.zero, // 간격 최소화
                             ),
-                          ),
-                        )
-                      else
-                        const SizedBox(),
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(16, 5, 16, 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF9D1DD),
-                          borderRadius: BorderRadius.circular(8),
+                          ],
                         ),
-                        child: CustomPaint(
-                          painter: LinedPaperPainter(),
-                          foregroundPainter: NotebookHolesPainter(24),
-                          child: SizedBox(
-                            width: modalWidth,
-                            height: 400,
-                            child: Padding(
-                              padding: const EdgeInsets.all(30),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    widget.diaryTitle.isNotEmpty
-                                        ? widget.diaryTitle
-                                        : '${widget.selectedDay.year}년 ${widget.selectedDay.month}월 ${widget.selectedDay.day}일의 일기',
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.brush),
+                                color: themeColors.color1,
+                                onPressed:
+                                    imageUrl.isEmpty ? generateImage : null,
+                                padding: EdgeInsets.zero, // 간격 최소화
+                              ),
+                              if (!isLoading && imageUrl.isEmpty)
+                                const Text(
+                                  'AI로 이미지를\n생성해보세요!',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              const SizedBox(width: 90),
+                              Row(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: deleteDiary,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: themeColors.color2,
+                                      foregroundColor: Colors.white,
+                                      minimumSize: const Size(50, 25),
+                                      padding: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(45),
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        '삭제',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
                                   ),
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    widget.diaryContent.isNotEmpty
-                                        ? widget.diaryContent
-                                        : '일기가 작성되지 않았어요..',
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        color: Color(0xFFA488AF),
-                                        fontWeight: FontWeight.w600),
+                                  const SizedBox(width: 10),
+                                  ElevatedButton(
+                                    onPressed: _toggleConfirmationView,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: themeColors.color1,
+                                      minimumSize: const Size(50, 25),
+                                      foregroundColor: Colors.white,
+                                      padding: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(45),
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        '수정',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 50),
-                        child: ElevatedButton(
-                          onPressed: sendContent,
-                          // onPressed: null, // 버튼 비활성화
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color1,
-                            shape: RoundedRectangleBorder(
+                        if (isLoading)
+                          Container(
+                            width: double.infinity,
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: themeColors.color2, // 테두리 색상
+                                width: 2, // 테두리 두께
+                              ),
+                            ),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(height: 10),
+                                Text(
+                                  '이미지를 생성중입니다.',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (imageUrl.isNotEmpty)
+                          Container(
+                            width: double.infinity,
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: themeColors.color2, // 테두리 색상
+                                width: 2, // 테두리 두께
+                              ),
+                            ),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  print('Image loading error: $error');
+                                  return const Text('이미지 로딩 실패');
+                                },
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(),
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(16, 5, 16, 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9D1DD),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: CustomPaint(
+                            painter: LinedPaperPainter(),
+                            foregroundPainter: NotebookHolesPainter(24),
+                            child: SizedBox(
+                              width: modalWidth,
+                              height: 400,
+                              child: Padding(
+                                padding: const EdgeInsets.all(30),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      widget.diaryTitle.isNotEmpty
+                                          ? widget.diaryTitle
+                                          : '${widget.selectedDay.year}년 ${widget.selectedDay.month}월 ${widget.selectedDay.day}일의 일기',
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      widget.diaryContent.isNotEmpty
+                                          ? widget.diaryContent
+                                          : '일기가 작성되지 않았어요..',
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          color: Color(0xFFA488AF),
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            '일기 분석 보기',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 50),
+                          child: ElevatedButton(
+                            onPressed: sendContent,
+                            // onPressed: null, // 버튼 비활성화
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: themeColors.color1,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              '일기 분석 보기',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
         ],
       ),
     );
   }
 }
 
-class NotebookHolesPainter extends CustomPainter { // 클래스 정의 추가
+class NotebookHolesPainter extends CustomPainter {
+  // 클래스 정의 추가
   final double lineSpacing;
 
   NotebookHolesPainter(this.lineSpacing);
@@ -908,7 +708,8 @@ class NotebookHolesPainter extends CustomPainter { // 클래스 정의 추가
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class LinedPaperPainter extends CustomPainter { // 클래스 정의 추가
+class LinedPaperPainter extends CustomPainter {
+  // 클래스 정의 추가
   final double lineSpacing = 24;
 
   @override
@@ -925,4 +726,3 @@ class LinedPaperPainter extends CustomPainter { // 클래스 정의 추가
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
- 

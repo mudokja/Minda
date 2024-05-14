@@ -8,6 +8,7 @@ import text_emotion, text_keyword, text_chatbot
 import mongo_util
 from pydantic import BaseModel
 import asyncio
+import s3_util
 
 print("호출: server.py")
 
@@ -28,10 +29,12 @@ app.add_middleware(
     allow_headers=["*"],	# 허용할 http header 목록을 설정할 수 있으며 Content-Type, Accept, Accept-Language, Content-Language은 항상 허용된다.
 )
 
-#mongoDB로드
+#mongoDB 로드
 mongo_client = mongo_util.mongo_connection()
 mongo_db = mongo_client[os.environ["MONGO_DB_NAME"]]
 mongo_collection=mongo_db['analyze']
+#s3 로드
+s3_connection = s3_util.s3_connection()
 
 @app.get("/")
 def read_root(): 
@@ -42,7 +45,7 @@ async def custom_swagger_ui():
     html_content = open('pyswagger/swagger.html', 'r').read()
     return HTMLResponse(content=html_content)
 
-@app.post("/api/ai/emotion")
+@app.post("/api/ai/emotion")    #감정 추출 테스트 api
 def analyze_text(diary_index:int, diary_content:str):
     try:
         print(diary_content)
@@ -51,16 +54,38 @@ def analyze_text(diary_index:int, diary_content:str):
     except Exception as e:
         return {str(e)}
 
-@app.post("/api/ai/keyword")
+@app.post("/api/ai/keyword")    #키워드 추출 테스트 api
 def get_keyword(content:str):
     try:
         contents = text_keyword.split_sentences(content)
         noun_contents = text_keyword.noun_sentences(contents)
-        print(noun_contents)
         return text_keyword.get_keyword(noun_contents)
     except Exception as e:
         return {str(e)}
     
+@app.get("/api/ai/wordcloud/test")   #워드클라우드 생성 테스트 api
+def get_image(content:str):
+    try:
+        contents = text_keyword.split_sentences(content)
+        noun_contents = text_keyword.noun_sentences(contents)
+        keywords = text_keyword.get_keyword(noun_contents)
+        img_byte_arr = text_keyword.make_wordcloud(keywords)
+        s3_link = s3_util.s3_save_wordcloud(img_byte_arr,s3_connection)
+        return s3_link
+    except Exception as e:
+        return {str(e)}
+    
+@app.get("/api/ai/wordcloud") 
+def get_image(content:str):
+    try:
+        contents = text_keyword.split_sentences(content)
+        noun_contents = text_keyword.noun_sentences(contents)
+        keywords = text_keyword.get_keyword(noun_contents)
+        text_keyword.make_wordcloud(keywords)
+        return "success"
+    except Exception as e:
+        return {str(e)}
+
 class DiaryEntry(BaseModel):
     diary_index: int
     diary_content: str

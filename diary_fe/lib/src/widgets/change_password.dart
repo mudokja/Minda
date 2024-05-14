@@ -88,6 +88,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 child: const Text('확인'),
                 onPressed: () {
                   Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop(); // Close the dialog
                 },
               ),
             ],

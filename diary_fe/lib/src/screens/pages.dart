@@ -48,6 +48,8 @@ class _PagesState extends State<Pages> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent, // 모달의 배경을 투명하게 설정
       barrierColor: Colors.transparent, // 뒷 배경을 반투명하게 설정
       builder: (BuildContext context) {
@@ -63,10 +65,7 @@ class _PagesState extends State<Pages> {
               color: Colors.white, // 모달의 배경색을 하얗게 설정
               borderRadius: BorderRadius.circular(25), // 모달의 모서리를 둥글게 설정
             ),
-            child:
-                // const Write(), // 여기에 커스텀 위젯을 넣으면 됩니다.
-                // const Write({super.key, required this.selectedDay}),
-                Write(selectedDay: DateTime.now()), // 현재 날짜를 selectedDay로 전달
+            child: Write(selectedDay: DateTime.now()),
           ),
         );
       },

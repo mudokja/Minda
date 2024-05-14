@@ -13,9 +13,9 @@ class Background extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            themeColors.color1,
-            themeColors.color2,
-            themeColors.color3,
+            ThemeColors.color1,
+            ThemeColors.color2,
+            ThemeColors.color3,
           ],
           stops: const [
             0.3,

@@ -54,7 +54,7 @@ class _ChangeNicknameState extends State<ChangeNickname> {
                   Text(
                     '닉네임 변경하기',
                     style: TextStyle(
-                      color: themeColors.color1,
+                      color: ThemeColors.color1,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -80,7 +80,7 @@ class _ChangeNicknameState extends State<ChangeNickname> {
                             updateNickname();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color1,
+                            backgroundColor: ThemeColors.color1,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                   15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
@@ -102,7 +102,7 @@ class _ChangeNicknameState extends State<ChangeNickname> {
                         width: 75,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color2,
+                            backgroundColor: ThemeColors.color2,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                   15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.

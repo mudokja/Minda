@@ -6,6 +6,7 @@ import 'package:diary_fe/src/error/social_login_error.dart';
 import 'package:diary_fe/src/models/user.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,11 +33,44 @@ class UserProvider with ChangeNotifier {
   UserProvider() {
     checkInitialLogin();
   }
+  Future<void> _tokenRegister() async {
+    try {
+
+    if(kIsWeb){
+    String? token = await FirebaseMessaging.instance.getToken(vapidKey: "BPhH15wITqmvIl2nXpGCAPZ3CcIS8MBmEgNLp9IjaWeFKl7y8y1ElMiOVFWqsYesDQSp8rXXpNOuoJDQmeyK-dM");
+    if(token==null||token.isEmpty) {
+      return;
+    }
+    await apiService.post("/api/notification",
+    data: {
+      "platform":"WEB",
+      "token":token,
+    }
+    );
+    }else if(Platform.isAndroid || Platform.isIOS){
+      String? token = await FirebaseMessaging.instance.getToken();
+      if(token==null||token.isEmpty) {
+        return;
+      }
+      await apiService.post("/api/notification",
+          data: {
+            "platform":"WEB",
+            "token":token,
+          }
+      );
+    }
+    }catch(e){
+      debugPrint(e.toString());
+    }
+
+    }
+
   Future<void> login(String id, String pw) async {
     Response response = await apiService
         .post('/api/auth/login', data: {"id": id, "password": pw});
     Map<String, dynamic> responseMap = response.data;
     _fetchTokenInfo(responseMap);
+    await _tokenRegister();
   }
   Future<void> logout() async{
     String? refreshToken = await storage.read(key: "REFRESH_TOKEN");
@@ -114,6 +148,7 @@ class UserProvider with ChangeNotifier {
       }
       Map<String, dynamic> response = await _requestOauth2KakaoLogin();
       await _fetchTokenInfo(response);
+      await _tokenRegister();
     } catch (error) {
       debugPrint('카카오 로그인 실패 $error');
       rethrow;
@@ -135,6 +170,7 @@ class UserProvider with ChangeNotifier {
     try{
       response = await apiService.post("/api/auth/oauth2/login", data: requestData);
       _fetchTokenInfo(response.data);
+      await _tokenRegister();
     } catch (e){
       if(e is DioException){
         if(e.response?.statusCode==400)

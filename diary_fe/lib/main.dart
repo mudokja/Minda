@@ -22,6 +22,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 Future<void> _initFCMToken() async {
   FirebaseMessaging messaging= FirebaseMessaging.instance;
+
   NotificationSettings settings = await messaging.requestPermission(
     alert: true,
     announcement: false,
@@ -31,8 +32,11 @@ Future<void> _initFCMToken() async {
     provisional: false,
     sound: true,
   );
+  FirebaseMessaging.onMessageOpenedApp.listen(_firebaseMessagingBackgroundHandler);
+
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
+      print("message : ${message.data}");
 
     if (notification != null) {
       FlutterLocalNotificationsPlugin().show(
@@ -49,7 +53,7 @@ Future<void> _initFCMToken() async {
       );
     }
   });
-  String? fcmToken = await FirebaseMessaging.instance.getToken(vapidKey: "BK-USra3fjTpRcOA_R2wmC-AH0P7GzPocRTTzOo0LpUxFZeqrKccQx4bhIXx_WVyruYsVJ6IP3g9F7g02QfhFzA");
+  String? fcmToken = await FirebaseMessaging.instance.getToken(vapidKey: "BPhH15wITqmvIl2nXpGCAPZ3CcIS8MBmEgNLp9IjaWeFKl7y8y1ElMiOVFWqsYesDQSp8rXXpNOuoJDQmeyK-dM");
   // 여기에서 _fcmToken을 사용하여 필요한 작업을 수행할 수 있습니다.
   log(fcmToken!); // 로거를 사용하여 토큰을 출력
 }
@@ -69,6 +73,7 @@ void initializeNotification() async {
   await flutterLocalNotificationsPlugin.initialize(const InitializationSettings(
     android: AndroidInitializationSettings("@mipmap/ic_launcher"),
   ));
+  
 
   await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
     alert: true,

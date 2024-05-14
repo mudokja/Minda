@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
-import 'dart:html';
 
 import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/error/social_login_error.dart';
@@ -11,7 +9,6 @@ import 'package:diary_fe/src/widgets/signup_dialog.dart';
 import 'package:diary_fe/src/widgets/textform.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +29,8 @@ class _LoginModalState extends State<LoginModal> {
   bool _isButtonEnabled = true;
   final storage = const FlutterSecureStorage();
 
+  final formKey = GlobalKey<FormState>();
+
   Future<void> measureAsyncFunctionPerformance(int count) async {
     List<int> executionTimes = [];
     int minTime = 1000000;
@@ -46,22 +45,18 @@ class _LoginModalState extends State<LoginModal> {
       var startTime = DateTime.now(); // 시작 시간
 
       // 비동기 작업 실행
-      allTasks.add(
-          sendTextToAPI("이건 $i 번째 요청인데 좀 잘 답해주세요.").then((result) {
-            var endTime = DateTime.now();
-            int duration = endTime
-                .difference(startTime)
-                .inMilliseconds;
-            executionTimes.add(duration);
+      allTasks.add(sendTextToAPI("이건 $i 번째 요청인데 좀 잘 답해주세요.").then((result) {
+        var endTime = DateTime.now();
+        int duration = endTime.difference(startTime).inMilliseconds;
+        executionTimes.add(duration);
 
-            // 결과와 실행 시간 출력
-            print("Execution $index: $result, Time: ${duration}ms");
+        // 결과와 실행 시간 출력
+        print("Execution $index: $result, Time: ${duration}ms");
 
-            // 최소 및 최대 실행 시간 업데이트
-            if (duration < minTime) minTime = duration;
-            if (duration > maxTime) maxTime = duration;
-          })
-      );
+        // 최소 및 최대 실행 시간 업데이트
+        if (duration < minTime) minTime = duration;
+        if (duration > maxTime) maxTime = duration;
+      }));
     }
 
     // 모든 비동기 작업이 완료될 때까지 기다림
@@ -81,8 +76,8 @@ class _LoginModalState extends State<LoginModal> {
     return response.data;
   }
 
-  Future<void> measureAsyncFunction(Future<void> Function() asyncFunction,
-      int iterations) async {
+  Future<void> measureAsyncFunction(
+      Future<void> Function() asyncFunction, int iterations) async {
     if (iterations < 100) {
       throw ArgumentError('iterations must be at least 100');
     }
@@ -90,8 +85,7 @@ class _LoginModalState extends State<LoginModal> {
     List<int> executionTimes = [];
 
     for (int i = 0; i < iterations; i++) {
-      Stopwatch stopwatch = Stopwatch()
-        ..start();
+      Stopwatch stopwatch = Stopwatch()..start();
       await asyncFunction();
       stopwatch.stop();
       executionTimes.add(stopwatch.elapsedMicroseconds);
@@ -186,6 +180,7 @@ class _LoginModalState extends State<LoginModal> {
       });
     });
   }
+
   void showErrorDialog(BuildContext context, String message) {
     showDialog<void>(
       context: context,
@@ -212,110 +207,113 @@ class _LoginModalState extends State<LoginModal> {
       },
     );
   }
-  Future<Future> showEmailRequestModal() async {
+
+  Future<String?> showEmailRequest(BuildContext context) async {
     TextEditingController emailController = TextEditingController();
-    TextEditingController verificationCodeController= TextEditingController();
+    TextEditingController verificationCodeController = TextEditingController();
     Timer? timer;
-    bool isVerified=false;
-    String? errorText='';
-    bool isCodeSent = true;
+    bool isVerified = false;
+    String? errorText = '';
+    bool isCodeSent = false;
     String verificationId = '';
-    int remainingTime =300;
-    String? inputText='';
-    ThemeColors themeColors=ThemeColors();
+    int remainingTime = 300;
+    String? inputText = '';
     bool isButtonDisabled = false; // 버튼 활성화 상태 관리
-    final _formKey = GlobalKey<FormState>();
+    String? verifiedEmail;
+    StateSetter? _setState;
 
     bool isEmailValid(String email) {
       final RegExp emailRegExp = RegExp(
         r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$',
       );
-      if(emailRegExp.hasMatch(email)){
-
-      errorText='';
+      if (emailRegExp.hasMatch(email)) {
+        errorText = '';
       }
       return emailRegExp.hasMatch(email);
-
     }
+
     void startTimer() {
-      setState(() {
-        remainingTime = 300;// 초 단위, 5분
-        isButtonDisabled=true;
+      _setState!(() {
+        remainingTime = 300; // 초 단위, 5분
+        isButtonDisabled = true;
       });
       timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (remainingTime > 0) {
-          setState(() => remainingTime--);
+          _setState!(() => remainingTime--);
+          print(remainingTime);
         } else {
           timer.cancel();
-          setState(() {
-          isButtonDisabled=false;
-
+          _setState!(() {
+            isButtonDisabled = false;
+            isCodeSent = false;
           });
           const Text('시간이 초과되었습니다.');
         }
       });
     }
 
-    void verifyEmail() async {
+    Future<bool> verifyEmail(String email) async {
       try {
         ApiService apiService = ApiService();
         Response response = await apiService.post(
           '/api/email/verification',
           data: {
-            "email": emailController.text,
+            "email": email,
           },
         );
 
         if (response.statusCode == 200) {
           timer?.cancel();
           print("도착");
-          setState(() {
-            isCodeSent = true;
+          _setState!(() {
             verificationId = response.data["verificationId"];
-            startTimer();
           });
+          return true;
           // 인증 코드 발송 성공 메시지 또는 로직
         } else {
+          return false;
           // 인증 코드 발송 실패 처리
         }
       } catch (e) {
         if (e is DioException) {
           if (e.response?.statusCode == 400 &&
-              e.response?.data == 'request Too many') {
-
-          }
-          switch(e.response?.statusCode){
-              case 309 :
-                errorText="이미 존재하는 이메일 입니다";
-                break;
-            case 400 :
-              switch(e.response?.data){
+              e.response?.data == 'request Too many') {}
+          switch (e.response?.statusCode) {
+            case 309:
+              errorText = "이미 존재하는 이메일 입니다";
+              return false;
+              break;
+            case 400:
+              switch (e.response?.data) {
                 case 'request Too many':
-                  showErrorDialog(context, '이메일을 너무 자주 전송하고 있어요. 조금 기다렸다 시도해보세요.');
-                break;
-            default:
-            }
+                  showErrorDialog(context as BuildContext,
+                      '이메일을 너무 자주 전송하고 있어요. 조금 기다렸다 시도해보세요.');
+                  return false;
+                  break;
+                default:
+                  return false;
+              }
           }
+          return false;
         }
+        return false;
       }
     }
-    void confirmVerification() async {
+
+    Future<bool> confirmVerification(String code) async {
       // 인증 코드 확인 로직
       try {
         ApiService apiService = ApiService();
         Response response = await apiService.post(
           '/api/email/auth',
-          data: {
-            "verificationId": verificationId,
-            "code": verificationCodeController.text
-          },
+          data: {"verificationId": verificationId, "code": code},
         );
         if (response.statusCode == 200) {
           timer?.cancel();
-          setState(() {
-            isVerified = true;
-          });
+
+          return true;
         }
+        return false;
       } catch (e) {
         if (e is DioException) {
           showDialog<void>(
@@ -343,127 +341,134 @@ class _LoginModalState extends State<LoginModal> {
             },
           );
         }
+        return false;
       }
     }
 
-
-    // 모달을 띄우는 내부 함수
-      return showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('이메일 정보 입력'),
-
-            content: Form(
-              key: _formKey,
-            child:
-                SizedBox(
-                  width: 100,
-                  height: 200,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      TextFormField(
-                        controller: emailController,
-                        decoration: const InputDecoration(
-                        labelText: '이메일',
-                        hintText: 'your_email@example.com',
-                            ),
-                        validator:(value) {
-                          return emailController.text.isEmpty? "이메일을 입력해야합니다."
-                          :
-                          isEmailValid(value!)
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text("이메일 인증"),
+          content: StatefulBuilder(builder: (context, StateSetter setState) {
+            _setState = setState;
+            return Form(
+                key: formKey,
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  TextFormField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      labelText: '이메일',
+                      hintText: 'your_email@example.com',
+                    ),
+                    validator: (value) {
+                      return emailController.text.isEmpty
+                          ? "이메일을 입력해야합니다."
+                          : isEmailValid(value!)
                               ? null
                               : '유효한 이메일을 입력해주세요.';
-                        },
-
-                        onSaved: (value) {
-                          if(emailController.text.isNotEmpty&&isEmailValid(emailController.text)){
-
-                          setState(() {
-                            inputText=value!;
-                          });
-                          }
-                        },
-                          ),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            style: const ButtonStyle(
-                              enableFeedback: true
-                            ),
-                            onPressed:isButtonDisabled
-                                ?null
-                              :(){
-                              if(_formKey.currentState!.validate()){
-                                _formKey.currentState?.save();
-                                verifyEmail();
-                              }
-                            },
-                            child: isCodeSent?
-                                const Text('')
-                                :const Text(
-                              '인증하기',
-                            ),
-                          ),
-                        ],
-                      ),
-                          if (isCodeSent) ...<Widget>[
-                              Column(
-                              children: [
-                              const SizedBox(
-                              height: 20,
-                              ),
-                              Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                              Expanded(
+                    },
+                    onSaved: (value) {
+                      if (emailController.text.isNotEmpty &&
+                          isEmailValid(emailController.text)) {
+                        setState(() {
+                          inputText = value!;
+                        });
+                      }
+                    },
+                  ),
+                  if (isCodeSent) ...<Widget>[
+                    Column(
+                      children: [
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
                               flex: 4,
                               child: TextForm(
-                              title: '이메일 인증 코드',
-                              controller: verificationCodeController,
-                              suffix: IconButton(
-                              onPressed: confirmVerification,
-                              icon: Text(
-                              '확인',
-                              style:
-                              TextStyle(color: themeColors.color1),
-                              ),
-                              ),
-                              ),
+                                title: '이메일 인증 코드',
+                                controller: verificationCodeController,
+                                suffix: IconButton(
+                                  onPressed: () async {
+                                    bool confirm = await confirmVerification(
+                                        verificationCodeController.text);
+                                    if (confirm) {
+                                      setState(() {
+                                        isVerified = true;
+                                        verifiedEmail = inputText;
+                                      });
+                                    }
+                                  },
+                                  icon: Text(
+                                    '확인',
+                                    style: TextStyle(color: ThemeColors.color1),
+                                  ),
                                 ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: isVerified
-                                      ? const Text('인증 성공',
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: isVerified
+                                  ? const Text(
+                                      '인증 성공',
                                       style: TextStyle(
                                         color: Colors.green,
                                         fontSize: 12,
                                       ),
                                     )
-                                      : Text(
-
+                                  : Text(
                                       "${(remainingTime / 60).floor().toString().padLeft(2, '0')}:${(remainingTime % 60).toString().padLeft(2, '0')}"),
-                                ),
-                              ],
-                                                    ),
-                                                  ],
-                                                ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
-                                ],
-                              ),
-                ),
-          ),
-          );
-        },
-      );
-
+                  TextButton(
+                    onPressed: isButtonDisabled
+                        ? null
+                        : isVerified
+                            ? () {
+                                Navigator.pop(context, verifiedEmail);
+                              }
+                            : () async {
+                                if (formKey.currentState!.validate()) {
+                                  formKey.currentState!.save();
+                                  bool requestSent =
+                                      await verifyEmail(inputText!);
+                                  if (requestSent) {
+                                    setState(() {
+                                      startTimer();
+                                      isButtonDisabled = false;
+                                      isCodeSent = true;
+                                    });
+                                  }
+                                }
+                              },
+                    child: !isButtonDisabled && isVerified
+                        ? const Text("계속 진행")
+                        : const Text('인증 요청'),
+                  ),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("취소")
+                  ),
+                ]));
+          }),
+        );
+      },
+    );
   }
+
   @override
   Widget build(BuildContext context) {
     ThemeColors themeColors = ThemeColors();
@@ -488,7 +493,7 @@ class _LoginModalState extends State<LoginModal> {
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
-                        color: themeColors.color1),
+                        color: ThemeColors.color1),
                   ),
                   const SizedBox(height: 25), // 간격 추가
                   TextForm(title: '아이디', controller: _idController),
@@ -501,7 +506,7 @@ class _LoginModalState extends State<LoginModal> {
                     child: ElevatedButton(
                       onPressed: _isButtonEnabled ? _handleButtonClick : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: themeColors.color1, // 버튼 색상
+                        backgroundColor: ThemeColors.color1, // 버튼 색상
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -509,7 +514,7 @@ class _LoginModalState extends State<LoginModal> {
                       child: Text(
                         '로그인',
                         style: TextStyle(
-                          color: themeColors.white,
+                          color: ThemeColors.white,
                         ),
                       ),
                     ),
@@ -525,7 +530,7 @@ class _LoginModalState extends State<LoginModal> {
                           '아직 계정이 없으신가요?',
                           style: TextStyle(
                             fontSize: 13,
-                            color: themeColors.color1,
+                            color: ThemeColors.color1,
                             fontWeight: FontWeight.w600,
                             // 밑줄
                           ),
@@ -557,7 +562,7 @@ class _LoginModalState extends State<LoginModal> {
                             '여기를 클릭하세요!',
                             style: TextStyle(
                               fontSize: 13,
-                              color: themeColors.color2,
+                              color: ThemeColors.color2,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -575,7 +580,7 @@ class _LoginModalState extends State<LoginModal> {
                           margin: const EdgeInsets.only(
                               right: 10.0), // 텍스트와의 간격을 주기 위해 마진 설정
                           child: Divider(
-                            color: themeColors.color1, // 선의 색상
+                            color: ThemeColors.color1, // 선의 색상
                             height: 1.5, // Divider의 높이를 설정
                           ),
                         ),
@@ -583,7 +588,7 @@ class _LoginModalState extends State<LoginModal> {
                       Text(
                         "간편로그인",
                         style: TextStyle(
-                          color: themeColors.color1,
+                          color: ThemeColors.color1,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -592,7 +597,7 @@ class _LoginModalState extends State<LoginModal> {
                           margin: const EdgeInsets.only(
                               left: 10.0), // 텍스트와의 간격을 주기 위해 마진 설정
                           child: Divider(
-                            color: themeColors.color1, // 선의 색상
+                            color: ThemeColors.color1, // 선의 색상
 
                             height: 1.5, // Divider의 높이를 설정
                           ),
@@ -615,23 +620,30 @@ class _LoginModalState extends State<LoginModal> {
                         onTap: () async {
                           try {
                             await Provider.of<UserProvider>(context,
-                                  listen: false).kakaoLogin();
-                          } catch (e){
-                            if(e is SocialLoginError){
-                              switch(e.message.toString())
-                              {
+                                    listen: false)
+                                .kakaoLogin();
+                          } catch (e) {
+                            if (e is SocialLoginError) {
+                              switch (e.message.toString()) {
                                 case "Email Required":
-                                  String? email =(await showEmailRequestModal()) as String?;
+                                  String? email =
+                                      await showEmailRequest(context);
+                                  if (email==null||email!.isEmpty || email == '') {
+                                    await Provider.of<UserProvider>(context,
+                                            listen: false).unLink();
+                                    showErrorDialog(context as BuildContext, '가입을 취소 했습니다.');
+                                    return;
+                                  }
                                   await Provider.of<UserProvider>(context,
-                                      listen: false).retryKakaoLogin(email);
+                                          listen: false)
+                                      .retryKakaoLogin(email);
                                   break;
                                 default:
                               }
                             }
                           }
                           await Provider.of<UserProvider>(context,
-                                  listen: false)
-                              .fetchUserData();
+                                  listen: false).fetchUserData();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -658,7 +670,7 @@ class _LoginModalState extends State<LoginModal> {
                       '부하 테스트!',
                       style: TextStyle(
                         fontSize: 13,
-                        color: themeColors.gray,
+                        color: ThemeColors.gray,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

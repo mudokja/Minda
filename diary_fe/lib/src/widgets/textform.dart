@@ -24,7 +24,7 @@ class TextForm extends StatelessWidget {
       decoration: InputDecoration(
         labelText: title,
         labelStyle: TextStyle(
-          color: themeColors.color1,
+          color: ThemeColors.color1,
           fontWeight: FontWeight.w600,
         ),
         contentPadding: const EdgeInsets.symmetric(

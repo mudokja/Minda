@@ -167,7 +167,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                               // icon: const Icon(Icons.photo_filter_rounded),
 // icon: const Icon(Icons.add_photo_alternate),
 
-                              color: themeColors.color1, // 아이콘 색상 지정
+                              color: ThemeColors.color1, // 아이콘 색상 지정
                               onPressed: generateImage, // AI 이미지 생성 로직 연결
                             ),
                             
@@ -179,7 +179,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                                 // 일기 삭제
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: themeColors.color2, // 배경색
+                                backgroundColor: ThemeColors.color2, // 배경색
                                 foregroundColor: Colors.white, // 텍스트색
                                 minimumSize: const Size(50, 25), // 최소 크기 지정
                                 padding: EdgeInsets.zero, // 최소 패딩
@@ -200,7 +200,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                             ElevatedButton(
                               onPressed: _toggleConfirmationView,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: themeColors.color1, // 배경색
+                                backgroundColor: ThemeColors.color1, // 배경색
                                 minimumSize: const Size(50, 25), // 최소 크기 지정
                                 foregroundColor: Colors.white, // 텍스트색
                                 padding: EdgeInsets.zero, // 최소 패딩
@@ -277,7 +277,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                         child: ElevatedButton(
                           onPressed: sendContent,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color1,
+                            backgroundColor: ThemeColors.color1,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),

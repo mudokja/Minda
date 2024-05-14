@@ -230,7 +230,7 @@ class _WriteState extends State<Write> {
               Text(
                 '일기 저장이 완료되었어요!',
                 style: TextStyle(
-                    color: themeColors.color1,
+                    color: ThemeColors.color1,
                     fontSize: 25,
                     fontWeight: FontWeight.w600),
               ),
@@ -243,14 +243,14 @@ class _WriteState extends State<Write> {
                     Text(
                       '작성한 일기 분량에 따라 분석시간이 조금 소요될 수 있어요.',
                       style: TextStyle(
-                          color: themeColors.color1,
+                          color: ThemeColors.color1,
                           fontSize: 15,
                           fontWeight: FontWeight.w600),
                     ),
                     Text(
                       '분석이 완료되면 알림을 보내드릴게요!',
                       style: TextStyle(
-                          color: themeColors.color1,
+                          color: ThemeColors.color1,
                           fontSize: 15,
                           fontWeight: FontWeight.w600),
                     ),
@@ -267,7 +267,7 @@ class _WriteState extends State<Write> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: themeColors.color1,
+                    backgroundColor: ThemeColors.color1,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -322,7 +322,7 @@ class _WriteState extends State<Write> {
         style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: themeColors.color1),
+            color: ThemeColors.color1),
       ),
       const SizedBox(height: 15),
       TextField(
@@ -331,7 +331,7 @@ class _WriteState extends State<Write> {
           hintText: '제목',
           border: InputBorder.none,
           hintStyle: TextStyle(
-            color: themeColors.color2,
+            color: ThemeColors.color2,
             fontWeight: FontWeight.w800,
             fontSize: 18,
           ),
@@ -393,7 +393,7 @@ class _WriteState extends State<Write> {
         child: ElevatedButton(
           onPressed: _toggleConfirmationView,
           style: ElevatedButton.styleFrom(
-            backgroundColor: themeColors.color1,
+            backgroundColor: ThemeColors.color1,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -435,7 +435,7 @@ class _WriteState extends State<Write> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: themeColors.color2,
+                    color: ThemeColors.color2,
                   ),
                 ),
                 SizedBox(
@@ -446,7 +446,7 @@ class _WriteState extends State<Write> {
                     child: Text(
                       '수정하기',
                       style: TextStyle(
-                          color: themeColors.color1,
+                          color: ThemeColors.color1,
                           fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -510,7 +510,7 @@ class _WriteState extends State<Write> {
                 }
               : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: themeColors.color1,
+            backgroundColor: ThemeColors.color1,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -525,7 +525,7 @@ class _WriteState extends State<Write> {
       Center(
         child: Text(
           '⚠️ 주의 : 창을 닫으면 작성했던 일기가 모두 사라져요!',
-          style: TextStyle(fontSize: 10, color: themeColors.color2),
+          style: TextStyle(fontSize: 10, color: ThemeColors.color2),
         ),
       ),
     ];

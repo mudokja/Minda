@@ -69,7 +69,7 @@ class _ProfilePageState extends State<ProfilePage> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: themeColors.color1,
+        backgroundColor: ThemeColors.color1,
         title: const Text(
           '프로필',
           style: TextStyle(
@@ -143,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color1,
+                            backgroundColor: ThemeColors.color1,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                   15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
@@ -166,7 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: ElevatedButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color1,
+                            backgroundColor: ThemeColors.color1,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                   15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
@@ -189,7 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: ElevatedButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color1,
+                            backgroundColor: ThemeColors.color1,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                   15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
@@ -214,7 +214,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             logout();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColors.color2,
+                            backgroundColor: ThemeColors.color2,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                   15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.

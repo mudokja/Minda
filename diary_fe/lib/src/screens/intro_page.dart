@@ -88,8 +88,8 @@ class _IntroPageState extends State<IntroPage> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: _currentIndex == index
-                                ? themeColors.color1
-                                : themeColors.white,
+                                ? ThemeColors.color1
+                                : ThemeColors.white,
                           ),
                         );
                       }),
@@ -122,8 +122,8 @@ class _IntroPageState extends State<IntroPage> {
                             child: Text(
                               '로그인으로 넘어가기',
                               style: TextStyle(
-                                color: themeColors.white,
-                                decorationColor: themeColors.gray,
+                                color: ThemeColors.white,
+                                decorationColor: ThemeColors.gray,
                               ),
                             ),
                           ),
@@ -132,7 +132,7 @@ class _IntroPageState extends State<IntroPage> {
                           ElevatedButton(
                             style: ButtonStyle(
                                 backgroundColor: MaterialStateProperty.all(
-                                    themeColors.color1),
+                                    ThemeColors.color1),
                                 shape: MaterialStateProperty.all<
                                         RoundedRectangleBorder>(
                                     RoundedRectangleBorder(
@@ -189,8 +189,8 @@ class _IntroPageState extends State<IntroPage> {
                             child: Text(
                               '처음 사용해봐요',
                               style: TextStyle(
-                                color: themeColors.white,
-                                decorationColor: themeColors.gray,
+                                color: ThemeColors.white,
+                                decorationColor: ThemeColors.gray,
                               ),
                             ),
                           ),
@@ -205,7 +205,7 @@ class _IntroPageState extends State<IntroPage> {
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded, size: 30),
-                      color: themeColors.white,
+                      color: ThemeColors.white,
                       onPressed: () => _controller.previousPage(),
                     ),
                   ),
@@ -216,7 +216,7 @@ class _IntroPageState extends State<IntroPage> {
                     child: IconButton(
                       icon:
                           const Icon(Icons.arrow_forward_ios_rounded, size: 30),
-                      color: themeColors.white,
+                      color: ThemeColors.white,
                       onPressed: () => _controller.nextPage(),
                     ),
                   ),

@@ -10,7 +10,7 @@ class DiaryListPage2 extends StatelessWidget {
     ThemeColors themeColors = ThemeColors();
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: themeColors.color1,
+        backgroundColor: ThemeColors.color1,
         title: const Text('일기 목록2'),
       ),
       body: const Stack(children: <Widget>[

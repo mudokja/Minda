@@ -402,7 +402,7 @@ class _SignUpModalState extends State<SignUpModal> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
-                        color: themeColors.color1,
+                        color: ThemeColors.color1,
                       ),
                     ),
                     const SizedBox(
@@ -410,7 +410,7 @@ class _SignUpModalState extends State<SignUpModal> {
                     ),
                     Text(
                       '값을 모두 입력해야 회원가입이 가능해요.',
-                      style: TextStyle(fontSize: 9, color: themeColors.color2),
+                      style: TextStyle(fontSize: 9, color: ThemeColors.color2),
                     ),
                     const SizedBox(height: 25),
                     TextForm(
@@ -423,7 +423,7 @@ class _SignUpModalState extends State<SignUpModal> {
                             : null,
                         icon: Text(
                           '중복검사하기',
-                          style: TextStyle(color: themeColors.color1),
+                          style: TextStyle(color: ThemeColors.color1),
                         ),
                       ),
                     ),
@@ -462,7 +462,7 @@ class _SignUpModalState extends State<SignUpModal> {
                                 : null,
                         icon: Text(
                           '인증하기',
-                          style: TextStyle(color: themeColors.color1),
+                          style: TextStyle(color: ThemeColors.color1),
                         ),
                       ),
                     ),
@@ -484,7 +484,7 @@ class _SignUpModalState extends State<SignUpModal> {
                                     icon: Text(
                                       '확인',
                                       style:
-                                          TextStyle(color: themeColors.color1),
+                                          TextStyle(color: ThemeColors.color1),
                                     ),
                                   ),
                                 ),
@@ -579,7 +579,7 @@ class _SignUpModalState extends State<SignUpModal> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: themeColors.color1,
+                          backgroundColor: ThemeColors.color1,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -587,7 +587,7 @@ class _SignUpModalState extends State<SignUpModal> {
                         child: Text(
                           '가입하기',
                           style: TextStyle(
-                            color: themeColors.white,
+                            color: ThemeColors.white,
                           ),
                         ),
                       ),
@@ -618,7 +618,7 @@ class _SignUpModalState extends State<SignUpModal> {
                             '계정이 있으신가요?',
                             style: TextStyle(
                               fontSize: 13,
-                              color: themeColors.color1,
+                              color: ThemeColors.color1,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -649,7 +649,7 @@ class _SignUpModalState extends State<SignUpModal> {
                               '여기를 클릭하세요!',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: themeColors.color2,
+                                color: ThemeColors.color2,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

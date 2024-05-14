@@ -34,7 +34,7 @@ class _LoginModalState extends State<SignUpSuccess> {
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
-                        color: themeColors.color1),
+                        color: ThemeColors.color1),
                   ),
                   const SizedBox(
                     height: 20,
@@ -44,7 +44,7 @@ class _LoginModalState extends State<SignUpSuccess> {
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
-                        color: themeColors.color1),
+                        color: ThemeColors.color1),
                   ),
                   const SizedBox(
                     height: 20,
@@ -69,7 +69,7 @@ class _LoginModalState extends State<SignUpSuccess> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: themeColors.color1, // 버튼 색상
+                        backgroundColor: ThemeColors.color1, // 버튼 색상
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -77,7 +77,7 @@ class _LoginModalState extends State<SignUpSuccess> {
                       child: Text(
                         '로그인',
                         style: TextStyle(
-                          color: themeColors.white,
+                          color: ThemeColors.white,
                         ),
                       ),
                     ),

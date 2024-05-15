@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:diary_fe/constants.dart';
@@ -77,6 +78,8 @@ class _WriteState extends State<Write> {
   bool showConfirmation = false;
   bool complete = false;
   int lastNewLineIndex = 0;
+  Timer? _debounce;
+  String lastContent ='';
   String chatbotmessage = '줄바꿈을 할 때마다 저와 대화할 수 있어요!';
 
 ////////////////////////
@@ -84,19 +87,18 @@ class _WriteState extends State<Write> {
   void initState() {
     super.initState();
     diaryController.addListener(_handleTextInputChange);
-    // diaryController.addListener(() {
-    //   final String text = diaryController.text;
-    //   diaryController.value = diaryController.value.copyWith(
-    //     text: text,
-    //     selection:
-    //         TextSelection(baseOffset: text.length, extentOffset: text.length),
-    //     composing: TextRange.empty,
-    //   );
-    // });
     selectedDate = widget.selectedDay; // 페이지를 열 때 전달받은 날짜를 사용
   }
 
   void _handleTextInputChange() {
+    print("값치환 ${diaryController.value.composing} : start ${diaryController.selection.start} : end ${diaryController.selection.end} : test ${diaryController.value.isComposingRangeValid} \n value : ${diaryController.value} \n composing ${diaryController.value.composing} \n char : ${diaryController.text.characters} \n unit: ${diaryController.text.codeUnits} \n rune : ${diaryController.text.runes}");
+    if (_debounce?.isActive ?? false) {diaryController.value = diaryController.value.copyWith(
+      text: lastContent,
+      selection:
+      TextSelection(baseOffset: lastContent.length, extentOffset: lastContent.length),
+      composing: TextRange.empty,
+    );}else{
+
     String currentText = diaryController.text;
     int newLineIndex = currentText.lastIndexOf('\n');
     // 새로운 줄바꿈 인덱스가 마지막 인덱스보다 큰지 확인하고, 유효한 인덱스인지 검사
@@ -113,6 +115,11 @@ class _WriteState extends State<Write> {
         }
         lastNewLineIndex = newLineIndex + 1; // 줄바꿈 문자 다음 위치를 저장
       }
+    }
+    lastContent=diaryController.text;
+    _debounce = Timer(const Duration(milliseconds: 1), () {
+      print("지연 종료");
+    });
     }
   }
 

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:diary_fe/env/env.dart';
 import 'package:diary_fe/firebase_options.dart';
 import 'package:diary_fe/src/models/notification.dart';
 import 'package:diary_fe/src/screens/intro_page.dart';
@@ -32,11 +33,11 @@ Future<void> _initFCMToken() async {
     provisional: false,
     sound: true,
   );
+  print('User granted permission: ${settings.authorizationStatus}');
   FirebaseMessaging.onMessageOpenedApp.listen(_firebaseMessagingBackgroundHandler);
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
-      print("message : ${message.data}");
 
     if (notification != null) {
       FlutterLocalNotificationsPlugin().show(
@@ -53,7 +54,7 @@ Future<void> _initFCMToken() async {
       );
     }
   });
-  String? fcmToken = await FirebaseMessaging.instance.getToken(vapidKey: "BPhH15wITqmvIl2nXpGCAPZ3CcIS8MBmEgNLp9IjaWeFKl7y8y1ElMiOVFWqsYesDQSp8rXXpNOuoJDQmeyK-dM");
+  String? fcmToken = await FirebaseMessaging.instance.getToken(vapidKey: Env.vapidKey);
   // 여기에서 _fcmToken을 사용하여 필요한 작업을 수행할 수 있습니다.
   log(fcmToken!); // 로거를 사용하여 토큰을 출력
 }
@@ -93,8 +94,8 @@ void main() async {
   _initFCMToken();
   // runApp() 호출 전 Flutter SDK 초기화
   KakaoSdk.init(
-    nativeAppKey: '1725e254be43deb4ed9e5624c1db2f57',
-    javaScriptAppKey: 'ca31cb2221c9049fe00179bcb39df4b0',
+    nativeAppKey: Env.kakaoApiKey,
+    javaScriptAppKey: Env.kakaoJSKey,
   );
   runApp(initializeDiaryProvider());
 }

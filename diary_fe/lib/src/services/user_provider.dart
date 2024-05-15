@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show Platform;
 import 'dart:js';
+import 'package:diary_fe/env/env.dart';
 import 'package:diary_fe/src/error/social_login_error.dart';
 import 'package:diary_fe/src/models/user.dart';
 import 'package:diary_fe/src/services/api_services.dart';
@@ -37,7 +38,7 @@ class UserProvider with ChangeNotifier {
     try {
 
     if(kIsWeb){
-    String? token = await FirebaseMessaging.instance.getToken(vapidKey: "BPhH15wITqmvIl2nXpGCAPZ3CcIS8MBmEgNLp9IjaWeFKl7y8y1ElMiOVFWqsYesDQSp8rXXpNOuoJDQmeyK-dM");
+    String? token = await FirebaseMessaging.instance.getToken(vapidKey: Env.vapidKey);
     if(token==null||token.isEmpty) {
       return;
     }

@@ -16,6 +16,7 @@ import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -34,6 +35,8 @@ public class AdviceService {
     private final AdviceRepository adviceRepository;
     private final AnalyzeRepository analyzeRepository;
     private final OpenAIService openAIService;
+    @Value("${app.baseurl.ai}")
+    private String aiBaseUrl;
 
     @Autowired
     private final WebClient webClient;
@@ -165,7 +168,7 @@ public class AdviceService {
 
         Mono<String> response = webClient.post()
 //                .uri("http://192.168.31.35:8000/api/ai/wordcloud")
-                .uri("https://k10b205.p.ssafy.io/api/ai/wordcloud")
+                .uri(aiBaseUrl+"/api/ai/wordcloud")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class);

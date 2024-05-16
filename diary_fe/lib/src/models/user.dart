@@ -4,9 +4,13 @@ part 'user.g.dart';
 
 @JsonSerializable()
 class AppUser {
+  @JsonKey(name: 'memberIndex')
   final int? index;
+  @JsonKey(name: 'memberId')
   final String? id;
+  @JsonKey(name: 'memberEmail')
   final String? email;
+  @JsonKey(name: 'memberNickname')
   final String? nickname;
 
   AppUser({
@@ -17,6 +21,6 @@ class AppUser {
   });
 
   // Json 직렬화 및 역직렬화를 위한 메서드
-  factory AppUser.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-  Map<String, dynamic> toJson() => _$UserToJson(this);
+  factory AppUser.fromJson(Map<String, dynamic> json) => _$AppUserFromJson(json);
+  Map<String, dynamic> toJson() => _$AppUserToJson(this);
 }

@@ -279,7 +279,7 @@ class _LoginModalState extends State<LoginModal> {
           if (e.response?.statusCode == 400 &&
               e.response?.data == 'request Too many') {}
           switch (e.response?.statusCode) {
-            case 309:
+            case 409:
               errorText = "이미 존재하는 이메일 입니다";
               return false;
               break;

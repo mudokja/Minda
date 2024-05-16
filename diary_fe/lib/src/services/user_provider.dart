@@ -6,6 +6,7 @@ import 'package:diary_fe/env/env.dart';
 import 'package:diary_fe/src/error/social_login_error.dart';
 import 'package:diary_fe/src/models/user.dart';
 import 'package:diary_fe/src/services/api_services.dart';
+import 'package:diary_fe/src/services/notification_service.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -22,6 +23,7 @@ class UserProvider with ChangeNotifier {
   final Future<SharedPreferences> _sharedPreference =
       SharedPreferences.getInstance();
   AppUser user = AppUser();
+
   DeleteStorage deleteStorage = DeleteStorage();
   late User? kakaoUser;
   final FlutterSecureStorage storage = const FlutterSecureStorage();
@@ -35,36 +37,8 @@ class UserProvider with ChangeNotifier {
     checkInitialLogin();
   }
   Future<void> _tokenRegister() async {
-    try {
-
-    if(kIsWeb){
-    String? token = await FirebaseMessaging.instance.getToken(vapidKey: Env.vapidKey);
-    if(token==null||token.isEmpty) {
-      return;
-    }
-    await apiService.post("/api/notification",
-    data: {
-      "platform":"WEB",
-      "token":token,
-    }
-    );
-    }else if(Platform.isAndroid || Platform.isIOS){
-      String? token = await FirebaseMessaging.instance.getToken();
-      if(token==null||token.isEmpty) {
-        return;
-      }
-      await apiService.post("/api/notification",
-          data: {
-            "platform":"WEB",
-            "token":token,
-          }
-      );
-    }
-    }catch(e){
-      debugPrint(e.toString());
-    }
-
-    }
+   await NotificationService().tokenRegister();
+  }
 
   Future<void> login(String id, String pw) async {
     Response response = await apiService
@@ -76,10 +50,12 @@ class UserProvider with ChangeNotifier {
   Future<void> logout() async{
     String? refreshToken = await storage.read(key: "REFRESH_TOKEN");
     await apiService.delete('/api/auth/logout?refreshToken=$refreshToken');
+    await NotificationService().tokenDelete();
     deleteStorage.deleteAll();
   }
   Future<void> leave() async{
     await apiService.delete("/api/member");
+    unLink();
     logout();
   }
   Future<void> _webKakaoLogin() async{
@@ -233,6 +209,7 @@ class UserProvider with ChangeNotifier {
     if (accessToken != null) {
       _isLoggedIn = true;
       await fetchUserData();
+      await _tokenRegister();
     } else {
       _isLoggedIn = false;
     }

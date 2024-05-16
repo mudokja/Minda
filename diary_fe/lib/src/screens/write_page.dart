@@ -91,14 +91,7 @@ class _WriteState extends State<Write> {
   }
 
   void _handleTextInputChange() {
-    print("값치환 ${diaryController.value.composing} : start ${diaryController.selection.start} : end ${diaryController.selection.end} : test ${diaryController.value.isComposingRangeValid} \n value : ${diaryController.value} \n composing ${diaryController.value.composing} \n char : ${diaryController.text.characters} \n unit: ${diaryController.text.codeUnits} \n rune : ${diaryController.text.runes}");
-    if (_debounce?.isActive ?? false) {diaryController.value = diaryController.value.copyWith(
-      text: lastContent,
-      selection:
-      TextSelection(baseOffset: lastContent.length, extentOffset: lastContent.length),
-      composing: TextRange.empty,
-    );}else{
-
+    // debugPrint("값치환 ${diaryController.value.composing} : start ${diaryController.selection.start} : end ${diaryController.selection.end} : test ${diaryController.value.isComposingRangeValid} \n value : ${diaryController.value} \n composing ${diaryController.value.composing} \n char : ${diaryController.text.characters} \n unit: ${diaryController.text.codeUnits} \n rune : ${diaryController.text.runes}");
     String currentText = diaryController.text;
     int newLineIndex = currentText.lastIndexOf('\n');
     // 새로운 줄바꿈 인덱스가 마지막 인덱스보다 큰지 확인하고, 유효한 인덱스인지 검사
@@ -117,11 +110,7 @@ class _WriteState extends State<Write> {
       }
     }
     lastContent=diaryController.text;
-    _debounce = Timer(const Duration(milliseconds: 1), () {
-      print("지연 종료");
-    });
     }
-  }
 
   Future<void> _sendTextToAPI(String text) async {
     // 여기에 API 요청 로직을 구현하세요.

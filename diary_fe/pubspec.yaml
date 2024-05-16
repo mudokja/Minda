@@ -59,6 +59,7 @@ dependencies:
   email_validator: "^2.1.16"
   firebase_messaging_web: ^3.8.5
   envied: ^0.5.4+1
+  json_serializable: ^6.8.0
 
 dev_dependencies:
   flutter_test:

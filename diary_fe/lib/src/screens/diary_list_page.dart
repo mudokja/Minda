@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:diary_fe/src/services/diary_provider.dart';
 import 'package:diary_fe/src/models/DiaryEntry.dart';
 import 'package:diary_fe/src/services/diary_api_service.dart';
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/calendar_dialog.dart';
 import 'package:diary_fe/src/utils/dotted_line_painter.dart';
 import 'package:diary_fe/src/screens/diary_detail_page.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
+import 'package:dio/dio.dart'; // dio 패키지 임포트
 
 // DiaryListPage 스테이트풀 위젯
 class DiaryListPage extends StatefulWidget {
@@ -26,6 +28,9 @@ class DiaryListPage extends StatefulWidget {
 class _DiaryListPageState extends State<DiaryListPage> {
   List<DiaryEntry> diaryEntries = [];
   bool isLoading = true;
+  bool isSearching = false;
+  String searchKeyword = '';
+  TextEditingController searchController = TextEditingController();
 
   static const int _entriesPerPage = 6;
   int _currentPageIndex = 0;
@@ -69,6 +74,45 @@ class _DiaryListPageState extends State<DiaryListPage> {
     }
   }
 
+  void searchEntries(String keyword) async {
+    setState(() {
+      isLoading = true;
+      isSearching = true;
+      searchKeyword = keyword;
+    });
+    var apiService = ApiService();
+    try {
+      final url = '/api/diary/search/title+content?keyword=$keyword';
+      Response response = await apiService.get(url);
+      List<dynamic> body = response.data;
+      diaryEntries = body.map((dynamic item) => DiaryEntry.fromJson(item)).toList();
+
+      if (diaryEntries.isEmpty) {
+        print('No search results found.');
+      }
+    } catch (e) {
+      print('Error fetching search results: $e');
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to fetch search results. Please try again later.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+ 
+
   void _loadNextPage() {
     setState(() {
       int totalPages = (diaryEntries.length / _entriesPerPage).ceil();
@@ -86,17 +130,17 @@ class _DiaryListPageState extends State<DiaryListPage> {
     });
   }
 
-  void fetchDiaryEntries() async {
-    setState(() => isLoading = true);
-    try {
-      // 여기에 데이터 가져오는 로직 구현
-      // 예: diaryEntries = await DiaryApiService.getDiaryEntries();
-      setState(() => isLoading = false);
-    } catch (e) {
-      print('Error fetching diary entries: $e');
-      setState(() => isLoading = false);
-    }
-  }
+  // void fetchDiaryEntries() async {
+  //   setState(() => isLoading = true);
+  //   try {
+  //     // 여기에 데이터 가져오는 로직 구현
+  //     // 예: diaryEntries = await DiaryApiService.getDiaryEntries();
+  //     setState(() => isLoading = false);
+  //   } catch (e) {
+  //     print('Error fetching diary entries: $e');
+  //     setState(() => isLoading = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +182,15 @@ class _DiaryListPageState extends State<DiaryListPage> {
                       const SizedBox(width: 13),
                       Expanded(
                         child: TextField(
+                          controller: searchController,
                           style: const TextStyle(color: Colors.white),
+                          onSubmitted: (value) {
+                            if (value.isNotEmpty) {
+                              searchEntries(value);
+                            } else {
+                              fetchEntries();
+                            }
+                          },
                           decoration: InputDecoration(
                             hintText: '제목/내용',
                             fillColor: Colors.transparent,
@@ -161,8 +213,16 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                   color: Colors.white, width: 3.0),
                             ),
                             hintStyle: const TextStyle(color: Colors.white),
-                            suffixIcon: const Icon(Icons.search_rounded,
-                                color: Colors.white, size: 30),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.search_rounded, color: Colors.white, size: 30),
+                              onPressed: () {
+                                if (searchController.text.isNotEmpty) {
+                                  searchEntries(searchController.text);
+                                } else {
+                                  fetchEntries();
+                                }
+                              },
+                            ),
                           ),
                         ),
                       ),

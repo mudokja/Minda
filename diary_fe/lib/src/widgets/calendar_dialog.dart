@@ -13,10 +13,9 @@ import 'package:diary_fe/src/screens/diary_detail_page.dart';
 import 'package:dio/dio.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 
-
 class CalendarDialog {
-
-  static Future<List<Map<String, dynamic>>> fetchDiaryEntriesByPeriod(DateTime startDate, DateTime endDate) async {
+  static Future<List<Map<String, dynamic>>> fetchDiaryEntriesByPeriod(
+      DateTime startDate, DateTime endDate) async {
     final apiService = ApiService();
     const url = '/api/diary/list/period';
     final data = {
@@ -210,7 +209,7 @@ class CalendarDialog {
 // }
 
 ////////////////////////////
-DateTime firstDay = DateTime.utc(2010, 10, 16);
+    DateTime firstDay = DateTime.utc(2010, 10, 16);
     DateTime lastDay = DateTime.utc(2030, 3, 14);
     DateTime focusedDay = DateTime.now();
 
@@ -219,7 +218,8 @@ DateTime firstDay = DateTime.utc(2010, 10, 16);
       Map<DateTime, Color> dayColors = {};
 
       for (var entry in diaryEntries) {
-        DateTime date = DateTime.parse(entry['diarySetDate']).toLocal(); // 시간 정보를 제거하여 날짜만 비교
+        DateTime date = DateTime.parse(entry['diarySetDate'])
+            .toLocal(); // 시간 정보를 제거하여 날짜만 비교
         double maxEmotionValue = [
           entry['diaryHappiness'],
           entry['diarySadness'],
@@ -243,7 +243,6 @@ DateTime firstDay = DateTime.utc(2010, 10, 16);
 
         // 날짜만 포함한 DateTime 객체로 키 설정
         dayColors[DateTime(date.year, date.month, date.day)] = color;
-
       }
 
       showDialog(
@@ -263,7 +262,8 @@ DateTime firstDay = DateTime.utc(2010, 10, 16);
                     selectedDayPredicate: (day) => false,
                     onDaySelected: (selectedDay, focusedDay) {
                       Navigator.pop(context);
-                      fetchDiaryEntriesByPeriod(selectedDay, selectedDay).then((diaryEntries) {
+                      fetchDiaryEntriesByPeriod(selectedDay, selectedDay)
+                          .then((diaryEntries) {
                         if (diaryEntries.isNotEmpty) {
                           var entry = diaryEntries.first;
                           Navigator.push(
@@ -279,19 +279,24 @@ DateTime firstDay = DateTime.utc(2010, 10, 16);
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('No diary entries found for this date.')),
+                            const SnackBar(
+                                content: Text(
+                                    'No diary entries found for this date.')),
                           );
                         }
                       }).catchError((error) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Failed to load diary entry. Please try again later.')),
+                          const SnackBar(
+                              content: Text(
+                                  'Failed to load diary entry. Please try again later.')),
                         );
                       });
                     },
                     calendarBuilders: CalendarBuilders(
                       defaultBuilder: (context, day, focusedDay) {
                         // 날짜 비교를 위해 날짜만 포함한 DateTime 객체로 변환
-                        DateTime dateOnly = DateTime(day.year, day.month, day.day);
+                        DateTime dateOnly =
+                            DateTime(day.year, day.month, day.day);
                         Color? color = dayColors[dateOnly];
 
                         if (color != null) {
@@ -330,7 +335,9 @@ DateTime firstDay = DateTime.utc(2010, 10, 16);
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: Colors.transparent,
-                            border: Border.all(color: const Color.fromARGB(255, 240, 105, 161)),
+                            border: Border.all(
+                                color:
+                                    const Color.fromARGB(255, 240, 105, 161)),
                             shape: BoxShape.circle,
                           ),
                           child: Text(
@@ -354,7 +361,9 @@ DateTime firstDay = DateTime.utc(2010, 10, 16);
     }).catchError((error) {
       print('Error fetching diary entries: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load diary entries. Please try again later.')),
+        const SnackBar(
+            content:
+                Text('Failed to load diary entries. Please try again later.')),
       );
     });
   }

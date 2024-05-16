@@ -36,9 +36,11 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   bool _isLoading = true;
   bool _isDisposed = false;
   String _loadingText = '현재 일기를 \n분석하고 있습니닷';
-  Timer? _loadingTimer;
   int limitedTime = 0;
+  Timer? _loadingTimer;
+  Timer? _adviceLoadingTimer;
   List<TextSpan> spans = [];
+  final String _beforeAdvice = "조언을 생성하는 중입니다. 분석 완료 알림이 오면 다시 확인해주세요.";
 
   String formatDate(DateTime dateTime) {
     return '${dateTime.year.toString().padLeft(4, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
@@ -58,6 +60,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   void dispose() {
     _isDisposed = true;
     _stopLoadingAnimation();
+    _stopAdviceLoadingAnimation();
     super.dispose();
   }
 
@@ -78,6 +81,8 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
             spans = _generateSpans();
             if (spans.isEmpty) {
               _startLoadingAnimation();
+            } else if (advice?.adviceContent == _beforeAdvice) {
+              _startAdviceLoadingAnimation();
             }
           });
         }
@@ -192,11 +197,11 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   }
 
   Map<String, Color> emotionColors = {
-    '기쁨': const Color(0xff845EC2),
-    '슬픔': const Color(0xffD65DB1),
-    '분노': const Color(0xffFF6F91),
-    '불안': const Color(0xffFF9671),
-    '놀람': const Color(0xffFFC75F),
+    '기쁨': const Color(0xFFF5AC25),
+    '슬픔': const Color(0xFFBC7FCD),
+    '분노': const Color(0xFFDF1E1E),
+    '불안': const Color(0xFF86469C),
+    '놀람': const Color(0xFFFC819E),
   };
 
   void onChangeDate(int num) {
@@ -251,6 +256,23 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
     _loadingTimer = null;
   }
 
+  void _startAdviceLoadingAnimation() {
+    _adviceLoadingTimer ??= Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) {
+        if (advice?.adviceContent == _beforeAdvice) {
+          fetchAnalysisData();
+        } else {
+          _stopAdviceLoadingAnimation();
+        }
+      }
+    });
+  }
+
+  void _stopAdviceLoadingAnimation() {
+    _adviceLoadingTimer?.cancel();
+    _adviceLoadingTimer = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -296,14 +318,14 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                         }
                       },
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.resolveWith(
+                        foregroundColor: WidgetStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: MaterialStateProperty.resolveWith(
+                        overlayColor: WidgetStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(MaterialState.pressed)) {
+                            if (states.contains(WidgetState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;
@@ -623,6 +645,7 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
     if (mounted) {
       setState(() {
         analysisData = data;
+        debugPrint('anal = $analysisData');
         findHighestEmotionDates();
       });
     }
@@ -750,16 +773,18 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
   }
 
   Map<String, Color> emotionColors = {
-    '기쁨': const Color(0xff845EC2),
-    '슬픔': const Color(0xffD65DB1),
-    '분노': const Color(0xffFF6F91),
-    '불안': const Color(0xffFF9671),
-    '놀람': const Color(0xffFFC75F),
+    '기쁨': const Color(0xFFF5AC25),
+    '슬픔': const Color(0xFFBC7FCD),
+    '분노': const Color(0xFFDF1E1E),
+    '불안': const Color(0xFF86469C),
+    '놀람': const Color(0xFFFC819E),
   };
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    final fontTitle = screenWidth < 400 ? 16.0 : 20.0;
+
     bool hasEmotions =
         analysisData['emotions'] != null && analysisData['emotions'].isNotEmpty;
     bool singleEntry = hasEmotions && analysisData['emotions'].length == 1;
@@ -791,14 +816,14 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                     TextButton(
                       onPressed: () => selectWeek(context),
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.resolveWith(
+                        foregroundColor: WidgetStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: MaterialStateProperty.resolveWith(
+                        overlayColor: WidgetStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(MaterialState.pressed)) {
+                            if (states.contains(WidgetState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;
@@ -807,8 +832,8 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                       ),
                       child: Text(
                         '${dateRange!.start.year.toString()}-${dateRange!.start.month.toString().padLeft(2, '0')}-${dateRange!.start.day.toString().padLeft(2, '0')}~${dateRange!.end.year.toString()}-${dateRange!.end.month.toString().padLeft(2, '0')}-${dateRange!.end.day.toString().padLeft(2, '0')}',
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontSize: fontTitle,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1214,11 +1239,11 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
   }
 
   Map<String, Color> emotionColors = {
-    '기쁨': const Color(0xff845EC2),
-    '슬픔': const Color(0xffD65DB1),
-    '분노': const Color(0xffFF6F91),
-    '불안': const Color(0xffFF9671),
-    '놀람': const Color(0xffFFC75F),
+    '기쁨': const Color(0xFFF5AC25),
+    '슬픔': const Color(0xFFBC7FCD),
+    '분노': const Color(0xFFDF1E1E),
+    '불안': const Color(0xFF86469C),
+    '놀람': const Color(0xFFFC819E),
   };
 
   @override
@@ -1255,14 +1280,14 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
                     TextButton(
                       onPressed: () => selectMonth(context),
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.resolveWith(
+                        foregroundColor: WidgetStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: MaterialStateProperty.resolveWith(
+                        overlayColor: WidgetStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(MaterialState.pressed)) {
+                            if (states.contains(WidgetState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;
@@ -1660,11 +1685,11 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
   }
 
   Map<String, Color> emotionColors = {
-    '기쁨': const Color(0xff845EC2),
-    '슬픔': const Color(0xffD65DB1),
-    '분노': const Color(0xffFF6F91),
-    '불안': const Color(0xffFF9671),
-    '놀람': const Color(0xffFFC75F),
+    '기쁨': const Color(0xFFF5AC25),
+    '슬픔': const Color(0xFFBC7FCD),
+    '분노': const Color(0xFFDF1E1E),
+    '불안': const Color(0xFF86469C),
+    '놀람': const Color(0xFFFC819E),
   };
 
   @override
@@ -1696,14 +1721,14 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
                     TextButton(
                       onPressed: () => selectCustomRange(context),
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.resolveWith(
+                        foregroundColor: WidgetStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: MaterialStateProperty.resolveWith(
+                        overlayColor: WidgetStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(MaterialState.pressed)) {
+                            if (states.contains(WidgetState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;
@@ -1965,4 +1990,3 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
           );
   }
 }
-

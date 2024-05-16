@@ -32,11 +32,11 @@ class _RadarChartTestState extends State<RadarChartTest> {
 
   List<RadarDataSet> _createRadarDataSets(List<double> values) {
     const colors = [
-      Color(0xff845EC2),
-      Color(0xffD65DB1),
-      Color(0xffFF6F91),
-      Color(0xffFF9671),
-      Color(0xffFFC75F),
+      Color(0xFFF5AC25),
+      Color(0xFFBC7FCD),
+      Color(0xFFDF1E1E),
+      Color(0xFF86469C),
+      Color(0xFFFC819E),
     ];
 
     return [

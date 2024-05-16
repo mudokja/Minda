@@ -93,7 +93,7 @@ public class OpenAIService {
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException("failed advice to convert to ChatGPTResponseDto");
                     }
-                    log.info("advice = {}", advice);
+                    log.debug("advice = {}", advice);
                     adviceRepository.save(Advice.builder()
                             .memberIndex(memberIndex)
                             .startDate(diary.getDiarySetDate())
@@ -106,15 +106,15 @@ public class OpenAIService {
 
     private ChatGPTRequestDto chatGPTRequestGenerator(String diaryTitle, Analyze analyze, Deque<String> emotionDeque) {
         List<Message> prompts = new ArrayList<>();
-        prompts.add(new Message("system", "1. 당신은 친절한 심리상담 전문가입니다."));
-        prompts.add(new Message("system", "2. 제공되는 일기와 감정 분석 결과를 보고 일기 작성자에게 분석과 조언을 해주세요."));
-        prompts.add(new Message("system", "3. 일기는 하나이지만 문장별로 감정 분석 결과(완벽히 신뢰할 수는 없음)가 제공됩니다."));
-        prompts.add(new Message("system", "4. 일기 작성자에 대한 호칭은 생략하세요."));
-        prompts.add(new Message("system", "5. 일기 작성자가 당신이 심리상담 전문가라는 것을 알 필요는 없습니다. 친구와 대화한다는 말투로 부드럽게 이야기하세요."));
-        prompts.add(new Message("system", "6. 기본적으로 한국어로 답변하지만, 다른 언어임이 분명할 경우 해당 언어로 답해도 좋습니다."));
-        prompts.add(new Message("system", "7. 일기 작성자는 당신과 직접적으로 대화할 수 없습니다. 대화를 하는 듯한 문장은 혼잣말이라고 생각하세요."));
-        prompts.add(new Message("system", "8. 심리적으로 우려되는 부분이 있다면 일기 작성자에게 그 부분을 분석적으로 이야기 해주세요"));
-        prompts.add(new Message("system", "9. 가장 중요! 당신은 다음에 이 분석들을 모아서 주간 또는 월간 분석을 해줘야 할 수 있습니다. 응답형식을 json 형식으로 하여 { advice: {일기 작성자 에 대한 조언}, comment:{다음 분석시 활용할 요점 코멘트} } 와 같이 응답하세요."));
+        prompts.add(new Message("system", "1. You are a kind psychological counselor."));
+        prompts.add(new Message("system", "2. Review the provided diary entries and emotion analysis results, then offer analysis and advice to the diary writer."));
+        prompts.add(new Message("system", "3. There is only one diary entry, but emotion analysis results (which may not be completely reliable) are provided for each sentence."));
+        prompts.add(new Message("system", "4. Omit any titles or formal address for the diary writer."));
+        prompts.add(new Message("system", "5. The diary writer does not need to know that you are a psychological counselor. Speak gently as if talking to a friend."));
+        prompts.add(new Message("system", "6. Primarily respond in Korean, but if it is clear that the language is different, feel free to respond in that language."));
+        prompts.add(new Message("system", "7. The diary writer cannot communicate with you directly. Treat conversational statements as if talking to yourself."));
+        prompts.add(new Message("system", "8. If there are any psychologically concerning aspects, address them analytically with the diary writer."));
+        prompts.add(new Message("system", "9. Most importantly! You will need to compile these analyses into a weekly or monthly report. Respond in JSON format as follows: { advice: {advice for the diary writer}, comment: {key points and keywords for future analysis} }"));
 
         prompts.add(new Message("user","제목 :"+diaryTitle));
         for (String sentence : analyze.getSentence()) {
@@ -122,7 +122,44 @@ public class OpenAIService {
             prompts.add(new Message("assistant", "(분석감정:"+emotionDeque.poll()+")"));
 
         }
-        return new ChatGPTRequestDto(gptModel, prompts);
+        return new ChatGPTRequestDto(gptModel, prompts,"json_object");
+    }
+    private ChatGPTRequestDto chatGPTRequestPeriodGenerator(List<Diary> diaryList, List<Analyze> analyzeList, List<Advice> adviceList) {
+        List<Message> prompts = new ArrayList<>();
+        prompts.add(new Message("system", "1. You are a kind psychological counselor."));
+        prompts.add(new Message("system", "2. You will be provided with comments on the last diary entry, the extracted keywords using krwordrank from that entry, and the emotion analysis results."));
+        prompts.add(new Message("system", "3. You need to analyze the diaries from a specific period and provide comprehensive analysis and advice to the diary writer."));
+        prompts.add(new Message("system", "4. Omit any titles or formal address for the diary writer."));
+        prompts.add(new Message("system", "5. The diary writer does not need to know that you are a psychological counselor. Speak gently as if talking to a friend."));
+        prompts.add(new Message("system", "6. Primarily respond in Korean, but if it is clear that the language is different, feel free to respond in that language."));
+        prompts.add(new Message("system", "7. The diary writer cannot communicate with you directly. Treat conversational statements as if talking to yourself."));
+        prompts.add(new Message("system", "8. If there are any psychologically concerning aspects, address them analytically with the diary writer."));
+        prompts.add(new Message("system", "Most importantly, the response format for these analyses should be in JSON format as follows: { \"advice\": { \"advice for the diary writer\" }, \"comment\": { \"This is a period analysis\" at the beginning, followed by a brief summary of the main keywords } }."));
+
+//        String prompt = "일기를 AI에 넣은 감정 분석 결과와 그 일기에서 krwordrank로 추출한 키워드야. 감정 분석 결과와 키워드를 참고해서 일기 작성자에게 조언을 해 줘. 친구에게 이야기하는 듯한 말투로 부드러운 어조로 조언을 해 줘. 호칭은 생략해 줘. \n";
+        for (int i = 0; i < diaryList.size(); i++) {
+            Diary curDiary = diaryList.get(i);
+            double[] emotionValues = {
+                    curDiary.getDiaryAnger(),
+                    curDiary.getDiarySadness(),
+                    curDiary.getDiarySurprise(),
+                    curDiary.getDiaryFear(),
+                    curDiary.getDiaryHappiness()
+            };
+            double max = -100;
+            int maxIndex = -1;
+            for (int j = 0; j < emotionValues.length; j++) {
+                if (emotionValues[j] > max) {
+                    max = emotionValues[j];
+                    maxIndex = j;
+                }
+            }
+            prompts.add(new Message("assistant",i+"번 일기 \n 감정: " + emotionArray[maxIndex + 1] + "\n" +"키워드: " + analyzeList.get(i).getKeyword().toString() + "\n" + "comment : "+adviceList.get(i).getAdviceComment()));
+        }
+        prompts.add(new Message("user","그럼, 이제 기간 동안의 일기 분석 결과를 종합해서 알려주세요."));
+        log.debug("prompt={}", prompts);
+
+        return new ChatGPTRequestDto(gptModel, prompts,"json_object");
     }
 
     private ChatGPTRequestDto oldChatGPTRequestGenerator(Analyze analyze, Deque<String> emotionDeque) {
@@ -138,7 +175,35 @@ public class OpenAIService {
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
         List<Long> diaryIndexList = diaryList.stream().map(Diary::getDiaryIndex).collect(Collectors.toList());
         List<Analyze> analyzeList = analyzeRepository.findByDiaryIndexIn(diaryIndexList);
+        List<Advice> adviceList = adviceRepository.findByAllMemberIndexAndPeriod(memberIndex,startDate,endDate);
+        ChatGPTRequestDto request = chatGPTRequestPeriodGenerator(diaryList,analyzeList,adviceList);
+        return webClient.post()
+                .uri(apiURL + "chat/completions")
+                .header("Authorization", "Bearer " + openAIApiKey)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(ChatGPTResponseDto.class)
+                .doOnNext(chatGPTResponseDto -> {
+                    String advice = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    ChatGPTResponseMessage message;
+                    try {
+                        message = objectMapper.readValue(advice, ChatGPTResponseMessage.class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException("failed advice to convert to ChatGPTResponseDto");
+                    }
+                    log.debug("advice = {}", advice);
+                    adviceRepository.save(Advice.builder()
+                            .memberIndex(memberIndex)
+                            .startDate(startDate)
+                            .endDate(endDate)
+                            .adviceContent(message.getAdvice())
+                            .adviceComment(message.getComment())
+                            .build());
+                });
+    }
 
+    private ChatGPTRequestDto oldChatGPTRequestPeriodGenerator(List<Diary> diaryList) {
         String prompt = "일기를 AI에 넣은 감정 분석 결과와 그 일기에서 krwordrank로 추출한 키워드야. 감정 분석 결과와 키워드를 참고해서 일기 작성자에게 조언을 해 줘. 친구에게 이야기하는 듯한 말투로 부드러운 어조로 조언을 해 줘. 호칭은 생략해 줘. \n";
         for (int i = 0; i < diaryList.size(); i++) {
             prompt += (i + 1) + "번 일기\n";
@@ -161,25 +226,10 @@ public class OpenAIService {
             prompt += "감정: " + emotionArray[maxIndex + 1] + "\n";
 //            prompt += "키워드: " + analyzeList.get(i).getKeyword().toString() + "\n";
         }
-        log.info("prompt={}", prompt);
+        log.debug("prompt={}", prompt);
 
         ChatGPTRequestDto request = new ChatGPTRequestDto(gptModel, prompt);
-        return webClient.post()
-                .uri(apiURL + "chat/completions")
-                .header("Authorization", "Bearer " + openAIApiKey)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatGPTResponseDto.class)
-                .doOnNext(chatGPTResponseDto -> {
-                    String advice = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
-                    log.info("advice = {}", advice);
-                    adviceRepository.save(Advice.builder()
-                            .memberIndex(memberIndex)
-                            .startDate(startDate)
-                            .endDate(endDate)
-                            .adviceContent(advice).
-                            build());
-                });
+        return request;
     }
 
     @Transactional

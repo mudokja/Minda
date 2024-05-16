@@ -82,6 +82,11 @@ public class GlobalExceptionHandler {
         log.error("EmailException: ", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
     }
+    @ExceptionHandler(NotificationException.NotificationTokenDuplicatedException.class)
+    public ResponseEntity<String> handleNotificationTokenDuplicatedException(RuntimeException exception) {
+        log.error("NotificationTokenDuplicatedException: ", exception);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+    }
     @ExceptionHandler(NotificationException.class)
     public ResponseEntity<String> handleNotificationException(RuntimeException exception) {
         log.error("NotificationException: ", exception);

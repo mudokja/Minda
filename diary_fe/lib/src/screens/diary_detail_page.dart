@@ -229,12 +229,13 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
           'diaryIndex': widget.diaryIndex,
         });
       } else {
-        print('Failed to delete diary');
-      }
-    } catch (e) {
-      print('Error deleting diary: $e');
+      print('Failed to delete diary. Status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
     }
+  } catch (e) {
+    print('Error deleting diary: $e');
   }
+}
 
   void onPreviousButtonPressed() async {
     if (isLoading || !hasPrevious) return; // 로딩 중이거나 이전 일기가 없으면 return

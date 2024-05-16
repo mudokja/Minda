@@ -10,8 +10,10 @@ import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
+import com.ssafy.diary.domain.openAI.dto.ChatGPTRequestDto;
 import com.ssafy.diary.domain.openAI.dto.ChatGPTResponseDto;
 import com.ssafy.diary.domain.openAI.service.OpenAIService;
+import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,42 +36,43 @@ public class AdviceService {
     private final AdviceRepository adviceRepository;
     private final AnalyzeRepository analyzeRepository;
     private final OpenAIService openAIService;
+    private final S3Service s3Service;
 
     @Autowired
     private final WebClient webClient;
 
-    private String[] emotionArray = {"중립","분노","슬픔","놀람","불안","기쁨"};
+    private String[] emotionArray = {"중립", "분노", "슬픔", "놀람", "불안", "기쁨"};
 
     @Transactional
-    public SingleAdviceResponseDto getAdvice(Long memberIndex, SingleAdviceRequestDto singleAdviceRequestDto){
-        Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex,singleAdviceRequestDto.getDate())
+    public SingleAdviceResponseDto getAdvice(Long memberIndex, SingleAdviceRequestDto singleAdviceRequestDto) {
+        Diary diary = diaryRepository.findByMemberIndexAndDiarySetDate(memberIndex, singleAdviceRequestDto.getDate())
                 .orElseThrow(() -> new DiaryNotFoundException("다이어리를 찾을 수 없습니다."));
 
         Long diaryIndex = diary.getDiaryIndex();
         Analyze analyze = analyzeRepository.findByDiaryIndex(diaryIndex)
-                .orElseThrow(()-> new IllegalStateException("저장된 분석 결과가 없습니다."));
+                .orElseThrow(() -> new IllegalStateException("저장된 분석 결과가 없습니다."));
 
-        HashMap<String,Double[]> emotion = analyze.getEmotion();
+        HashMap<String, Double[]> emotion = analyze.getEmotion();
         List<String> emotionList = new ArrayList<>();
 
-        for(Double[] value:emotion.values()){
+        for (Double[] value : emotion.values()) {
             double max = -100;
             int maxIndex = -1;
-            for(int i=0;i<value.length;i++){
-                if(value[i]>max){
+            for (int i = 0; i < value.length; i++) {
+                if (value[i] > max) {
                     max = value[i];
                     maxIndex = i;
                 }
             }
             emotionList.add(emotionArray[maxIndex]);
         }
-        HashMap<String,Double> statusMap = new HashMap<>();
+        HashMap<String, Double> statusMap = new HashMap<>();
 
-        statusMap.put("분노",diary.getDiaryAnger());
-        statusMap.put("슬픔",diary.getDiarySadness());
-        statusMap.put("놀람",diary.getDiarySurprise());
-        statusMap.put("불안",diary.getDiaryFear());
-        statusMap.put("기쁨",diary.getDiaryHappiness());
+        statusMap.put("분노", diary.getDiaryAnger());
+        statusMap.put("슬픔", diary.getDiarySadness());
+        statusMap.put("놀람", diary.getDiarySurprise());
+        statusMap.put("불안", diary.getDiaryFear());
+        statusMap.put("기쁨", diary.getDiaryHappiness());
 
         Optional<Advice> advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, singleAdviceRequestDto.getDate(), singleAdviceRequestDto.getDate());
 
@@ -97,9 +100,9 @@ public class AdviceService {
                     .build();
         }
 
-        HashMap<String,Double> statusMap = new HashMap<>();
+        HashMap<String, Double> statusMap = new HashMap<>();
 
-        for(Diary diary: diaryList) {
+        for (Diary diary : diaryList) {
 
             // statusMap에 각 다이어리의 감정값을 누적하여 넣습니다.
             statusMap.put("분노", statusMap.getOrDefault("분노", 0.0) + diary.getDiaryAnger());
@@ -122,16 +125,29 @@ public class AdviceService {
         Optional<Advice> optionalAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
         String adviceContent = "";
-        if(!optionalAdvice.isPresent()) {
+        String imageLink = "";
+        if (!optionalAdvice.isPresent()) {
+            imageLink = getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
             ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).block();
+
             adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+            log.info("advice = {}", adviceContent);
+            adviceRepository.save(Advice.builder()
+                    .memberIndex(memberIndex)
+                    .startDate(adviceRequestDto.getStartDate())
+                    .endDate(adviceRequestDto.getEndDate())
+                    .adviceContent(adviceContent)
+                    .imageLink(imageLink)
+                    .build());
         } else {
             adviceContent = optionalAdvice.get().getAdviceContent();
+            imageLink = optionalAdvice.get().getImageLink();
         }
 
         return AdviceResponseDto.builder()
 //                .adviceContent(chatGPTResponseDto.getChoices().get(0).getMessage().getContent())
                 .adviceContent(adviceContent)
+                .imageLink(imageLink)
                 .status(statusMap).build();
     }
 
@@ -139,15 +155,31 @@ public class AdviceService {
     public void updateAdviceByPeriod(Long memberIndex, LocalDate diarySetDate) {
         List<Advice> adviceList = adviceRepository.findAdvicesByMemberIndexAndDate(memberIndex, diarySetDate);
 
-        if(adviceList != null && !adviceList.isEmpty()) {
-            for(Advice advice: adviceList) {
-
+        System.out.println("조언 목록 조회 후");
+        if (adviceList != null && !adviceList.isEmpty()) {
+            System.out.println("조언 목록이 비어있는지 체크 후");
+            for (Advice advice : adviceList) {
+                System.out.println("조언 목록의 각 조언 별로 반복문 실행");
                 List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, advice.getStartDate(), advice.getEndDate());
+                s3Service.deleteImageFromS3(advice.getImageLink());
                 adviceRepository.deleteByMemberIndexAndDate(memberIndex, advice.getStartDate(), advice.getEndDate());
 
-                if(diaryList != null && !diaryList.isEmpty()) {
-
+                if (diaryList != null && !diaryList.isEmpty()) {
+                    System.out.println("해당 기간의 일기 목록이 존재하는지 체크 후");
                     openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
+                    String imageLink = getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate());
+
+                    ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate()).block();
+
+                    String adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+                    log.info("advice = {}", advice);
+                    adviceRepository.save(Advice.builder()
+                            .memberIndex(memberIndex)
+                            .startDate(advice.getStartDate())
+                            .endDate(advice.getEndDate())
+                            .adviceContent(adviceContent)
+                            .imageLink(imageLink)
+                            .build());
                 }
 //                else {
 //                    adviceRepository.deleteByMemberIndexAndDate(memberIndex, advice.getStartDate(), advice.getEndDate());
@@ -170,7 +202,7 @@ public class AdviceService {
                 .retrieve()
                 .bodyToMono(String.class);
 
-        return response.block();  // 이 부분은 비동기 처리로 변경하는 것이 바람직
+        return response.block().replaceAll("^\"|\"$", "");  // 이 부분은 비동기 처리로 변경하는 것이 바람직
     }
 
 }

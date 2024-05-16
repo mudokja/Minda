@@ -112,4 +112,10 @@ public class Diary extends BaseEntity {
 //        this.diarySurprise = diaryUpdateRequestDto.getDiarySurprise();
     }
 
+    // 이미지 추가 메소드
+    public void addImage(Image image) {
+        this.imageList.add(image);
+        image.setDiaryIndex(this.diaryIndex); // 수동으로 외래 키 설정
+    }
+
 }

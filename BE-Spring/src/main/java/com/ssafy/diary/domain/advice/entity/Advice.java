@@ -39,11 +39,13 @@ public class Advice extends BaseEntity {
     private String imageLink;
 
     @Builder
-    public Advice (Long memberIndex, LocalDate startDate, LocalDate endDate, String adviceContent){
+    public Advice(Long adviceIndex, Long memberIndex, LocalDate startDate, LocalDate endDate, String adviceContent, String imageLink) {
+        this.adviceIndex = adviceIndex;
         this.memberIndex = memberIndex;
-        this.startDate =startDate;
+        this.startDate = startDate;
         this.endDate = endDate;
         this.adviceContent = adviceContent;
+        this.imageLink = imageLink;
     }
 
 //    public AdviceResponseDto toDto() {

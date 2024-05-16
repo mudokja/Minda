@@ -110,7 +110,7 @@ public class OpenAIService {
         List<Long> diaryIndexList = diaryList.stream().map(Diary::getDiaryIndex).collect(Collectors.toList());
         List<Analyze> analyzeList = analyzeRepository.findByDiaryIndexIn(diaryIndexList);
 
-        String prompt = "일기를 AI에 넣은 감정 분석 결과와 그 일기에서 krwordrank로 추출한 키워드야. 감정 분석 결과와 키워드를 참고해서 일기 작성자에게 조언을 해 줘. 친구에게 이야기하는 듯한 말투로 부드러운 어조로 조언을 해 줘. 호칭은 생략해 줘. \n";
+        String prompt = "일기를 AI에 넣은 감정 분석 결과와 그 일기에서 krwordrank로 추출한 키워드야. 감정 분석 결과와 키워드를 참고해서 일기 작성자에게 조언을 해 줘. 일기 리스트의 일기 하나하나마다 개별적으로 조언하지 말고, 모든 일기를 다 읽은 뒤 종합해서 조언을 해 줘. 친구에게 이야기하는 듯한 말투로 부드러운 어조로 조언을 해 줘. 호칭은 생략해 줘. \n";
         for (int i = 0; i < diaryList.size(); i++) {
             prompt += (i + 1) + "번 일기\n";
             Diary curDiary = diaryList.get(i);
@@ -130,7 +130,7 @@ public class OpenAIService {
                 }
             }
             prompt += "감정: " + emotionArray[maxIndex + 1] + "\n";
-//            prompt += "키워드: " + analyzeList.get(i).getKeyword().toString() + "\n";
+            prompt += "키워드: " + analyzeList.get(i).getKeyword().toString() + "\n";
         }
         log.info("prompt={}", prompt);
 
@@ -141,16 +141,17 @@ public class OpenAIService {
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(ChatGPTResponseDto.class)
-                .doOnNext(chatGPTResponseDto -> {
-                    String advice = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
-                    log.info("advice = {}", advice);
-                    adviceRepository.save(Advice.builder()
-                            .memberIndex(memberIndex)
-                            .startDate(startDate)
-                            .endDate(endDate)
-                            .adviceContent(advice).
-                            build());
-                });
+//                .doOnNext(chatGPTResponseDto -> {
+//                    String advice = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+//                    log.info("advice = {}", advice);
+//                    adviceRepository.save(Advice.builder()
+//                            .memberIndex(memberIndex)
+//                            .startDate(startDate)
+//                            .endDate(endDate)
+//                            .adviceContent(advice).
+//                            build());
+//                })
+                ;
     }
 
     @Transactional

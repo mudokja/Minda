@@ -100,7 +100,7 @@ public class DiaryService {
         List<Image> imageList = new ArrayList<>();
 
         if (imageFiles != null) {
-            imageList = saveAndGetImageList(imageFiles);
+            imageList = s3Service.saveAndGetImageList(imageFiles);
         }
 
         Diary diary = diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
@@ -117,17 +117,17 @@ public class DiaryService {
             diaryRepository.save(diary);
             openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
                     .subscribe(ChatGPTRequestDto -> {
-//                                try {
-//                                    notificationService.sendFirebaseMemberNotificationMessage(
-//                                            KafkaMemberNotificationMessageRequestDto.builder()
-//                                                    .title("분석 완료")
-//                                                    .body("일기 분석이 완료되었어요!")
-//                                                    .memberIndex(memberIndex)
-//                                                    .build()
-//                                    );
-//                                } catch (FirebaseMessagingException e) {
-//                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
-//                                }
+                                try {
+                                    notificationService.sendFirebaseMemberNotificationMessage(
+                                            KafkaMemberNotificationMessageRequestDto.builder()
+                                                    .title("분석 완료")
+                                                    .body("일기 분석이 완료되었어요!")
+                                                    .memberIndex(memberIndex)
+                                                    .build()
+                                    );
+                                } catch (FirebaseMessagingException e) {
+                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
+                                }
                             }
                     );
 
@@ -216,12 +216,12 @@ public class DiaryService {
         diary.update(diaryUpdateRequestDto);
 
         // 기존 이미지 엔티티들을 삭제
-        deleteImageFromS3(diary.getImageList());
+        s3Service.deleteImagesFromS3(diary.getImageList());
         diary.getImageList().clear();
 
         // 새로운 이미지 엔티티들을 추가
         if (imageFiles != null) {
-            List<Image> imageList = saveAndGetImageList(imageFiles);
+            List<Image> imageList = s3Service.saveAndGetImageList(imageFiles);
             diary.getImageList().addAll(imageList);
         }
 
@@ -258,7 +258,7 @@ public class DiaryService {
             throw new UnauthorizedDiaryAccessException("해당 다이어리에 대한 권한이 없습니다: " + diaryIndex);
         }
 
-        deleteImageFromS3(diary.getImageList());
+        s3Service.deleteImagesFromS3(diary.getImageList());
         diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
         analyzeRepository.deleteByDiaryIndex(diaryIndex);
         adviceRepository.deleteByMemberIndexAndDate(memberIndex, diary.getDiarySetDate(), diary.getDiarySetDate());
@@ -382,37 +382,6 @@ public class DiaryService {
 //
 //        return imageList;
 //    }
-
-    //이미지 s3에 저장하고 imageList 반환
-    private List<Image> saveAndGetImageList(MultipartFile[] imageFiles) {
-        List<Image> imageList = new ArrayList<>();
-        for (MultipartFile imageFile : imageFiles) {
-            try {
-                String imageLink = s3Service.saveFile(imageFile);
-                imageList.add(Image.builder()
-                        .imageName(imageFile.getOriginalFilename())
-                        .imageLink(imageLink)
-                        .build());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-        }
-
-        return imageList;
-    }
-
-    //이미지url에서 파일이름 추출해서 삭제
-    private void deleteImageFromS3(List<Image> imageList) {
-        for (Image image : imageList) {
-            String imageName;
-            int lastSlashIndex = image.getImageLink().lastIndexOf('/');
-            if (lastSlashIndex != -1) {
-                imageName = image.getImageLink().substring(lastSlashIndex + 1);
-                s3Service.deleteFile(imageName);
-            }
-        }
-    }
 
 }
 

@@ -11,8 +11,8 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 public class ChatGPTResponseMessage implements Serializable {
-    String advice;
-    String comment;
+    private String advice;
+    private String comment;
     @Builder
     public ChatGPTResponseMessage(String advice, String comment) {
         this.advice = advice;

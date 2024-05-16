@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show Platform;
-import 'dart:js';
 import 'package:diary_fe/env/env.dart';
 import 'package:diary_fe/src/error/social_login_error.dart';
 import 'package:diary_fe/src/models/user.dart';
@@ -37,7 +36,7 @@ class UserProvider with ChangeNotifier {
     checkInitialLogin();
   }
   Future<void> _tokenRegister() async {
-   await NotificationService().tokenRegister();
+    await NotificationService().tokenRegister();
   }
 
   Future<void> login(String id, String pw) async {
@@ -47,18 +46,21 @@ class UserProvider with ChangeNotifier {
     _fetchTokenInfo(responseMap);
     await _tokenRegister();
   }
-  Future<void> logout() async{
+
+  Future<void> logout() async {
     String? refreshToken = await storage.read(key: "REFRESH_TOKEN");
     await apiService.delete('/api/auth/logout?refreshToken=$refreshToken');
     await NotificationService().tokenDelete();
     deleteStorage.deleteAll();
   }
-  Future<void> leave() async{
+
+  Future<void> leave() async {
     await apiService.delete("/api/member");
     unLink();
     logout();
   }
-  Future<void> _webKakaoLogin() async{
+
+  Future<void> _webKakaoLogin() async {
     bool talkInstalled = await isKakaoTalkInstalled();
     if (talkInstalled) {
       try {
@@ -82,10 +84,10 @@ class UserProvider with ChangeNotifier {
         await UserApi.instance.loginWithKakaoAccount();
       } catch (error) {
         debugPrint('카카오계정으로 로그인 실패 $error');
-
       }
     }
   }
+
   Future<void> kakaoLogin() async {
     bool talkInstalled = await isKakaoTalkInstalled();
 
@@ -131,66 +133,62 @@ class UserProvider with ChangeNotifier {
       rethrow;
     }
   }
-  Future<void> retryKakaoLogin(String? email) async{
+
+  Future<void> retryKakaoLogin(String? email) async {
     kakaoUser = await UserApi.instance.me();
-    if(email==null&&kakaoUser?.kakaoAccount?.email==null)  {
+    if (email == null && kakaoUser?.kakaoAccount?.email == null) {
       throw SocialLoginError("Email Required");
     }
 
-    Map requestData={
+    Map requestData = {
       "platform": "KAKAO",
       "id": kakaoUser?.id,
       "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
-      "email": email??kakaoUser?.kakaoAccount?.email
+      "email": email ?? kakaoUser?.kakaoAccount?.email
     };
     Response? response;
-    try{
-      response = await apiService.post("/api/auth/oauth2/login", data: requestData);
+    try {
+      response =
+          await apiService.post("/api/auth/oauth2/login", data: requestData);
       _fetchTokenInfo(response.data);
       await _tokenRegister();
-    } catch (e){
-      if(e is DioException){
-        if(e.response?.statusCode==400)
-        {
-          switch(e.response?.data){
-            case "email is empty" :
+    } catch (e) {
+      if (e is DioException) {
+        if (e.response?.statusCode == 400) {
+          switch (e.response?.data) {
+            case "email is empty":
               throw SocialLoginError("Email Required");
-            default :
+            default:
               throw SocialLoginError("Register Failed");
-
           }
         }
       }
-
     }
-
   }
 
   Future<Map<String, dynamic>> _requestOauth2KakaoLogin() async {
     kakaoUser = await UserApi.instance.me();
-    Map requestData= {
+    Map requestData = {
       "platform": "KAKAO",
       "id": kakaoUser?.id,
       "nickname": kakaoUser?.kakaoAccount?.profile?.nickname,
       "email": kakaoUser?.kakaoAccount?.email
     };
     Response? response;
-    try{
-      response = await apiService.post("/api/auth/oauth2/login", data: requestData);
-    } catch (e){
-      if(e is DioException){
-        if(e.response?.statusCode==400)
-          {
-            switch(e.response?.data){
-              case "email is empty" :
-                throw SocialLoginError("Email Required");
-              default :
-                throw SocialLoginError("Register Failed");
-
-            }
+    try {
+      response =
+          await apiService.post("/api/auth/oauth2/login", data: requestData);
+    } catch (e) {
+      if (e is DioException) {
+        if (e.response?.statusCode == 400) {
+          switch (e.response?.data) {
+            case "email is empty":
+              throw SocialLoginError("Email Required");
+            default:
+              throw SocialLoginError("Register Failed");
           }
+        }
       }
-
     }
 
     return response?.data;
@@ -236,6 +234,4 @@ class UserProvider with ChangeNotifier {
   Future<void> unLink() async {
     await UserApi.instance.unlink();
   }
-  }
-
-
+}

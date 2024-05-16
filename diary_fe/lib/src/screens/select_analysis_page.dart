@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:diary_fe/src/chart/bar_chart/bar_chart_test.dart';
@@ -9,6 +10,7 @@ import 'package:diary_fe/src/services/advice_service.dart';
 import 'package:diary_fe/src/services/analysis_service.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:mat_month_picker_dialog/mat_month_picker_dialog.dart';
 
 class DayAnalysisPage extends StatefulWidget {
@@ -33,6 +35,10 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   AdviceModel? advice;
   bool _isLoading = true;
   bool _isDisposed = false;
+  String _loadingText = '현재 일기를 \n분석하고 있습니닷';
+  Timer? _loadingTimer;
+  int limitedTime = 0;
+  List<TextSpan> spans = [];
 
   String formatDate(DateTime dateTime) {
     return '${dateTime.year.toString().padLeft(4, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
@@ -45,11 +51,13 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
     _analysisService = AnalysisService();
     _adviceService = AdviceService();
     fetchAnalysisData();
+    _startLoadingAnimation();
   }
 
   @override
   void dispose() {
     _isDisposed = true;
+    _stopLoadingAnimation();
     super.dispose();
   }
 
@@ -67,6 +75,10 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
             _isLoading = false;
             analysisData = data;
             advice = adviceData;
+            spans = _generateSpans();
+            if (spans.isEmpty) {
+              _startLoadingAnimation();
+            }
           });
         }
       } catch (e) {
@@ -75,6 +87,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
           setState(() {
             analysisData = data;
             _isLoading = false;
+            spans = _generateSpans();
           });
         }
       }
@@ -84,44 +97,13 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
           analysisData = data;
           advice = null;
           _isLoading = false;
+          spans = [];
         });
       }
     }
   }
 
-  Map<String, Color> emotionColors = {
-    '기쁨': const Color(0xff845EC2),
-    '슬픔': const Color(0xffD65DB1),
-    '분노': const Color(0xffFF6F91),
-    '불안': const Color(0xffFF9671),
-    '놀람': const Color(0xffFFC75F),
-  };
-
-  void onChangeDate(int num) {
-    setState(() {
-      if (num > 0) {
-        if (date.isBefore(DateTime.now())) {
-          DateTime newDate = date.add(Duration(days: num));
-          date = newDate.isBefore(DateTime.now()) ||
-                  newDate.isAtSameMomentAs(DateTime.now())
-              ? newDate
-              : DateTime.now();
-        }
-      } else if (num < 0) {
-        date = date.subtract(Duration(days: (-num)));
-      }
-      widget.onDateSelected(date);
-      fetchAnalysisData();
-    });
-  }
-
-  void reload() {
-    fetchAnalysisData();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+  List<TextSpan> _generateSpans() {
     List<TextSpan> spans = [];
 
     if (advice != null &&
@@ -205,6 +187,75 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
         ));
       }
     }
+
+    return spans;
+  }
+
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
+
+  void onChangeDate(int num) {
+    setState(() {
+      if (num > 0) {
+        if (date.isBefore(DateTime.now())) {
+          DateTime newDate = date.add(Duration(days: num));
+          date = newDate.isBefore(DateTime.now()) ||
+                  newDate.isAtSameMomentAs(DateTime.now())
+              ? newDate
+              : DateTime.now();
+        }
+      } else if (num < 0) {
+        date = date.subtract(Duration(days: (-num)));
+      }
+      widget.onDateSelected(date);
+      limitedTime = 0;
+      _loadingText = '현재 일기를 \n분석하고 있습니닷';
+      fetchAnalysisData();
+    });
+  }
+
+  void _startLoadingAnimation() {
+    _loadingTimer ??=
+        Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (mounted) {
+        if (limitedTime < 20) {
+          setState(() {
+            if (_loadingText != '현재 일기를 \n분석하고 있습니닷...!') {
+              _loadingText += '.';
+              if (_loadingText == '현재 일기를 \n분석하고 있습니닷....') {
+                _loadingText = '현재 일기를 \n분석하고 있습니닷...!';
+              }
+            } else {
+              fetchAnalysisData();
+              limitedTime++;
+
+              _loadingText = '현재 일기를 \n분석하고 있습니닷';
+            }
+          });
+        }
+      }
+
+      if (spans.isNotEmpty || !mounted || limitedTime >= 20) {
+        _stopLoadingAnimation();
+      }
+    });
+  }
+
+  void _stopLoadingAnimation() {
+    _loadingTimer?.cancel();
+    _loadingTimer = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontTitle = screenWidth < 400 ? 16.0 : 20.0;
+
     return _isLoading
         ? SizedBox(
             width: MediaQuery.of(context).size.width,
@@ -221,11 +272,6 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
               children: [
-                IconButton(
-                  onPressed: reload,
-                  icon: const Icon(Icons.replay_outlined),
-                  color: Colors.white,
-                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -282,16 +328,15 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                 Container(
                   margin: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF9D1DD), // Pink background color
-                    borderRadius: BorderRadius.circular(8), // Rounded corners
+                    color: const Color(0xFFF9D1DD),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: CustomPaint(
                     painter: LinedPaperPainter(),
-                    foregroundPainter: NotebookHolesPainter(
-                        24), // Line spacing for notebook holes
+                    foregroundPainter: NotebookHolesPainter(24),
                     child: SizedBox(
                       width: screenWidth,
-                      height: 400, // Fixed height
+                      height: 400,
                       child: Padding(
                         padding: const EdgeInsets.all(30),
                         child: SingleChildScrollView(
@@ -303,19 +348,44 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                                         analysisData['titles'].isNotEmpty
                                     ? '${analysisData['titles'][0]}'
                                     : '현재 작성된 일기가 없습니다!',
-                                style: const TextStyle(
-                                  fontSize: 20,
+                                style: TextStyle(
+                                  fontSize: fontTitle,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              if (analysisData['contents'] != null &&
-                                  analysisData['contents'].isNotEmpty)
-                                RichText(
-                                  text: TextSpan(
-                                    children: spans,
-                                  ),
-                                ),
+                              analysisData['contents'] != null &&
+                                      analysisData['contents'].isNotEmpty
+                                  ? spans.isNotEmpty
+                                      ? RichText(
+                                          text: TextSpan(
+                                            children: spans,
+                                          ),
+                                        )
+                                      : limitedTime >= 20
+                                          ? Center(
+                                              child: IconButton(
+                                                icon: const Icon(
+                                                    Icons.restart_alt),
+                                                iconSize: 50,
+                                                color: Colors.black,
+                                                onPressed: () {
+                                                  setState(() {
+                                                    limitedTime = 0;
+                                                    fetchAnalysisData();
+                                                  });
+                                                },
+                                              ),
+                                            )
+                                          : Text(
+                                              _loadingText,
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            )
+                                  : const Text('')
                             ],
                           ),
                         ),
@@ -324,28 +394,34 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                   ),
                 ),
                 SizedBox(
-                  width: screenWidth * 0.85,
+                  width: screenWidth * 0.8,
                   height: 25,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: emotionColors.entries.map((entry) {
-                      return Row(
-                        children: [
-                          const SizedBox(width: 5),
-                          Text(
-                            '${entry.key} - ',
-                            style: const TextStyle(color: Colors.white),
+                      return Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: entry.value.withOpacity(0.7),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: entry.value.withOpacity(0.7),
-                            ),
-                            width: 50,
-                            height: 18,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            // mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: screenWidth < 400 ? 13 : 14,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       );
                     }).toList(),
                   ),
@@ -402,56 +478,93 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                           const SizedBox(
                             height: 50,
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Image.asset(
-                                  'assets/gifs/thinking_face.gif',
-                                  width: 100,
-                                  height: 100,
-                                ),
-                              ),
-                              const Expanded(
-                                flex: 1,
-                                child: SizedBox(),
-                              ),
-                              Expanded(
-                                flex: 5,
-                                child: SizedBox(
-                                  child: advice?.adviceContent == null
-                                      ? const Text('')
-                                      : Stack(
-                                          children: <Widget>[
-                                            Text(
-                                              '${advice!.adviceContent}',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600,
-                                                foreground: Paint()
-                                                  ..style = PaintingStyle.stroke
-                                                  ..strokeWidth = 3
-                                                  ..color = Colors.white,
-                                              ),
-                                            ),
-                                            Text(
-                                              '${advice!.adviceContent}',
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.black,
-                                              ),
-                                            )
-                                          ],
+                          spans.isNotEmpty
+                              ? Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Image.asset(
+                                            'assets/gifs/thinking_face.gif',
+                                            width: 100,
+                                            height: 100,
+                                          ),
                                         ),
-                                ),
-                              )
-                            ],
-                          )
+                                        const Expanded(
+                                          flex: 1,
+                                          child: SizedBox(),
+                                        ),
+                                        Expanded(
+                                          flex: 5,
+                                          child: SizedBox(
+                                            child: advice?.adviceContent == null
+                                                ? const Text('')
+                                                : Container(
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.white
+                                                            .withOpacity(0.8),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                          10,
+                                                        )),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              20.0),
+                                                      child: Stack(
+                                                        children: <Widget>[
+                                                          Text(
+                                                            '${advice!.adviceContent}',
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              foreground:
+                                                                  Paint()
+                                                                    ..style =
+                                                                        PaintingStyle
+                                                                            .stroke
+                                                                    ..strokeWidth =
+                                                                        3
+                                                                    ..color =
+                                                                        Colors
+                                                                            .white,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            '${advice!.adviceContent}',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                )
+                              : const Text('')
                         ],
                       )
                     : const Text(''),
+                const SizedBox(
+                  height: 20,
+                )
               ],
             ),
           );
@@ -569,8 +682,11 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
         }
       }
     }
-    _isLoading = false;
-    setState(() {});
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void onChangeDate(int numWeeks) {
@@ -632,6 +748,14 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
     //   );
     // }
   }
+
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -700,34 +824,74 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                   height: 50,
                 ),
                 if (hasEmotions)
-                  if (singleEntry)
-                    Column(
-                      children: [
+                  Column(
+                    children: [
+                      if (singleEntry)
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: screenWidth / 2.5,
+                              height: 200,
+                              child: BarChartTest(
+                                emotions: List<double>.from(
+                                    analysisData['emotions']
+                                        [analysisData['emotions'].keys.first]),
+                              ),
+                            ),
+                            Text(
+                              '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ],
+                        )
+                      else
                         SizedBox(
-                          width: screenWidth / 2.5,
+                          width: screenWidth * 0.8,
                           height: 200,
-                          child: BarChartTest(
-                            emotions: List<double>.from(analysisData['emotions']
-                                [analysisData['emotions'].keys.first]),
+                          child: LineChartTest(
+                            emotionsData: analysisData['emotions'],
                           ),
                         ),
-                        Text(
-                          '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
-                          style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                      ],
-                    )
-                  else
-                    SizedBox(
-                      width: screenWidth * 0.8,
-                      height: 200,
-                      child: LineChartTest(
-                        emotionsData: analysisData['emotions'],
+                      const SizedBox(
+                        height: 50,
                       ),
-                    )
+                      SizedBox(
+                        width: screenWidth * 0.8,
+                        height: 25,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: emotionColors.entries.map((entry) {
+                            return Expanded(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: entry.value.withOpacity(0.7),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      entry.key,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  )
                 else
                   const Text(
                     '이 주에 작성된 일기가 없습니다...',
@@ -1049,6 +1213,14 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
     }
   }
 
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -1116,34 +1288,74 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
                   height: 50,
                 ),
                 if (hasEmotions)
-                  if (singleEntry)
-                    Column(
-                      children: [
+                  Column(
+                    children: [
+                      if (singleEntry)
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: screenWidth / 2.5,
+                              height: 200,
+                              child: BarChartTest(
+                                emotions: List<double>.from(
+                                    analysisData['emotions']
+                                        [analysisData['emotions'].keys.first]),
+                              ),
+                            ),
+                            Text(
+                              '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ],
+                        )
+                      else
                         SizedBox(
-                          width: screenWidth / 2.5,
+                          width: screenWidth * 0.8,
                           height: 200,
-                          child: BarChartTest(
-                            emotions: List<double>.from(analysisData['emotions']
-                                [analysisData['emotions'].keys.first]),
+                          child: LineChartTest(
+                            emotionsData: analysisData['emotions'],
                           ),
                         ),
-                        Text(
-                          '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
-                          style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                      ],
-                    )
-                  else
-                    SizedBox(
-                      width: screenWidth * 0.8,
-                      height: 200,
-                      child: LineChartTest(
-                        emotionsData: analysisData['emotions'],
+                      const SizedBox(
+                        height: 50,
                       ),
-                    )
+                      SizedBox(
+                        width: screenWidth * 0.8,
+                        height: 25,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: emotionColors.entries.map((entry) {
+                            return Expanded(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: entry.value.withOpacity(0.7),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      entry.key,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  )
                 else
                   const Text(
                     '이 달에 작성된 일기가 없습니다...',
@@ -1447,6 +1659,14 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
     }
   }
 
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -1506,34 +1726,74 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
                   height: 50,
                 ),
                 if (hasEmotions)
-                  if (singleEntry)
-                    Column(
-                      children: [
+                  Column(
+                    children: [
+                      if (singleEntry)
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: screenWidth / 2.5,
+                              height: 200,
+                              child: BarChartTest(
+                                emotions: List<double>.from(
+                                    analysisData['emotions']
+                                        [analysisData['emotions'].keys.first]),
+                              ),
+                            ),
+                            Text(
+                              '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ],
+                        )
+                      else
                         SizedBox(
-                          width: screenWidth / 2.5,
+                          width: screenWidth * 0.8,
                           height: 200,
-                          child: BarChartTest(
-                            emotions: List<double>.from(analysisData['emotions']
-                                [analysisData['emotions'].keys.first]),
+                          child: LineChartTest(
+                            emotionsData: analysisData['emotions'],
                           ),
                         ),
-                        Text(
-                          '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
-                          style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                      ],
-                    )
-                  else
-                    SizedBox(
-                      width: screenWidth * 0.8,
-                      height: 200,
-                      child: LineChartTest(
-                        emotionsData: analysisData['emotions'],
+                      const SizedBox(
+                        height: 50,
                       ),
-                    )
+                      SizedBox(
+                        width: screenWidth * 0.8,
+                        height: 25,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: emotionColors.entries.map((entry) {
+                            return Expanded(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: entry.value.withOpacity(0.7),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      entry.key,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  )
                 else
                   dateRange == null
                       ? const Text('')

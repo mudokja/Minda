@@ -10,7 +10,6 @@ import com.ssafy.diary.domain.analyze.entity.Analyze;
 import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
-import com.ssafy.diary.domain.openAI.dto.ChatGPTRequestDto;
 import com.ssafy.diary.domain.openAI.dto.ChatGPTResponseDto;
 import com.ssafy.diary.domain.openAI.service.OpenAIService;
 import com.ssafy.diary.domain.s3.service.S3Service;
@@ -127,7 +126,7 @@ public class AdviceService {
         String adviceContent = "";
         String imageLink = "";
         if (!optionalAdvice.isPresent()) {
-            imageLink = getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+            imageLink = String.valueOf(getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()));
             ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).block();
 
             adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
@@ -156,6 +155,7 @@ public class AdviceService {
         List<Advice> adviceList = adviceRepository.findAdvicesByMemberIndexAndDate(memberIndex, diarySetDate);
 
         System.out.println("조언 목록 조회 후");
+
         if (adviceList != null && !adviceList.isEmpty()) {
             System.out.println("조언 목록이 비어있는지 체크 후");
             for (Advice advice : adviceList) {
@@ -167,19 +167,30 @@ public class AdviceService {
                 if (diaryList != null && !diaryList.isEmpty()) {
                     System.out.println("해당 기간의 일기 목록이 존재하는지 체크 후");
                     openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
-                    String imageLink = getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate());
+                    String imageLink = String.valueOf(getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()));
 
-                    ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate()).block();
+                    Mono<ChatGPTResponseDto> chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
 
-                    String adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
-                    log.info("advice = {}", advice);
-                    adviceRepository.save(Advice.builder()
-                            .memberIndex(memberIndex)
-                            .startDate(advice.getStartDate())
-                            .endDate(advice.getEndDate())
-                            .adviceContent(adviceContent)
-                            .imageLink(imageLink)
-                            .build());
+                    chatGPTResponseDto.subscribe(responseDto -> {
+                        String adviceContent = responseDto.getChoices().get(0).getMessage().getContent();
+                        log.info("advice = {}", advice);
+                        adviceRepository.save(Advice.builder()
+                                .memberIndex(memberIndex)
+                                .startDate(advice.getStartDate())
+                                .endDate(advice.getEndDate())
+                                .adviceContent(adviceContent)
+                                .imageLink(imageLink)
+                                .build());
+                    });
+//                    String adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+//                    log.info("advice = {}", advice);
+//                    adviceRepository.save(Advice.builder()
+//                            .memberIndex(memberIndex)
+//                            .startDate(advice.getStartDate())
+//                            .endDate(advice.getEndDate())
+//                            .adviceContent(adviceContent)
+//                            .imageLink(imageLink)
+//                            .build());
                 }
 //                else {
 //                    adviceRepository.deleteByMemberIndexAndDate(memberIndex, advice.getStartDate(), advice.getEndDate());
@@ -188,21 +199,20 @@ public class AdviceService {
         }
     }
 
-    public String getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {
+    public Mono<String> getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
         List<Integer> diaryIndexList = diaryList.stream().map(Diary::getDiaryIndex).map(Long::intValue).collect(Collectors.toList());
 
         Map<String, List<Integer>> payload = new HashMap<>();
         payload.put("diary_index_list", diaryIndexList);
 
-        Mono<String> response = webClient.post()
-//                .uri("http://192.168.31.35:8000/api/ai/wordcloud")
+        return webClient.post()
                 .uri("https://k10b205.p.ssafy.io/api/ai/wordcloud")
                 .bodyValue(payload)
                 .retrieve()
-                .bodyToMono(String.class);
-
-        return response.block().replaceAll("^\"|\"$", "");  // 이 부분은 비동기 처리로 변경하는 것이 바람직
+                .bodyToMono(String.class)
+                .map(url -> url.replaceAll("^\"|\"$", ""));
     }
+
 
 }

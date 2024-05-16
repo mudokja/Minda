@@ -77,10 +77,10 @@ public class DiaryService {
                     .imageList(imageList)
                     .build();
             Diary addedDiary = diaryRepository.save(diary);
-            diaryHashtagRepository.save(DiaryHashtag.builder()
-                    .diaryIndex(addedDiary.getDiaryIndex())
-                    .hashtagList(List.of(new String[]{"hashtag1", "hashtag2"}))
-                    .build());
+//            diaryHashtagRepository.save(DiaryHashtag.builder()
+//                    .diaryIndex(addedDiary.getDiaryIndex())
+//                    .hashtagList(List.of(new String[]{"hashtag1", "hashtag2"}))
+//                    .build());
         }
     }
 
@@ -90,7 +90,7 @@ public class DiaryService {
     }
 
     //일기 등록
-    @Transactional
+//    @Transactional
     public void addDiary(DiaryAddRequestDto diaryAddRequestDto, MultipartFile[] imageFiles, Long memberIndex){
 
         if(diaryRepository.findByDiarySetDateAndMemberIndex(diaryAddRequestDto.getDiarySetDate(), memberIndex).isPresent()) {
@@ -104,7 +104,7 @@ public class DiaryService {
         }
 
         Diary diary = diaryRepository.save(diaryAddRequestDto.toEntity(imageList, memberIndex));
-        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex(), memberIndex));
+//        diaryHashtagRepository.save(diaryAddRequestDto.hashtagToDocument(diary.getDiaryIndex(), memberIndex));
 
         AnalyzeRequestDto analyzeRequestDto = AnalyzeRequestDto.builder()
                 .diaryIndex(diary.getDiaryIndex())
@@ -117,21 +117,22 @@ public class DiaryService {
             diaryRepository.save(diary);
             openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
                     .subscribe(ChatGPTRequestDto -> {
-                                try {
-                                    notificationService.sendFirebaseMemberNotificationMessage(
-                                            KafkaMemberNotificationMessageRequestDto.builder()
-                                                    .title("분석 완료")
-                                                    .body("일기 분석이 완료되었어요!")
-                                                    .memberIndex(memberIndex)
-                                                    .build()
-                                    );
-                                } catch (FirebaseMessagingException e) {
-                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
-                                }
+                                adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
+//                                try {
+//                                    notificationService.sendFirebaseMemberNotificationMessage(
+//                                            KafkaMemberNotificationMessageRequestDto.builder()
+//                                                    .title("분석 완료")
+//                                                    .body("일기 분석이 완료되었어요!")
+//                                                    .memberIndex(memberIndex)
+//                                                    .build()
+//                                    );
+//                                } catch (FirebaseMessagingException e) {
+//                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
+//                                }
                             }
                     );
 
-            adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
+//            adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
         });
     }
 
@@ -167,11 +168,11 @@ public class DiaryService {
 
         DiaryResponseDto diaryResponseDto = diary.toDto();
 
-        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
-
-        if (diaryHashtag != null) {
-            diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
-        }
+//        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
+//
+//        if (diaryHashtag != null) {
+//            diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+//        }
         return diaryResponseDto;
     }
 
@@ -233,17 +234,17 @@ public class DiaryService {
 
         // 해시태그 수정
 //        DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diaryIndex);
-        Optional<DiaryHashtag> optionalDiaryHashtag = Optional.ofNullable(diaryHashtagRepository.findByDiaryIndex(diaryIndex));
-        DiaryHashtag diaryHashtag = optionalDiaryHashtag.orElseThrow(() -> new RuntimeException("해시태그를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
+//        Optional<DiaryHashtag> optionalDiaryHashtag = Optional.ofNullable(diaryHashtagRepository.findByDiaryIndex(diaryIndex));
+//        DiaryHashtag diaryHashtag = optionalDiaryHashtag.orElseThrow(() -> new RuntimeException("해시태그를 찾을 수 없습니다. diaryIndex: " + diaryIndex));
 
 //        System.out.println("DiaryHashtag after find: " + diaryHashtag.getHashtagIndex());
 //        System.out.println("DiaryHashtag after find: " + diaryHashtag.getDiaryIndex());
-        diaryHashtag.setHashtagList(diaryUpdateRequestDto.getHashtagList());
+//        diaryHashtag.setHashtagList(diaryUpdateRequestDto.getHashtagList());
 
 //        log.debug("DiaryHashtag before update: {}", diaryHashtag);
 //        System.out.println("DiaryHashtag before update: " + diaryHashtag.getHashtagIndex());
 
-        diaryHashtagRepository.save(diaryHashtag);
+//        diaryHashtagRepository.save(diaryHashtag);
 //
 //        System.out.println("DiaryHashtag after update: " + diaryHashtag.getHashtagIndex());
         adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
@@ -259,7 +260,7 @@ public class DiaryService {
         }
 
         s3Service.deleteImagesFromS3(diary.getImageList());
-        diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
+//        diaryHashtagRepository.deleteByDiaryIndex(diaryIndex);
         analyzeRepository.deleteByDiaryIndex(diaryIndex);
         adviceRepository.deleteByMemberIndexAndDate(memberIndex, diary.getDiarySetDate(), diary.getDiarySetDate());
         diaryRepository.deleteById(diaryIndex);
@@ -275,11 +276,11 @@ public class DiaryService {
         for (Diary diary : diaryList) {
             DiaryResponseDto diaryResponseDto = diary.toDto();
 
-            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
-
-            if (diaryHashtag != null) {
-                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
-            }
+//            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+//
+//            if (diaryHashtag != null) {
+//                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+//            }
             responseDtoList.add(diaryResponseDto);
         }
         return responseDtoList;
@@ -293,11 +294,11 @@ public class DiaryService {
         for(Diary diary: diaryList) {
             DiaryResponseDto diaryResponseDto = diary.toDto();
 
-            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+//            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
 
-            if (diaryHashtag != null) {
-                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
-            }
+//            if (diaryHashtag != null) {
+//                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+//            }
             responseDtoList.add(diaryResponseDto);
         }
         return responseDtoList;
@@ -311,11 +312,11 @@ public class DiaryService {
         for (Diary diary : diaryList) {
             DiaryResponseDto diaryResponseDto = diary.toDto();
 
-            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
-
-            if (diaryHashtag != null) {
-                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
-            }
+//            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+//
+//            if (diaryHashtag != null) {
+//                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+//            }
             responseDtoList.add(diaryResponseDto);
         }
         return responseDtoList;
@@ -329,11 +330,11 @@ public class DiaryService {
         for (Diary diary : diaryList) {
             DiaryResponseDto diaryResponseDto = diary.toDto();
 
-            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
-
-            if (diaryHashtag != null) {
-                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
-            }
+//            DiaryHashtag diaryHashtag = diaryHashtagRepository.findByDiaryIndex(diary.getDiaryIndex());
+//
+//            if (diaryHashtag != null) {
+//                diaryResponseDto.setHashtagList(diaryHashtag.getHashtagList());
+//            }
             responseDtoList.add(diaryResponseDto);
         }
         return responseDtoList;

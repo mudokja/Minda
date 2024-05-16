@@ -156,12 +156,16 @@ public class OpenAIService {
 
     @Transactional
     public String generateImage(Long diaryIndex, Long memberIndex) {
-        if (imageRepository.existsByDiaryIndex(diaryIndex)) {
-            throw new AlreadyExistsImageException("이미 이미지가 존재합니다.");
-        }
+//        if (imageRepository.existsByDiaryIndex(diaryIndex)) {
+//            throw new AlreadyExistsImageException("이미 이미지가 존재합니다.");
+//        }
         Diary diary = diaryRepository.findById(diaryIndex).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 다이어리입니다."));
         if (diary.getMemberIndex() != memberIndex) {
             throw new IllegalArgumentException("일기 작성자의 요청이 아닙니다.");
+        }
+
+        if(!diary.getImageList().isEmpty()) {
+            throw new AlreadyExistsImageException("이미 이미지가 존재합니다.");
         }
 
         DallERequestDto request = DallERequestDto.builder()
@@ -177,10 +181,14 @@ public class OpenAIService {
         String imageUrl = response.getData().get(0).getUrl();
         try {
             String s3ImageUrl = s3Service.saveImageFromUrl(imageUrl);
-            imageRepository.save(Image.builder()
-                    .diaryIndex(diaryIndex)
+            diary.getImageList().add(Image.builder()
                     .imageLink(s3ImageUrl)
                     .imageName("AI").build());
+            diaryRepository.save(diary);
+//            imageRepository.save(Image.builder()
+//                    .diaryIndex(diaryIndex)
+//                    .imageLink(s3ImageUrl)
+//                    .imageName("AI").build());
             return s3ImageUrl;
         } catch (IOException e) {
             return e.getMessage();

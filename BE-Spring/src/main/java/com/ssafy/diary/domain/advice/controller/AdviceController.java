@@ -1,10 +1,11 @@
 package com.ssafy.diary.domain.advice.controller;
 
-import com.amazonaws.Response;
 import com.ssafy.diary.domain.advice.dto.AdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.AdviceResponseDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceRequestDto;
 import com.ssafy.diary.domain.advice.dto.SingleAdviceResponseDto;
+import com.ssafy.diary.domain.advice.entity.Advice;
+import com.ssafy.diary.domain.advice.repository.AdviceRepository;
 import com.ssafy.diary.domain.advice.service.AdviceService;
 import com.ssafy.diary.domain.auth.dto.PrincipalMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,7 +47,14 @@ public class AdviceController {
 
     @GetMapping("test")
     public String test(){
-        String response = adviceService.getWordcloudByPeriod(2L,LocalDate.parse("2024-05-01"),LocalDate.parse("2024-05-14"));
+        String response = String.valueOf(adviceService.getWordcloudByPeriod(2L, LocalDate.parse("2024-05-01"),LocalDate.parse("2024-05-14")));
         return response;
+    }
+
+    private final AdviceRepository adviceRepository;
+
+    @GetMapping("test/period")
+    public List<Advice> test2() {
+        return adviceRepository.findAdvicesByMemberIndexAndDate(42L, LocalDate.parse("2024-05-16"));
     }
 }

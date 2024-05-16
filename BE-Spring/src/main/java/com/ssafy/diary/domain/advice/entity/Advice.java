@@ -38,14 +38,18 @@ public class Advice extends BaseEntity {
     @Column(name = "image_link")
     private String imageLink;
 
+    @Column(name = "advice_comment")
+    private String adviceComment;
+
     @Builder
-    public Advice(Long adviceIndex, Long memberIndex, LocalDate startDate, LocalDate endDate, String adviceContent, String imageLink) {
+    public Advice(Long adviceIndex, Long memberIndex, LocalDate startDate, LocalDate endDate, String adviceContent, String imageLink, String adviceComment) {
         this.adviceIndex = adviceIndex;
         this.memberIndex = memberIndex;
         this.startDate = startDate;
         this.endDate = endDate;
         this.adviceContent = adviceContent;
         this.imageLink = imageLink;
+        this.adviceComment = adviceComment;
     }
 
 //    public AdviceResponseDto toDto() {

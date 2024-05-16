@@ -99,6 +99,18 @@ class _WriteState extends State<Write> {
     String currentText = diaryController.text;
     int newLineIndex = currentText.lastIndexOf('\n');
 
+    // 텍스트가 모두 지워졌다면 lastNewLineIndex 초기화
+    if (currentText.isEmpty) {
+      lastNewLineIndex = 0;
+      return;
+    }
+
+    // 현재 텍스트가 이전 텍스트보다 짧아졌는지 확인
+    if (currentText.length < lastNewLineIndex) {
+      // 줄바꿈 인덱스를 현재 텍스트의 길이로 조정
+      lastNewLineIndex = newLineIndex + 1;
+    }
+
     if (newLineIndex > lastNewLineIndex &&
         newLineIndex > 0 &&
         newLineIndex <= currentText.length - 1) {
@@ -277,7 +289,7 @@ class _WriteState extends State<Write> {
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: const Text('알림'),
-                  content: const Text('게시글에는 이미지가 포함되어야합니다.'),
+                  content: const Text('이미지 삽입을 위해서는 권한 허용이 필요해요.'),
                   actions: <Widget>[
                     TextButton(
                       child: const Text('확인'),

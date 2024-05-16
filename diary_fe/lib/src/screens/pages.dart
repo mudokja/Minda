@@ -39,7 +39,7 @@ class _PagesState extends State<Pages> {
     widgetOptions = [
       const MainPage(),
       DiaryListPage(selectedDay: DateTime.now()), // 오늘 날짜를 기본값으로 설정
-      const AnalysisPage(),
+      AnalysisPage(selectedDate: widget.selectedDate),
       const ProfilePage(),
     ];
   }

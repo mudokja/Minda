@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:diary_fe/src/chart/bar_chart/bar_chart_test.dart';
 import 'package:diary_fe/src/chart/line_chart/line_chart.dart';
 import 'package:diary_fe/src/chart/radar_chart/radar_chart_test.dart';
 import 'package:diary_fe/src/models/advice_model.dart';
+import 'package:diary_fe/src/screens/diary_detail_page.dart';
 import 'package:diary_fe/src/services/advice_service.dart';
 import 'package:diary_fe/src/services/analysis_service.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:mat_month_picker_dialog/mat_month_picker_dialog.dart';
 
 class DayAnalysisPage extends StatefulWidget {
@@ -32,6 +35,10 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
   AdviceModel? advice;
   bool _isLoading = true;
   bool _isDisposed = false;
+  String _loadingText = '현재 일기를 \n분석하고 있습니닷';
+  Timer? _loadingTimer;
+  int limitedTime = 0;
+  List<TextSpan> spans = [];
 
   String formatDate(DateTime dateTime) {
     return '${dateTime.year.toString().padLeft(4, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
@@ -44,11 +51,13 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
     _analysisService = AnalysisService();
     _adviceService = AdviceService();
     fetchAnalysisData();
+    _startLoadingAnimation();
   }
 
   @override
   void dispose() {
     _isDisposed = true;
+    _stopLoadingAnimation();
     super.dispose();
   }
 
@@ -60,11 +69,16 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
     if (data['contents'].isNotEmpty) {
       try {
         var adviceData = await _adviceService.fetchAdvice(date);
+
         if (mounted) {
           setState(() {
             _isLoading = false;
             analysisData = data;
             advice = adviceData;
+            spans = _generateSpans();
+            if (spans.isEmpty) {
+              _startLoadingAnimation();
+            }
           });
         }
       } catch (e) {
@@ -73,6 +87,7 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
           setState(() {
             analysisData = data;
             _isLoading = false;
+            spans = _generateSpans();
           });
         }
       }
@@ -82,40 +97,13 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
           analysisData = data;
           advice = null;
           _isLoading = false;
+          spans = [];
         });
       }
     }
   }
 
-  Map<String, Color> emotionColors = {
-    '기쁨': const Color(0xff845EC2),
-    '슬픔': const Color(0xffD65DB1),
-    '분노': const Color(0xffFF6F91),
-    '불안': const Color(0xffFF9671),
-    '놀람': const Color(0xffFFC75F),
-  };
-
-  void onChangeDate(int num) {
-    setState(() {
-      if (num > 0) {
-        if (date.isBefore(DateTime.now())) {
-          DateTime newDate = date.add(Duration(days: num));
-          date = newDate.isBefore(DateTime.now()) ||
-                  newDate.isAtSameMomentAs(DateTime.now())
-              ? newDate
-              : DateTime.now();
-        }
-      } else if (num < 0) {
-        date = date.subtract(Duration(days: (-num)));
-      }
-      widget.onDateSelected(date);
-      fetchAnalysisData();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+  List<TextSpan> _generateSpans() {
     List<TextSpan> spans = [];
 
     if (advice != null &&
@@ -140,17 +128,58 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
           }
 
           spans.add(TextSpan(
-            text: sentence,
-            style: TextStyle(
-              color: Colors.white,
-              backgroundColor: emotionColors[emotion] ?? Colors.transparent,
-            ),
+            children: [
+              WidgetSpan(
+                child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: emotionColors[emotion]?.withOpacity(0.7) ??
+                          Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: emotion != '중립'
+                        ? Text(
+                            sentence,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )
+                        : Stack(
+                            children: <Widget>[
+                              Text(
+                                sentence,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  foreground: Paint()
+                                    ..style = PaintingStyle.stroke
+                                    ..strokeWidth = 1.5
+                                    ..color = Colors.black,
+                                ),
+                              ),
+                              Text(
+                                sentence,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          )),
+              ),
+              const WidgetSpan(
+                  child: SizedBox(
+                height: 34,
+              ))
+            ],
           ));
-
           currentIndex = startIndex + sentence.length;
         }
       }
-
       if (currentIndex < content.length) {
         spans.add(TextSpan(
           text: content.substring(currentIndex),
@@ -158,6 +187,75 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
         ));
       }
     }
+
+    return spans;
+  }
+
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
+
+  void onChangeDate(int num) {
+    setState(() {
+      if (num > 0) {
+        if (date.isBefore(DateTime.now())) {
+          DateTime newDate = date.add(Duration(days: num));
+          date = newDate.isBefore(DateTime.now()) ||
+                  newDate.isAtSameMomentAs(DateTime.now())
+              ? newDate
+              : DateTime.now();
+        }
+      } else if (num < 0) {
+        date = date.subtract(Duration(days: (-num)));
+      }
+      widget.onDateSelected(date);
+      limitedTime = 0;
+      _loadingText = '현재 일기를 \n분석하고 있습니닷';
+      fetchAnalysisData();
+    });
+  }
+
+  void _startLoadingAnimation() {
+    _loadingTimer ??=
+        Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (mounted) {
+        if (limitedTime < 20) {
+          setState(() {
+            if (_loadingText != '현재 일기를 \n분석하고 있습니닷...!') {
+              _loadingText += '.';
+              if (_loadingText == '현재 일기를 \n분석하고 있습니닷....') {
+                _loadingText = '현재 일기를 \n분석하고 있습니닷...!';
+              }
+            } else {
+              fetchAnalysisData();
+              limitedTime++;
+
+              _loadingText = '현재 일기를 \n분석하고 있습니닷';
+            }
+          });
+        }
+      }
+
+      if (spans.isNotEmpty || !mounted || limitedTime >= 20) {
+        _stopLoadingAnimation();
+      }
+    });
+  }
+
+  void _stopLoadingAnimation() {
+    _loadingTimer?.cancel();
+    _loadingTimer = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontTitle = screenWidth < 400 ? 16.0 : 20.0;
+
     return _isLoading
         ? SizedBox(
             width: MediaQuery.of(context).size.width,
@@ -227,112 +325,245 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                     ),
                   ],
                 ),
-                SizedBox(
-                  width: screenWidth,
-                  height: 250,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        color: Colors.transparent,
-                        child: Text(
-                          analysisData['titles'] != null &&
-                                  analysisData['titles'].isNotEmpty
-                              ? '${analysisData['titles'][0]}'
-                              : '현재 작성된 일기가 없습니다!',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9D1DD),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: CustomPaint(
+                    painter: LinedPaperPainter(),
+                    foregroundPainter: NotebookHolesPainter(24),
+                    child: SizedBox(
+                      width: screenWidth,
+                      height: 400,
+                      child: Padding(
+                        padding: const EdgeInsets.all(30),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                analysisData['titles'] != null &&
+                                        analysisData['titles'].isNotEmpty
+                                    ? '${analysisData['titles'][0]}'
+                                    : '현재 작성된 일기가 없습니다!',
+                                style: TextStyle(
+                                  fontSize: fontTitle,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              analysisData['contents'] != null &&
+                                      analysisData['contents'].isNotEmpty
+                                  ? spans.isNotEmpty
+                                      ? RichText(
+                                          text: TextSpan(
+                                            children: spans,
+                                          ),
+                                        )
+                                      : limitedTime >= 20
+                                          ? Center(
+                                              child: IconButton(
+                                                icon: const Icon(
+                                                    Icons.restart_alt),
+                                                iconSize: 50,
+                                                color: Colors.black,
+                                                onPressed: () {
+                                                  setState(() {
+                                                    limitedTime = 0;
+                                                    fetchAnalysisData();
+                                                  });
+                                                },
+                                              ),
+                                            )
+                                          : Text(
+                                              _loadingText,
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            )
+                                  : const Text('')
+                            ],
                           ),
                         ),
                       ),
-                      if (analysisData['contents'] != null &&
-                          analysisData['contents'].isNotEmpty)
-                        Container(
-                          color: Colors.transparent,
-                          child: RichText(
-                            text: TextSpan(
-                              children: spans,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: screenWidth * 0.8,
+                  height: 25,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: emotionColors.entries.map((entry) {
+                      return Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: entry.value.withOpacity(0.7),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            // mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: screenWidth < 400 ? 13 : 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                analysisData['titles'] != null &&
+                        analysisData['titles'].isNotEmpty
+                    ? Column(
+                        children: [
+                          const Text(
+                            '일기 분석',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 18,
-                ),
-                const Text(
-                  '일기 분석',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: screenWidth / 2.5,
-                      height: 200,
-                      child: BarChartTest(
-                        emotions: analysisData['emotions'] != null &&
-                                analysisData['emotions']
-                                    .containsKey(formatDate(date))
-                            ? List<double>.from(
-                                analysisData['emotions'][formatDate(date)])
-                            : [0.0, 0.0, 0.0, 0.0, 0.0],
-                      ),
-                    ),
-                    SizedBox(
-                      width: screenWidth / 2.5,
-                      height: 200,
-                      child: RadarChartTest(
-                        emotions: analysisData['emotions'] != null &&
-                                analysisData['emotions']
-                                    .containsKey(formatDate(date))
-                            ? List<double>.from(
-                                analysisData['emotions'][formatDate(date)])
-                            : [0.0, 0.0, 0.0, 0.0, 0.0],
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Image.asset(
-                        'assets/gifs/thinking_face.gif',
-                        width: 100,
-                        height: 100,
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 1,
-                      child: SizedBox(),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                        child: RichText(
-                          text: TextSpan(
-                            children: spans,
-                            style: const TextStyle(color: Colors.white),
+                          const SizedBox(
+                            height: 50,
                           ),
-                        ),
-                      ),
-                    )
-                  ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                width: screenWidth / 2.5,
+                                height: 200,
+                                child: BarChartTest(
+                                  emotions: analysisData['emotions'] != null &&
+                                          analysisData['emotions']
+                                              .containsKey(formatDate(date))
+                                      ? List<double>.from(
+                                          analysisData['emotions']
+                                              [formatDate(date)])
+                                      : [0.0, 0.0, 0.0, 0.0, 0.0],
+                                ),
+                              ),
+                              SizedBox(
+                                width: screenWidth / 2.5,
+                                height: 200,
+                                child: RadarChartTest(
+                                  emotions: analysisData['emotions'] != null &&
+                                          analysisData['emotions']
+                                              .containsKey(formatDate(date))
+                                      ? List<double>.from(
+                                          analysisData['emotions']
+                                              [formatDate(date)])
+                                      : [0.0, 0.0, 0.0, 0.0, 0.0],
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          spans.isNotEmpty
+                              ? Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Image.asset(
+                                            'assets/gifs/thinking_face.gif',
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                        ),
+                                        const Expanded(
+                                          flex: 1,
+                                          child: SizedBox(),
+                                        ),
+                                        Expanded(
+                                          flex: 5,
+                                          child: SizedBox(
+                                            child: advice?.adviceContent == null
+                                                ? const Text('')
+                                                : Container(
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.white
+                                                            .withOpacity(0.8),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                          10,
+                                                        )),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              20.0),
+                                                      child: Stack(
+                                                        children: <Widget>[
+                                                          Text(
+                                                            '${advice!.adviceContent}',
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              foreground:
+                                                                  Paint()
+                                                                    ..style =
+                                                                        PaintingStyle
+                                                                            .stroke
+                                                                    ..strokeWidth =
+                                                                        3
+                                                                    ..color =
+                                                                        Colors
+                                                                            .white,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            '${advice!.adviceContent}',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                )
+                              : const Text('')
+                        ],
+                      )
+                    : const Text(''),
+                const SizedBox(
+                  height: 20,
                 )
               ],
             ),
@@ -400,8 +631,6 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
   void navigateToDayAnalysis(DateTime date) {
     if (widget.onDateSelected != null) {
       widget.onDateSelected!(date);
-      debugPrint('onDateselected = ${widget.onDateSelected!(date)}');
-      debugPrint('$date');
     } else {
       debugPrint('onDateSelected is null');
     }
@@ -449,13 +678,15 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
       if (advice != null && advice.emotions.isNotEmpty && mounted) {
         int sadIndex = advice.emotions.indexOf('슬픔');
         if (sadIndex != -1) {
-          setState(() {
-            saddestKeyword = advice.sentences[sadIndex];
-          });
+          saddestKeyword = advice.sentences[sadIndex];
         }
       }
     }
-    _isLoading = false;
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void onChangeDate(int numWeeks) {
@@ -517,6 +748,14 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
     //   );
     // }
   }
+
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -585,34 +824,74 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                   height: 50,
                 ),
                 if (hasEmotions)
-                  if (singleEntry)
-                    Column(
-                      children: [
+                  Column(
+                    children: [
+                      if (singleEntry)
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: screenWidth / 2.5,
+                              height: 200,
+                              child: BarChartTest(
+                                emotions: List<double>.from(
+                                    analysisData['emotions']
+                                        [analysisData['emotions'].keys.first]),
+                              ),
+                            ),
+                            Text(
+                              '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ],
+                        )
+                      else
                         SizedBox(
-                          width: screenWidth / 2.5,
+                          width: screenWidth * 0.8,
                           height: 200,
-                          child: BarChartTest(
-                            emotions: List<double>.from(analysisData['emotions']
-                                [analysisData['emotions'].keys.first]),
+                          child: LineChartTest(
+                            emotionsData: analysisData['emotions'],
                           ),
                         ),
-                        Text(
-                          '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
-                          style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                      ],
-                    )
-                  else
-                    SizedBox(
-                      width: screenWidth,
-                      height: 200,
-                      child: LineChartTest(
-                        emotionsData: analysisData['emotions'],
+                      const SizedBox(
+                        height: 50,
                       ),
-                    )
+                      SizedBox(
+                        width: screenWidth * 0.8,
+                        height: 25,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: emotionColors.entries.map((entry) {
+                            return Expanded(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: entry.value.withOpacity(0.7),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      entry.key,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  )
                 else
                   const Text(
                     '이 주에 작성된 일기가 없습니다...',
@@ -624,45 +903,52 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                 const SizedBox(
                   height: 50,
                 ),
-                const Text(
-                  '주간일기 분석',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Image.asset(
-                        'assets/gifs/thinking_face.gif',
-                        width: 100,
-                        height: 100,
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 1,
-                      child: SizedBox(),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                        child: Text(
-                          '${analysisData['emotions']}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                analysisData['titles'] != null &&
+                        analysisData['titles'].isNotEmpty
+                    ? Column(
+                        children: [
+                          const Text(
+                            '주간일기 분석',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Image.asset(
+                                  'assets/gifs/thinking_face.gif',
+                                  width: 100,
+                                  height: 100,
+                                ),
+                              ),
+                              const Expanded(
+                                flex: 1,
+                                child: SizedBox(),
+                              ),
+                              Expanded(
+                                flex: 5,
+                                child: SizedBox(
+                                  child: Text(
+                                    '${analysisData['emotions']}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      )
+                    : const Text(''),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -781,144 +1067,479 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
 }
 
 class MonthAnalysisPage extends StatefulWidget {
-  const MonthAnalysisPage({super.key});
+  final Function(DateTime)? onDateSelected;
+
+  const MonthAnalysisPage({
+    super.key,
+    required this.onDateSelected,
+  });
 
   @override
   State<MonthAnalysisPage> createState() => _MonthAnalysisPageState();
 }
 
 class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
-  DateTime date = DateTime.now();
+  DateTime startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime endDate = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
   late AnalysisService analysisService;
   Map<String, dynamic> analysisData = {};
+  String? happiestDate;
+  String? happiestKeyword;
+  String? saddestDate;
+  String? saddestKeyword;
+  late AdviceService adviceService;
+  bool _isLoading = true;
+  bool _isDisposed = false;
 
   @override
   void initState() {
     super.initState();
     analysisService = AnalysisService();
+    adviceService = AdviceService();
+    fetchAnalysisData();
   }
 
-  void fetchAnalysisData() async {
-    DateTime startDate = DateTime(date.year, date.month, 1);
-    DateTime endDate = DateTime(date.year, date.month + 1, 0);
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
 
-    if (date.month == DateTime.now().month &&
-        date.year == DateTime.now().year) {
-      endDate = DateTime.now();
-    }
+  Future<void> fetchAnalysisData() async {
+    if (_isDisposed) return;
 
     var data = await analysisService.fetchData(startDate, endDate);
 
-    setState(() {
-      analysisData = data;
+    if (mounted) {
+      setState(() {
+        analysisData = data;
+        findHighestEmotionDates();
+      });
+    }
+  }
+
+  void navigateToDayAnalysis(DateTime date) {
+    if (widget.onDateSelected != null) {
+      widget.onDateSelected!(date);
+    } else {
+      debugPrint('onDateSelected is null');
+    }
+  }
+
+  Future<void> findHighestEmotionDates() async {
+    if (_isDisposed) return;
+
+    happiestDate = null;
+    happiestKeyword = null;
+    saddestDate = null;
+    saddestKeyword = null;
+
+    analysisData['emotions'].forEach((date, emotions) async {
+      if (emotions != null && emotions.length >= 5) {
+        final happinessValue = emotions[0];
+        final sadnessValue = emotions[1];
+
+        if (happiestDate == null ||
+            happinessValue > analysisData['emotions'][happiestDate]![0]) {
+          happiestDate = date;
+        }
+
+        if (saddestDate == null ||
+            sadnessValue > analysisData['emotions'][saddestDate]![1]) {
+          saddestDate = date;
+        }
+      }
     });
+
+    if (happiestDate != null) {
+      var advice =
+          await adviceService.fetchAdvice(DateTime.parse(happiestDate!));
+      if (advice != null && advice.emotions.isNotEmpty) {
+        int happyIndex = advice.emotions.indexOf('기쁨');
+        if (happyIndex != -1) {
+          happiestKeyword = advice.sentences[happyIndex];
+        }
+      }
+    }
+
+    if (saddestDate != null) {
+      var advice =
+          await adviceService.fetchAdvice(DateTime.parse(saddestDate!));
+      if (advice != null && advice.emotions.isNotEmpty && mounted) {
+        int sadIndex = advice.emotions.indexOf('슬픔');
+        if (sadIndex != -1) {
+          saddestKeyword = advice.sentences[sadIndex];
+        }
+      }
+    }
+    _isLoading = false;
+    setState(() {});
   }
 
   void onChangeDate(int numMonths) {
+    if (_isDisposed) return;
+
     setState(() {
-      int newYear = date.year;
-      int newMonth = date.month + numMonths;
+      DateTime newStartDate =
+          DateTime(startDate.year, startDate.month + numMonths, 1);
+      DateTime newEndDate =
+          DateTime(newStartDate.year, newStartDate.month + 1, 0);
 
-      if (newMonth > 12) {
-        newYear += (newMonth - 1) ~/ 12;
-        newMonth = (newMonth - 1) % 12 + 1;
-      } else if (newMonth < 1) {
-        newYear += (newMonth - 12) ~/ 12;
-        newMonth = 12 + (newMonth % 12);
+      if (newEndDate.isAfter(DateTime.now())) {
+        endDate = DateTime.now();
+        startDate = DateTime(endDate.year, endDate.month, 1);
+      } else {
+        startDate = newStartDate;
+        endDate = newEndDate;
       }
-
-      DateTime newDate = DateTime(newYear, newMonth, 1);
-
-      if (newDate.isAfter(DateTime.now())) {
-        newDate = DateTime.now();
-      }
-
-      date = newDate;
     });
     fetchAnalysisData();
   }
 
   void selectMonth(BuildContext context) async {
-    final DateTime? dateTime = await showMonthPicker(
+    final DateTime? selectedDate = await showMonthPicker(
       context: context,
-      initialDate: date,
+      initialDate: startDate,
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
 
-    if (dateTime != null && dateTime != date) {
+    if (selectedDate != null) {
       setState(() {
-        date = DateTime(dateTime.year, dateTime.month);
-        fetchAnalysisData();
+        startDate = DateTime(selectedDate.year, selectedDate.month, 1);
+        endDate = DateTime(selectedDate.year, selectedDate.month + 1, 0);
       });
+      fetchAnalysisData();
     }
   }
+
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                onPressed: () => onChangeDate(-1),
-                icon: const Icon(Icons.arrow_back_ios_new),
-                color: Colors.white,
-              ),
-              TextButton(
-                onPressed: () => selectMonth(context),
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.resolveWith(
-                    (states) {
-                      return Colors.white;
-                    },
-                  ),
-                  overlayColor: MaterialStateProperty.resolveWith(
-                    (states) {
-                      if (states.contains(MaterialState.pressed)) {
-                        return Colors.transparent;
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                child: Text(
-                  '${date.year}-${date.month.toString().padLeft(2, '0')}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => onChangeDate(1),
-                icon: const Icon(Icons.arrow_forward_ios),
-                color: Colors.white,
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 50,
-          ),
-          SizedBox(
-            width: screenWidth,
-            height: 200,
-            child: LineChartTest(
-              emotionsData: analysisData['emotions'] ?? {},
+    bool hasEmotions =
+        analysisData['emotions'] != null && analysisData['emotions'].isNotEmpty;
+    bool singleEntry = hasEmotions && analysisData['emotions'].length == 1;
+
+    return _isLoading
+        ? SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          )
+        : Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () => onChangeDate(-1),
+                      icon: const Icon(Icons.arrow_back_ios_new),
+                      color: Colors.white,
+                    ),
+                    TextButton(
+                      onPressed: () => selectMonth(context),
+                      style: ButtonStyle(
+                        foregroundColor: MaterialStateProperty.resolveWith(
+                          (states) {
+                            return Colors.white;
+                          },
+                        ),
+                        overlayColor: MaterialStateProperty.resolveWith(
+                          (states) {
+                            if (states.contains(MaterialState.pressed)) {
+                              return Colors.transparent;
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      child: Text(
+                        '${startDate.year.toString()}-${startDate.month.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => onChangeDate(1),
+                      icon: const Icon(Icons.arrow_forward_ios),
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 50,
+                ),
+                if (hasEmotions)
+                  Column(
+                    children: [
+                      if (singleEntry)
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: screenWidth / 2.5,
+                              height: 200,
+                              child: BarChartTest(
+                                emotions: List<double>.from(
+                                    analysisData['emotions']
+                                        [analysisData['emotions'].keys.first]),
+                              ),
+                            ),
+                            Text(
+                              '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ],
+                        )
+                      else
+                        SizedBox(
+                          width: screenWidth * 0.8,
+                          height: 200,
+                          child: LineChartTest(
+                            emotionsData: analysisData['emotions'],
+                          ),
+                        ),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                      SizedBox(
+                        width: screenWidth * 0.8,
+                        height: 25,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: emotionColors.entries.map((entry) {
+                            return Expanded(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: entry.value.withOpacity(0.7),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      entry.key,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  const Text(
+                    '이 달에 작성된 일기가 없습니다...',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                const SizedBox(
+                  height: 50,
+                ),
+                analysisData['titles'] != null &&
+                        analysisData['titles'].isNotEmpty
+                    ? Column(
+                        children: [
+                          const Text(
+                            '월간일기 분석',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Image.asset(
+                                  'assets/gifs/thinking_face.gif',
+                                  width: 100,
+                                  height: 100,
+                                ),
+                              ),
+                              const Expanded(
+                                flex: 1,
+                                child: SizedBox(),
+                              ),
+                              Expanded(
+                                flex: 5,
+                                child: SizedBox(
+                                  child: Text(
+                                    '${analysisData['emotions']}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      )
+                    : const Text(''),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (happiestDate != null && happiestKeyword != null)
+                      GestureDetector(
+                        onTap: widget.onDateSelected != null
+                            ? () {
+                                navigateToDayAnalysis(
+                                    DateTime.parse(happiestDate!));
+                              }
+                            : null,
+                        child: SizedBox(
+                          width: 150,
+                          child: Column(
+                            children: [
+                              const Text(
+                                '가장 행복했던 날',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFBCEBFF),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '$happiestDate',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFF4B6DAD),
+                                      ),
+                                    ),
+                                    Text(
+                                      '$happiestKeyword',
+                                      style: const TextStyle(
+                                        color: Color(0xFF4B6DAD),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const Text(''),
+                    if (saddestDate != null && saddestKeyword != null)
+                      GestureDetector(
+                        onTap: widget.onDateSelected != null
+                            ? () {
+                                navigateToDayAnalysis(
+                                    DateTime.parse(saddestDate!));
+                              }
+                            : null,
+                        child: SizedBox(
+                          width: 150,
+                          child: Column(
+                            children: [
+                              const Text(
+                                '가장 속상했던 날',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFC6A6),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '$saddestDate',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFFDC6868),
+                                      ),
+                                    ),
+                                    Text(
+                                      '$saddestKeyword',
+                                      style: const TextStyle(
+                                        color: Color(0xFFDC6868),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const Text(''),
+                  ],
+                )
+              ],
+            ),
+          );
   }
 }
 
 class CustomAnalysisPage extends StatefulWidget {
-  const CustomAnalysisPage({super.key});
+  final Function(DateTime)? onDateSelected;
+
+  const CustomAnalysisPage({
+    super.key,
+    required this.onDateSelected,
+  });
 
   @override
   State<CustomAnalysisPage> createState() => _CustomAnalysisPageState();
@@ -928,25 +1549,101 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
   DateTimeRange? dateRange;
   late AnalysisService analysisService;
   Map<String, dynamic> analysisData = {};
+  String? happiestDate;
+  String? happiestKeyword;
+  String? saddestDate;
+  String? saddestKeyword;
+  late AdviceService adviceService;
+  bool _isLoading = false;
+  bool _isDisposed = false;
 
   @override
   void initState() {
     super.initState();
     analysisService = AnalysisService();
+    adviceService = AdviceService();
   }
 
-  void fetchAnalysisData() async {
-    if (dateRange == null) return;
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  Future<void> fetchAnalysisData() async {
+    if (_isDisposed && dateRange == null) return;
 
     var data =
         await analysisService.fetchData(dateRange!.start, dateRange!.end);
 
-    setState(() {
-      analysisData = data;
+    if (mounted) {
+      setState(() {
+        analysisData = data;
+        findHighestEmotionDates();
+      });
+    }
+  }
+
+  void navigateToDayAnalysis(DateTime date) {
+    if (widget.onDateSelected != null) {
+      widget.onDateSelected!(date);
+    } else {
+      debugPrint('onDateSelected is null');
+    }
+  }
+
+  Future<void> findHighestEmotionDates() async {
+    if (_isDisposed) return;
+
+    happiestDate = null;
+    happiestKeyword = null;
+    saddestDate = null;
+    saddestKeyword = null;
+
+    analysisData['emotions'].forEach((date, emotions) async {
+      if (emotions != null && emotions.length >= 5) {
+        final happinessValue = emotions[0];
+        final sadnessValue = emotions[1];
+
+        if (happiestDate == null ||
+            happinessValue > analysisData['emotions'][happiestDate]![0]) {
+          happiestDate = date;
+        }
+
+        if (saddestDate == null ||
+            sadnessValue > analysisData['emotions'][saddestDate]![1]) {
+          saddestDate = date;
+        }
+      }
     });
+
+    if (happiestDate != null) {
+      var advice =
+          await adviceService.fetchAdvice(DateTime.parse(happiestDate!));
+      if (advice != null && advice.emotions.isNotEmpty) {
+        int happyIndex = advice.emotions.indexOf('기쁨');
+        if (happyIndex != -1) {
+          happiestKeyword = advice.sentences[happyIndex];
+        }
+      }
+    }
+
+    if (saddestDate != null) {
+      var advice =
+          await adviceService.fetchAdvice(DateTime.parse(saddestDate!));
+      if (advice != null && advice.emotions.isNotEmpty && mounted) {
+        int sadIndex = advice.emotions.indexOf('슬픔');
+        if (sadIndex != -1) {
+          saddestKeyword = advice.sentences[sadIndex];
+        }
+      }
+    }
+    setState(() {});
+    _isLoading = false;
   }
 
   void selectCustomRange(BuildContext context) async {
+    _isLoading = true;
     final DateTimeRange? newDateRange = await showDateRangePicker(
       context: context,
       initialDateRange: dateRange,
@@ -962,58 +1659,310 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
     }
   }
 
+  Map<String, Color> emotionColors = {
+    '기쁨': const Color(0xff845EC2),
+    '슬픔': const Color(0xffD65DB1),
+    '분노': const Color(0xffFF6F91),
+    '불안': const Color(0xffFF9671),
+    '놀람': const Color(0xffFFC75F),
+  };
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    bool hasEmotions =
+        analysisData['emotions'] != null && analysisData['emotions'].isNotEmpty;
+    bool singleEntry = hasEmotions && analysisData['emotions'].length == 1;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () => selectCustomRange(context),
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.resolveWith(
-                    (states) {
-                      return Colors.white;
-                    },
-                  ),
-                  overlayColor: MaterialStateProperty.resolveWith(
-                    (states) {
-                      if (states.contains(MaterialState.pressed)) {
-                        return Colors.transparent;
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                child: Text(
-                  dateRange == null
-                      ? '날짜 범위를 선택해주세요.'
-                      : '${dateRange!.start.year.toString()}-${dateRange!.start.month.toString().padLeft(2, '0')}-${dateRange!.start.day.toString().padLeft(2, '0')}~${dateRange!.end.year.toString()}-${dateRange!.end.month.toString().padLeft(2, '0')}-${dateRange!.end.day.toString().padLeft(2, '0')}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 50,
-          ),
-          SizedBox(
-            width: screenWidth,
-            height: 200,
-            child: LineChartTest(
-              emotionsData: analysisData['emotions'] ?? {},
+    return _isLoading
+        ? SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          )
+        : Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => selectCustomRange(context),
+                      style: ButtonStyle(
+                        foregroundColor: MaterialStateProperty.resolveWith(
+                          (states) {
+                            return Colors.white;
+                          },
+                        ),
+                        overlayColor: MaterialStateProperty.resolveWith(
+                          (states) {
+                            if (states.contains(MaterialState.pressed)) {
+                              return Colors.transparent;
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      child: Text(
+                        dateRange == null
+                            ? '날짜 범위를 선택해주세요.'
+                            : '${dateRange!.start.year.toString()}-${dateRange!.start.month.toString().padLeft(2, '0')}-${dateRange!.start.day.toString().padLeft(2, '0')}~${dateRange!.end.year.toString()}-${dateRange!.end.month.toString().padLeft(2, '0')}-${dateRange!.end.day.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 50,
+                ),
+                if (hasEmotions)
+                  Column(
+                    children: [
+                      if (singleEntry)
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: screenWidth / 2.5,
+                              height: 200,
+                              child: BarChartTest(
+                                emotions: List<double>.from(
+                                    analysisData['emotions']
+                                        [analysisData['emotions'].keys.first]),
+                              ),
+                            ),
+                            Text(
+                              '${analysisData['emotions'].keys.first}에 작성된 감정 분석',
+                              style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ],
+                        )
+                      else
+                        SizedBox(
+                          width: screenWidth * 0.8,
+                          height: 200,
+                          child: LineChartTest(
+                            emotionsData: analysisData['emotions'],
+                          ),
+                        ),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                      SizedBox(
+                        width: screenWidth * 0.8,
+                        height: 25,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: emotionColors.entries.map((entry) {
+                            return Expanded(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: entry.value.withOpacity(0.7),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      entry.key,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  dateRange == null
+                      ? const Text('')
+                      : const Text(
+                          '이 기간에 작성된 일기가 없습니다...',
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                const SizedBox(
+                  height: 50,
+                ),
+                dateRange == null
+                    ? const Text('')
+                    : analysisData['titles'] != null &&
+                            analysisData['titles'].isNotEmpty
+                        ? Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: Image.asset(
+                                      'assets/gifs/thinking_face.gif',
+                                      width: 100,
+                                      height: 100,
+                                    ),
+                                  ),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: SizedBox(),
+                                  ),
+                                  Expanded(
+                                    flex: 5,
+                                    child: SizedBox(
+                                      child: Text(
+                                        '${analysisData['emotions']}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ],
+                          )
+                        : const Text(''),
+                dateRange == null
+                    ? const Text('')
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (happiestDate != null && happiestKeyword != null)
+                            GestureDetector(
+                              onTap: widget.onDateSelected != null
+                                  ? () {
+                                      navigateToDayAnalysis(
+                                          DateTime.parse(happiestDate!));
+                                    }
+                                  : null,
+                              child: SizedBox(
+                                width: 150,
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      '가장 행복했던 날',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 12,
+                                    ),
+                                    Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                          color: const Color(0xFFBCEBFF),
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            '$happiestDate',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF4B6DAD),
+                                            ),
+                                          ),
+                                          Text(
+                                            '$happiestKeyword',
+                                            style: const TextStyle(
+                                              color: Color(0xFF4B6DAD),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            const Text(''),
+                          if (saddestDate != null && saddestKeyword != null)
+                            GestureDetector(
+                              onTap: widget.onDateSelected != null
+                                  ? () {
+                                      navigateToDayAnalysis(
+                                          DateTime.parse(saddestDate!));
+                                    }
+                                  : null,
+                              child: SizedBox(
+                                width: 150,
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      '가장 속상했던 날',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 12,
+                                    ),
+                                    Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                          color: const Color(0xFFFFC6A6),
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            '$saddestDate',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFFDC6868),
+                                            ),
+                                          ),
+                                          Text(
+                                            '$saddestKeyword',
+                                            style: const TextStyle(
+                                              color: Color(0xFFDC6868),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            const Text(''),
+                        ],
+                      )
+              ],
+            ),
+          );
   }
 }
+

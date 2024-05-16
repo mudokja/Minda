@@ -33,7 +33,6 @@ class ApiService {
                 "$baseUrl/api/auth/refresh",
                 data: {"refreshToken": refreshToken},
               );
-              print(refreshResponse.data);
               String newAccessToken = refreshResponse.data["accessToken"];
               await storage.write(key: 'ACCESS_TOKEN', value: newAccessToken);
               error.requestOptions.headers['Authorization'] =
@@ -53,7 +52,7 @@ class ApiService {
               return;
             }
           } else {
-            throw Exception('Refresh token not found');
+            // throw Exception('Refresh token not found');
           }
         } else if (error.response?.statusCode == 401 && refresh) {
           DeleteStorage deleteStorage = DeleteStorage();

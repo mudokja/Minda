@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:diary_fe/src/services/diary_provider.dart';
 import 'package:diary_fe/src/models/DiaryEntry.dart';
 import 'package:diary_fe/src/services/diary_api_service.dart';
+import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/widgets/background.dart';
 import 'package:diary_fe/src/widgets/calendar_dialog.dart';
 import 'package:diary_fe/src/utils/dotted_line_painter.dart';
 import 'package:diary_fe/src/screens/diary_detail_page.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
+import 'package:dio/dio.dart'; // dio 패키지 임포트
 
 // DiaryListPage 스테이트풀 위젯
 class DiaryListPage extends StatefulWidget {
@@ -26,6 +28,9 @@ class DiaryListPage extends StatefulWidget {
 class _DiaryListPageState extends State<DiaryListPage> {
   List<DiaryEntry> diaryEntries = [];
   bool isLoading = true;
+  bool isSearching = false;
+  String searchKeyword = '';
+  TextEditingController searchController = TextEditingController();
 
   static const int _entriesPerPage = 6;
   int _currentPageIndex = 0;
@@ -69,6 +74,45 @@ class _DiaryListPageState extends State<DiaryListPage> {
     }
   }
 
+  void searchEntries(String keyword) async {
+    setState(() {
+      isLoading = true;
+      isSearching = true;
+      searchKeyword = keyword;
+    });
+    var apiService = ApiService();
+    try {
+      final url = '/api/diary/search/title+content?keyword=$keyword';
+      Response response = await apiService.get(url);
+      List<dynamic> body = response.data;
+      diaryEntries = body.map((dynamic item) => DiaryEntry.fromJson(item)).toList();
+
+      if (diaryEntries.isEmpty) {
+        print('No search results found.');
+      }
+    } catch (e) {
+      print('Error fetching search results: $e');
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to fetch search results. Please try again later.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+ 
+
   void _loadNextPage() {
     setState(() {
       int totalPages = (diaryEntries.length / _entriesPerPage).ceil();
@@ -86,17 +130,17 @@ class _DiaryListPageState extends State<DiaryListPage> {
     });
   }
 
-  void fetchDiaryEntries() async {
-    setState(() => isLoading = true);
-    try {
-      // 여기에 데이터 가져오는 로직 구현
-      // 예: diaryEntries = await DiaryApiService.getDiaryEntries();
-      setState(() => isLoading = false);
-    } catch (e) {
-      print('Error fetching diary entries: $e');
-      setState(() => isLoading = false);
-    }
-  }
+  // void fetchDiaryEntries() async {
+  //   setState(() => isLoading = true);
+  //   try {
+  //     // 여기에 데이터 가져오는 로직 구현
+  //     // 예: diaryEntries = await DiaryApiService.getDiaryEntries();
+  //     setState(() => isLoading = false);
+  //   } catch (e) {
+  //     print('Error fetching diary entries: $e');
+  //     setState(() => isLoading = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +182,15 @@ class _DiaryListPageState extends State<DiaryListPage> {
                       const SizedBox(width: 13),
                       Expanded(
                         child: TextField(
+                          controller: searchController,
                           style: const TextStyle(color: Colors.white),
+                          onSubmitted: (value) {
+                            if (value.isNotEmpty) {
+                              searchEntries(value);
+                            } else {
+                              fetchEntries();
+                            }
+                          },
                           decoration: InputDecoration(
                             hintText: '제목/내용',
                             fillColor: Colors.transparent,
@@ -161,15 +213,110 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                   color: Colors.white, width: 3.0),
                             ),
                             hintStyle: const TextStyle(color: Colors.white),
-                            suffixIcon: const Icon(Icons.search_rounded,
-                                color: Colors.white, size: 30),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.search_rounded, color: Colors.white, size: 30),
+                              onPressed: () {
+                                if (searchController.text.isNotEmpty) {
+                                  searchEntries(searchController.text);
+                                } else {
+                                  fetchEntries();
+                                }
+                              },
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                // 일기 목록 표시
+                // // 일기 목록 표시
+                // const SizedBox(height: 10), // 검색바와 일기 목록 사이의 간격 추가
+                // Expanded(
+                //   child: isLoading
+                //       ? const Center(child: CircularProgressIndicator())
+                //       : Container(
+                //           margin: const EdgeInsets.symmetric(
+                //               horizontal: 25.0), // 양쪽 끝에 공간을 줌
+                //           child: ListView.builder(
+                //             itemCount: currentPageEntries.length,
+                //             itemBuilder: (context, index) {
+                //               // 전체 항목 중 현재 항목의 위치 비율
+                //               double ratio =
+                //                   index / (currentPageEntries.length - 1);
+                //               Color color;
+                //               if (ratio <= 0.5) {
+                //                 // 처음 절반은 연한색
+                //                 color = const Color(0xfff5b9d0);
+                //               } else {
+                //                 // 마지막 절반은 진한색
+                //                 color = const Color(0xff7769D4);
+                //               }
+
+                //               // **여기부터 변경된 부분**
+                //               return GestureDetector(
+                //                 onTap: () {
+                //                   Navigator.push(
+                //                     context,
+                //                     MaterialPageRoute(
+                //                       builder: (context) => DiaryDetailPage(
+                //                         selectedDay: DateTime.parse(
+                //                             currentPageEntries[index]
+                //                                 .diarySetDate), // 일기 날짜를 DateTime 객체로 변환
+                //                         diaryTitle: currentPageEntries[index]
+                //                             .diaryTitle, // 일기 제목을 전달
+                //                         diaryContent: currentPageEntries[index]
+                //                             .diaryContent, // 일기 내용을 전달
+                //                         diaryIndex: currentPageEntries[index]
+                //                             .diaryIndex, // 일기 인덱스를 전달
+                //                       ),
+                //                     ),
+                //                   );
+                //                 },
+                //                 child: Container(
+                //                   padding: const EdgeInsets.symmetric(
+                //                       vertical: 10.0, horizontal: 10.0),
+                //                   decoration: BoxDecoration(
+                //                     border: Border.all(color: Colors.transparent),
+                //                     borderRadius: BorderRadius.circular(8.0),
+                //                   ),
+                //                   child: Column(
+                //                     crossAxisAlignment: CrossAxisAlignment.start,
+                //                     children: [
+                //                       Text(
+                //                         currentPageEntries[index].diarySetDate,
+                //                         style: TextStyle(
+                //                           color: color,
+                //                           fontSize: 20,
+                //                           fontWeight: FontWeight.bold,
+                //                         ),
+                //                       ),
+                //                       const SizedBox(height: 8.0),
+                //                       Text(
+                //                         currentPageEntries[index].diaryTitle ??
+                //                             'No Title',
+                //                         style: const TextStyle(
+                //                           color: Color.fromARGB(
+                //                               255, 255, 230, 251),
+                //                           fontSize: 16,
+                //                           fontWeight: FontWeight.bold,
+                //                         ),
+                //                       ),
+                //                       const SizedBox(height: 8.0),
+                //                       CustomPaint(
+                //                         size: const Size(double.infinity, 1),
+                //                         painter: DottedLinePainter(
+                //                             color: Colors.white),
+                //                       ),
+                //                     ],
+                //                   ),
+                //                 ),
+                //               );
+                //               // **여기까지 변경된 부분**
+                //             },
+                //           ),
+                //         ),
+                // ),
+// 일기 목록 표시
                 const SizedBox(height: 10), // 검색바와 일기 목록 사이의 간격 추가
                 Expanded(
                   child: isLoading
@@ -192,6 +339,7 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                 color = const Color(0xff7769D4);
                               }
 
+                              // **수정된 부분 시작**
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.push(
@@ -205,56 +353,62 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                             .diaryTitle, // 일기 제목을 전달
                                         diaryContent: currentPageEntries[index]
                                             .diaryContent, // 일기 내용을 전달
+                                        diaryIndex: currentPageEntries[index]
+                                            .diaryIndex, // 일기 인덱스를 전달
                                       ),
                                     ),
                                   );
                                 },
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 10.0),
-                                      child: Text(
-                                        currentPageEntries[index]
-                                            .diarySetDate, // 날짜 직접 사용
-                                        style: TextStyle(
-                                          color: color,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
+                                child: Container(
+                                  // margin: const EdgeInsets.only(bottom: 15.0), // 각 항목 사이 간격 조절
+                                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.transparent),
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 10.0),
+                                        child: Text(
+                                          currentPageEntries[index]
+                                              .diarySetDate, // 날짜 직접 사용
+                                          style: TextStyle(
+                                            color: color,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(left: 15.0),
-                                      child: Text(
-                                        currentPageEntries[index].diaryTitle ??
-                                            'No Title', // 제목 직접 사용
-                                        style: const TextStyle(
-                                          color: Color.fromARGB(
-                                              255, 255, 230, 251),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 15.0),
+                                        child: Text(
+                                          currentPageEntries[index].diaryTitle ??
+                                              'No Title', // 제목 직접 사용
+                                          style: const TextStyle(
+                                            color: Color.fromARGB(
+                                                255, 255, 230, 251),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 10.0),
-                                      child: CustomPaint(
+                                      const SizedBox(height: 10.0), // 점선 위 간격
+                                      CustomPaint(
                                         size: const Size(double.infinity, 1),
-                                        painter: DottedLinePainter(
-                                            color: Colors.white),
+                                        painter: DottedLinePainter(color: Colors.white),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
+                              // **수정된 부분 끝**
                             },
                           ),
                         ),
                 ),
+
                 // 페이지네이션 버튼
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -286,38 +440,3 @@ class _DiaryListPageState extends State<DiaryListPage> {
     );
   }
 }               
-//                 // 페이지네이션 바
-//                 Row(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: List.generate(
-//                     totalPages,
-//                     (index) => Padding(
-//                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-//                       child: GestureDetector(
-//                         onTap: () {
-//                           setState(() {
-//                             _currentPageIndex = index;
-//                           });
-//                         },
-//                         child: Text(
-//                           '${index + 1}',
-//                           style: TextStyle(
-//                             fontSize: 18,
-//                             fontWeight: FontWeight.bold,
-//                             color: _currentPageIndex == index
-//                                 ? const Color(0xff7769D4)
-//                                 : Colors.white,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

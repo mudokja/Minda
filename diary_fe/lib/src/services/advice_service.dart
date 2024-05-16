@@ -15,11 +15,15 @@ class AdviceService {
 
       if (response.statusCode == 200) {
         var jsonData = response.data;
+
         return AdviceModel.fromJson(jsonData);
       } else {
+        // var jsonData = {"sentence": [], "emotion": [], "adviceContent": "", "status": {"슬픔": 0, "분노": 0, "불안": 2.633744478225708, "놀람": 10.0, 기쁨: 0.1417764276266098}}
+
         debugPrint('Error occurred: ${response.statusCode}');
         debugPrint('Error message: ${response.data}');
         return null;
+        // return AdviceModel.fromJson(jsonData);
       }
     } on DioException catch (dioException) {
       debugPrint('DioException occurred: $dioException');

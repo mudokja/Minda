@@ -92,9 +92,13 @@ class _LineChartTestState extends State<LineChartTest> {
         borderData: FlBorderData(show: false),
         lineBarsData: List.generate(_spots?.length ?? 0, (index) {
           return LineChartBarData(
+            shadow: const Shadow(
+              color: Colors.white,
+              blurRadius: 0.5,
+            ),
             spots: _spots![index],
             color: colors[index],
-            barWidth: 2,
+            barWidth: 2.6,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(show: false),
           );

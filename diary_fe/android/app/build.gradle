@@ -26,6 +26,7 @@ def kakaoSdkKey=localProperties.getProperty('kakaoSdk.nativeKey')
 android {
     namespace "com.example.diary_fe"
     compileSdk flutter.compileSdkVersion
+    // compileSdkVersion 3
     ndkVersion flutter.ndkVersion
 
     compileOptions {

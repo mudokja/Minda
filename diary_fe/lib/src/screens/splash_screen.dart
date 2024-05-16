@@ -22,6 +22,8 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigateToNext() async {
     await Future.delayed(const Duration(seconds: 4)); // 4초 대기
 
+    if (!mounted) return; // State가 여전히 활성 상태인지 확인
+
     // 로그인 상태에 따라 다른 페이지로 이동
     bool isLoggedIn = context.read<UserProvider>().isLoggedIn;
     if (isLoggedIn) {
@@ -33,6 +35,12 @@ class _SplashScreenState extends State<SplashScreen> {
         MaterialPageRoute(builder: (context) => const IntroPage()),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    // 여기에서 리소스를 정리합니다. 특별히 정리할 리소스가 없더라도, 필요할 경우를 대비하여 추가할 수 있습니다.
+    super.dispose();
   }
 
   @override

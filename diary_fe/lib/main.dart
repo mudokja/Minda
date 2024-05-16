@@ -167,7 +167,6 @@
 ////////////////////////////////////////////////////////////////
 library;
 
-
 import 'package:diary_fe/firebase_options.dart';
 import 'package:diary_fe/src/models/notification.dart';
 import 'package:diary_fe/src/screens/intro_page.dart';
@@ -233,16 +232,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      localizationsDelegates: [
+    return MaterialApp(
+      localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
+      supportedLocales: const [
         Locale('ko', 'KR'),
       ],
-      home: SplashScreen(), // 스플래시 화면으로 설정
+      home: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          // 로그인 상태에 따라 다른 페이지 렌더링
+          return const Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: SplashScreen(),
+          );
+        },
+      ), // 스플래시 화면으로 설정
     );
   }
 }

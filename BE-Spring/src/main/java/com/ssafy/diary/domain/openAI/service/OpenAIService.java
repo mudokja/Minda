@@ -1,6 +1,7 @@
 package com.ssafy.diary.domain.openAI.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.diary.domain.advice.entity.Advice;
 import com.ssafy.diary.domain.advice.repository.AdviceRepository;
@@ -89,8 +90,13 @@ public class OpenAIService {
                     ObjectMapper objectMapper = new ObjectMapper();
                     ChatGPTResponseMessage message;
                     try {
-                        message = objectMapper.readValue(advice, ChatGPTResponseMessage.class);
+                        Map<String,Object> data = objectMapper.readValue(advice, new TypeReference<Map<String, Object>>(){});
+                        message =  ChatGPTResponseMessage.builder()
+                                .advice((String) data.get("advice"))
+                                .comment(data.get("comment").toString())
+                                .build();
                     } catch (JsonProcessingException e) {
+                        log.debug(e.getMessage());
                         throw new RuntimeException("failed advice to convert to ChatGPTResponseDto");
                     }
                     log.debug("advice = {}", advice);
@@ -114,7 +120,8 @@ public class OpenAIService {
         prompts.add(new Message("system", "6. Primarily respond in Korean, but if it is clear that the language is different, feel free to respond in that language."));
         prompts.add(new Message("system", "7. The diary writer cannot communicate with you directly. Treat conversational statements as if talking to yourself."));
         prompts.add(new Message("system", "8. If there are any psychologically concerning aspects, address them analytically with the diary writer."));
-        prompts.add(new Message("system", "9. Most importantly! You will need to compile these analyses into a weekly or monthly report. Respond in JSON format as follows: { advice: {advice for the diary writer}, comment: {key points and keywords for future analysis} }"));
+        prompts.add(new Message("system", "9. Most importantly! You will need to compile these analyses into a weekly or monthly report. Respond in JSON format as follows: { advice: {advice for the diary writer}, comment: {simple key points and keywords for future analysis} }"));
+
 
         prompts.add(new Message("user","제목 :"+diaryTitle));
         for (String sentence : analyze.getSentence()) {
@@ -134,7 +141,7 @@ public class OpenAIService {
         prompts.add(new Message("system", "6. Primarily respond in Korean, but if it is clear that the language is different, feel free to respond in that language."));
         prompts.add(new Message("system", "7. The diary writer cannot communicate with you directly. Treat conversational statements as if talking to yourself."));
         prompts.add(new Message("system", "8. If there are any psychologically concerning aspects, address them analytically with the diary writer."));
-        prompts.add(new Message("system", "Most importantly, the response format for these analyses should be in JSON format as follows: { \"advice\": { \"advice for the diary writer\" }, \"comment\": { \"This is a period analysis\" at the beginning, followed by a brief summary of the main keywords } }."));
+        prompts.add(new Message("system", "Most importantly, the response format for these analyses should be in JSON format as follows: { \"advice\": { \"advice for the diary writer\" }, \"comment\": { \"This is a period analysis\" at the beginning, followed by a brief simple summary of the main keywords } }."));
 
 //        String prompt = "일기를 AI에 넣은 감정 분석 결과와 그 일기에서 krwordrank로 추출한 키워드야. 감정 분석 결과와 키워드를 참고해서 일기 작성자에게 조언을 해 줘. 친구에게 이야기하는 듯한 말투로 부드러운 어조로 조언을 해 줘. 호칭은 생략해 줘. \n";
         for (int i = 0; i < diaryList.size(); i++) {
@@ -154,7 +161,27 @@ public class OpenAIService {
                     maxIndex = j;
                 }
             }
-            prompts.add(new Message("assistant",i+"번 일기 \n 감정: " + emotionArray[maxIndex + 1] + "\n" +"키워드: " + analyzeList.get(i).getKeyword().toString() + "\n" + "comment : "+adviceList.get(i).getAdviceComment()));
+            HashMap<String, Double> keywords = null;
+            for (Analyze analyze : analyzeList) {
+                if (diaryList.get(i).getDiaryIndex().equals(analyze.getDiaryIndex())) {
+                    keywords = analyze.getKeyword();
+                }
+            }
+            String keywordPrompt;
+            if(keywords==null||keywords.isEmpty()){
+            keywordPrompt="키워드는 없습니다.";
+            }else{
+            keywordPrompt = "키워드: " + keywords+ "\n";
+
+            }
+            String advicePrompt ="";
+            for(Advice advice : adviceList){
+                if(diaryList.get(i).getDiarySetDate().equals(advice.getStartDate())&& diaryList.get(i).getDiarySetDate().equals(advice.getEndDate())){
+                    advicePrompt = advice.getAdviceComment();
+                }
+            }
+            keywordPrompt=keywordPrompt+"\n";
+            prompts.add(new Message("assistant",i+"번 일기 \n 감정: " + emotionArray[maxIndex + 1] + "\n" +keywordPrompt + "comment : "+advicePrompt));
         }
         prompts.add(new Message("user","그럼, 이제 기간 동안의 일기 분석 결과를 종합해서 알려주세요."));
         log.debug("prompt={}", prompts);
@@ -185,10 +212,15 @@ public class OpenAIService {
                 .bodyToMono(ChatGPTResponseDto.class)
                 .doOnNext(chatGPTResponseDto -> {
                     String advice = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+                    log.debug("내용 " +advice);
                     ObjectMapper objectMapper = new ObjectMapper();
                     ChatGPTResponseMessage message;
                     try {
-                        message = objectMapper.readValue(advice, ChatGPTResponseMessage.class);
+                        Map<String,Object> data = objectMapper.readValue(advice, new TypeReference<Map<String, Object>>(){});
+                        message =  ChatGPTResponseMessage.builder()
+                                .advice((String) data.get("advice"))
+                                .comment(data.get("comment").toString())
+                                .build();
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException("failed advice to convert to ChatGPTResponseDto");
                     }

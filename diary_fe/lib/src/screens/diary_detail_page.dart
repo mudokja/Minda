@@ -217,7 +217,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
               builder: (context) => const Pages(
                     initialPage: 1,
                   )),
-          (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false, // 모든 이전 라우트를 제거
         );
       } else {
         print('Failed to delete diary');
@@ -442,24 +442,24 @@ class _DiaryDetailPageState extends State<DiaryDetailPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 10),
-                                ElevatedButton(
-                                  onPressed: _toggleConfirmationView,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: themeColors.color1,
-                                    minimumSize: const Size(50, 25),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.zero,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(45),
-                                    ),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      '수정',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                  ),
-                                ),
+                                // ElevatedButton(
+                                //   onPressed: _toggleConfirmationView,
+                                //   style: ElevatedButton.styleFrom(
+                                //     backgroundColor: themeColors.color1,
+                                //     minimumSize: const Size(50, 25),
+                                //     foregroundColor: Colors.white,
+                                //     padding: EdgeInsets.zero,
+                                //     shape: RoundedRectangleBorder(
+                                //       borderRadius: BorderRadius.circular(45),
+                                //     ),
+                                //   ),
+                                //   child: const Center(
+                                //     child: Text(
+                                //       '수정',
+                                //       style: TextStyle(fontSize: 16),
+                                //     ),
+                                //   ),
+                                // ),
                               ],
                             ),
                           ],

@@ -59,6 +59,7 @@ dependencies:
   firebase_core: ^2.30.1
   firebase_analytics: ^10.10.4
   email_validator: "^2.1.16"
+  flutter_native_splash: ^2.4.0
 
 dev_dependencies:
   flutter_test:

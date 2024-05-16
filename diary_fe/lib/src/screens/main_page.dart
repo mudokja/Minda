@@ -1,3 +1,4 @@
+import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/screens/write_page.dart';
 import 'package:diary_fe/src/services/api_services.dart';
 import 'package:diary_fe/src/services/user_provider.dart';
@@ -92,6 +93,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     var userProvider = Provider.of<UserProvider>(context);
+    ThemeColors themeColors = ThemeColors();
 
     return Scaffold(
       body: Stack(
@@ -128,12 +130,36 @@ class _MainPageState extends State<MainPage> {
                             !isWrite
                                 ? Column(
                                     children: [
-                                      Text(
-                                        '어서오세요 ${userProvider.user.nickname}님!',
-                                        style: const TextStyle(
-                                          fontSize: 19,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            const TextSpan(
+                                              text: '어서오세요 ',
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  '${userProvider.user.nickname}',
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                color: themeColors
+                                                    .color2, // 변경하고자 하는 글자 색상
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const TextSpan(
+                                              text: '님!',
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                       const SizedBox(
@@ -169,12 +195,36 @@ class _MainPageState extends State<MainPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        '안녕하세요 ${userProvider.user.nickname}님!',
-                                        style: const TextStyle(
-                                          fontSize: 19,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            const TextSpan(
+                                              text: '안녕하세요 ',
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  '${userProvider.user.nickname}',
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                color: themeColors
+                                                    .color2, // 변경하고자 하는 글자 색상
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const TextSpan(
+                                              text: '님!',
+                                              style: TextStyle(
+                                                fontSize: 19,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                       const SizedBox(

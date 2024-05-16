@@ -224,12 +224,17 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
       if (response.statusCode == 200) {
         print('Diary deleted successfully');
         // Navigator.of(context).pop(); // 페이지를 닫고 이전 페이지로 돌아감
-        Navigator.of(context).pop({
-          'action': 'delete',
-          'diaryIndex': widget.diaryIndex,
-        });
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const Pages(
+                    initialPage: 1,
+                  )),
+          (Route<dynamic> route) => false,
+        );
       } else {
-        print('Failed to delete diary');
+        print('Failed to delete diary. Status code: ${response.statusCode}');
+        print('Response data: ${response.data}');
       }
     } catch (e) {
       print('Error deleting diary: $e');
@@ -527,7 +532,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                             ],
                           ),
                         ),
-                        // if (isLoading) 
+                        // if (isLoading)
                         //   Container(
                         //     width: double.infinity,
                         //     height: MediaQuery.of(context).size.height * 0.3,
@@ -580,70 +585,77 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                         //     ),
                         //   ),
                         if (isLoading)
-                        Container(
-                          width: double.infinity,
-                          height: MediaQuery.of(context).size.height * 0.3,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: themeColors.color2, // 테두리 색상
-                              width: 2, // 테두리 두께
-                            ),
-                          ),
-                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 10),
-                              Text(
-                                '이미지를 생성중입니다.',
-                                style: TextStyle(fontSize: 14),
+                          Container(
+                            width: double.infinity,
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: themeColors.color2, // 테두리 색상
+                                width: 2, // 테두리 두께
                               ),
-                            ],
-                          ),
-                        )
-                      else if (imageUrl.isNotEmpty)
-                        Container(
-                          width: double.infinity,
-                          height: MediaQuery.of(context).size.height * 0.3,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: themeColors.color2, // 테두리 색상
-                              width: 2, // 테두리 두께
+                            ),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(height: 10),
+                                Text(
+                                  '이미지를 생성중입니다.',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (imageUrl.isNotEmpty)
+                          Container(
+                            width: double.infinity,
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: themeColors.color2, // 테두리 색상
+                                width: 2, // 테두리 두께
+                              ),
+                            ),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.contain,
+                                loadingBuilder: (BuildContext context,
+                                    Widget child,
+                                    ImageChunkEvent? loadingProgress) {
+                                  if (loadingProgress == null) {
+                                    return child;
+                                  } else {
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  }
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  print('Image loading error: $error');
+                                  return const Text('이미지 로딩 실패');
+                                },
+                              ),
                             ),
                           ),
-                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
-                              loadingBuilder: (BuildContext context, Widget child,
-                                  ImageChunkEvent? loadingProgress) {
-                                if (loadingProgress == null) {
-                                  return child;
-                                } else {
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
-                                    ),
-                                  );
-                                }
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                print('Image loading error: $error');
-                                return const Text('이미지 로딩 실패');
-                              },
-                            ),
-                          ),
-                        ),
                         Flexible(
                           child: Container(
                             margin: const EdgeInsets.fromLTRB(16, 5, 16, 10),

@@ -35,8 +35,8 @@ class _IntroPageState extends State<IntroPage> {
     // 파일 권한 요청
     if (kIsWeb) {
     } else {
-      var storageStatus2 = await Permission.storage.request();
-      var storageStatus1 = await Permission.photos.request();
+      await Permission.storage.request();
+      await Permission.photos.request();
     }
   }
 
@@ -59,7 +59,7 @@ class _IntroPageState extends State<IntroPage> {
         displayText: '일기를 쓰며 내가 어떤 감정이\n들었는지 궁금하지 않나요?'),
     const CarouselElement(
         imagePath: 'assets/gifs/chart.gif',
-        displayText: 'AI 일기 분석을 통해 감정을 통계로\n나타내고 직관적으로 확인해보세요.'),
+        displayText: 'AI 일기 분석 Minda를 통해 감정을 통계로\n나타내고 직관적으로 확인해보세요.'),
     const CarouselElement(
         imagePath: 'assets/gifs/clap.gif',
         displayText: '일기를 분석해서 어떤 행동이\n기분에 영향을 주는지 파악하고\n그에 맞는 조언을 해줘요!'),

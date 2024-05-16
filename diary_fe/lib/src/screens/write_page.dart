@@ -401,11 +401,12 @@ class _WriteState extends State<Write> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '작성한 일기 분량에 따라 분석시간이 조금 소요될 수 있어요.',
+                      '작성한 일기 분량에 따라 분석시간이\n조금 소요될 수 있어요.',
                       style: TextStyle(
                           color: themeColors.color1,
                           fontSize: 15,
                           fontWeight: FontWeight.w600),
+                      textAlign: TextAlign.center,
                     ),
                     Text(
                       '분석이 완료되면 알림을 보내드릴게요!',

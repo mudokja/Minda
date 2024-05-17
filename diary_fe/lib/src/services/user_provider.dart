@@ -55,9 +55,10 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> leave() async {
+    await logout();
+    await unLink();
+
     await apiService.delete("/api/member");
-    unLink();
-    logout();
   }
 
   Future<void> _webKakaoLogin() async {

@@ -12,11 +12,13 @@ import java.util.Map;
 @Setter
 public class AdviceResponseDto {
     private String adviceContent;
+    private String imageLink;
     private Map<String, Double> status;
 
     @Builder
-    public AdviceResponseDto(String adviceContent, Map<String, Double> status) {
+    public AdviceResponseDto(String adviceContent, String imageLink, Map<String, Double> status) {
         this.adviceContent = adviceContent;
+        this.imageLink = imageLink;
         this.status = status;
     }
 }

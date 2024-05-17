@@ -5,9 +5,11 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class Image {
 
@@ -16,8 +18,8 @@ public class Image {
     @Column(name = "image_index")
     private Long imageIndex;
 
-    @Column(name = "diary_index")
-    private Long diaryIndex;
+//    @Column(name = "diary_index")
+//    private Long diaryIndex;
 
     @Column(name = "image_name")
     private String imageName;
@@ -26,8 +28,8 @@ public class Image {
     private String imageLink;
 
     @Builder
-    public Image(Long diaryIndex, String imageName, String imageLink) {
-        this.diaryIndex = diaryIndex;
+    public Image(String imageName, String imageLink) {
+//        this.diaryIndex = diaryIndex;
         this.imageName = imageName;
         this.imageLink = imageLink;
     }

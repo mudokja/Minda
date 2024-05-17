@@ -128,8 +128,6 @@ public class AdviceService {
 
         Optional<Advice> optionalAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
-        AtomicReference<String> adviceContent = new AtomicReference<>("");
-        AtomicReference<String> imageLink = new AtomicReference<>("");
         if (!optionalAdvice.isPresent()) {
 //            imageLink = String.valueOf(getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()));
 //            ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).block();
@@ -147,23 +145,67 @@ public class AdviceService {
             Mono<String> wordcloudMono = getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
             Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
-            Mono.zip(wordcloudMono, adviceMono).subscribe(tuple -> {
-                Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).get();
-                imageLink.set(tuple.getT1());
-                adviceContent.set(advice.getAdviceContent());
-                advice.updateImageLink(String.valueOf(imageLink));
-                adviceRepository.save(advice);
-            });
-        } else {
-            adviceContent.set(optionalAdvice.get().getAdviceContent());
-            imageLink.set(optionalAdvice.get().getImageLink());
+            AdviceResponseDto adviceResponseDto = getAdviceAndWordCloud(memberIndex, adviceRequestDto).block();
+            adviceResponseDto.setStatus(statusMap);
+            return adviceResponseDto;
+//            Mono.zip(wordcloudMono, adviceMono)
+//                    .flatMap(tuple -> {
+//                        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).get();
+//                        String imageLink = tuple.getT1();
+//                        String adviceContent = advice.getAdviceContent();
+//
+//                        advice.updateImageLink(imageLink);
+//                        adviceRepository.save(advice);
+//
+//                        return Mono.just(AdviceResponseDto.builder()
+//                                .adviceContent(adviceContent)
+//                                .imageLink(imageLink)
+//                                .status(statusMap)
+//                                .build());
+//                    });
+//
+//            Mono.zip(wordcloudMono, adviceMono).subscribe(tuple -> {
+//                Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).get();
+//                String imageLink = tuple.getT1();
+//                String adviceContent = advice.getAdviceContent();
+//
+//                advice.updateImageLink(imageLink);
+//                adviceRepository.save(advice);
+//
+//                return AdviceResponseDto.builder()
+//                        .adviceContent(adviceContent)
+//                        .imageLink(imageLink)
+//                        .status(statusMap).build();
+//            });
         }
 
+        String adviceContent = optionalAdvice.get().getAdviceContent();
+        String imageLink = optionalAdvice.get().getImageLink();
+
         return AdviceResponseDto.builder()
-//                .adviceContent(chatGPTResponseDto.getChoices().get(0).getMessage().getContent())
-                .adviceContent(String.valueOf(adviceContent))
-                .imageLink(String.valueOf(imageLink))
+                .adviceContent(adviceContent)
+                .imageLink(imageLink)
                 .status(statusMap).build();
+    }
+
+    private Mono<AdviceResponseDto> getAdviceAndWordCloud(Long memberIndex, AdviceRequestDto adviceRequestDto) {
+        Mono<String> wordcloudMono = getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+        Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+
+        return Mono.zip(wordcloudMono, adviceMono)
+                .flatMap(tuple -> {
+                    Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).get();
+                    String imageLink = tuple.getT1();
+                    String adviceContent = advice.getAdviceContent();
+
+                    advice.updateImageLink(imageLink);
+                    adviceRepository.save(advice);
+
+                    return Mono.just(AdviceResponseDto.builder()
+                            .adviceContent(adviceContent)
+                            .imageLink(imageLink)
+                            .build());
+                });
     }
 
     @Transactional

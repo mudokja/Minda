@@ -220,7 +220,7 @@ class _LoginModalState extends State<LoginModal> {
     String? inputText = '';
     bool isButtonDisabled = false; // 버튼 활성화 상태 관리
     String? verifiedEmail;
-    StateSetter? _setState;
+    StateSetter? setState;
 
     bool isEmailValid(String email) {
       final RegExp emailRegExp = RegExp(
@@ -233,17 +233,17 @@ class _LoginModalState extends State<LoginModal> {
     }
 
     void startTimer() {
-      _setState!(() {
+      setState!(() {
         remainingTime = 300; // 초 단위, 5분
         isButtonDisabled = true;
       });
       timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (remainingTime > 0) {
-          _setState!(() => remainingTime--);
+          setState(() => remainingTime--);
           print(remainingTime);
         } else {
           timer.cancel();
-          _setState!(() {
+          setState(() {
             isButtonDisabled = false;
             isCodeSent = false;
           });
@@ -265,7 +265,7 @@ class _LoginModalState extends State<LoginModal> {
         if (response.statusCode == 200) {
           timer?.cancel();
           print("도착");
-          _setState!(() {
+          setState!(() {
             verificationId = response.data["verificationId"];
           });
           return true;
@@ -286,8 +286,8 @@ class _LoginModalState extends State<LoginModal> {
             case 400:
               switch (e.response?.data) {
                 case 'request Too many':
-                  showErrorDialog(context as BuildContext,
-                      '이메일을 너무 자주 전송하고 있어요. 조금 기다렸다 시도해보세요.');
+                  showErrorDialog(
+                      context, '이메일을 너무 자주 전송하고 있어요. 조금 기다렸다 시도해보세요.');
                   return false;
                   break;
                 default:
@@ -350,9 +350,9 @@ class _LoginModalState extends State<LoginModal> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text("이메일 인증"),
+          title: const Text("이메일 인증"),
           content: StatefulBuilder(builder: (context, StateSetter setState) {
-            _setState = setState;
+            setState = setState;
             return Form(
                 key: formKey,
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -460,8 +460,7 @@ class _LoginModalState extends State<LoginModal> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text("취소")
-                  ),
+                      child: const Text("취소")),
                 ]));
           }),
         );
@@ -523,7 +522,7 @@ class _LoginModalState extends State<LoginModal> {
                   const SizedBox(height: 20), // 간격 추가
                   GestureDetector(
                     onTap: () {},
-                    child: Column(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
@@ -535,7 +534,7 @@ class _LoginModalState extends State<LoginModal> {
                             // 밑줄
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 1,
                         ),
                         TextButton(
@@ -570,7 +569,7 @@ class _LoginModalState extends State<LoginModal> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10,
                   ),
                   Row(
@@ -628,10 +627,13 @@ class _LoginModalState extends State<LoginModal> {
                                 case "Email Required":
                                   String? email =
                                       await showEmailRequest(context);
-                                  if (email==null||email!.isEmpty || email == '') {
+                                  if (email == null ||
+                                      email.isEmpty ||
+                                      email == '') {
                                     await Provider.of<UserProvider>(context,
-                                            listen: false).unLink();
-                                    showErrorDialog(context as BuildContext, '가입을 취소 했습니다.');
+                                            listen: false)
+                                        .unLink();
+                                    showErrorDialog(context, '가입을 취소 했습니다.');
                                     return;
                                   }
                                   await Provider.of<UserProvider>(context,
@@ -643,7 +645,8 @@ class _LoginModalState extends State<LoginModal> {
                             }
                           }
                           await Provider.of<UserProvider>(context,
-                                  listen: false).fetchUserData();
+                                  listen: false)
+                              .fetchUserData();
                           Navigator.push(
                             context,
                             MaterialPageRoute(

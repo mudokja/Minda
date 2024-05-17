@@ -32,7 +32,7 @@ class _DiaryListPageState extends State<DiaryListPage> {
   String searchKeyword = '';
   TextEditingController searchController = TextEditingController();
 
-  static const int _entriesPerPage = 6;
+  static const int _entriesPerPage = 8;
   int _currentPageIndex = 0;
 
   @override
@@ -85,7 +85,8 @@ class _DiaryListPageState extends State<DiaryListPage> {
       final url = '/api/diary/search/title+content?keyword=$keyword';
       Response response = await apiService.get(url);
       List<dynamic> body = response.data;
-      diaryEntries = body.map((dynamic item) => DiaryEntry.fromJson(item)).toList();
+      diaryEntries =
+          body.map((dynamic item) => DiaryEntry.fromJson(item)).toList();
 
       if (diaryEntries.isEmpty) {
         print('No search results found.');
@@ -96,7 +97,8 @@ class _DiaryListPageState extends State<DiaryListPage> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Error'),
-          content: const Text('Failed to fetch search results. Please try again later.'),
+          content: const Text(
+              'Failed to fetch search results. Please try again later.'),
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),
@@ -111,7 +113,6 @@ class _DiaryListPageState extends State<DiaryListPage> {
       });
     }
   }
- 
 
   void _loadNextPage() {
     setState(() {
@@ -214,7 +215,8 @@ class _DiaryListPageState extends State<DiaryListPage> {
                             ),
                             hintStyle: const TextStyle(color: Colors.white),
                             suffixIcon: IconButton(
-                              icon: const Icon(Icons.search_rounded, color: Colors.white, size: 30),
+                              icon: const Icon(Icons.search_rounded,
+                                  color: Colors.white, size: 30),
                               onPressed: () {
                                 if (searchController.text.isNotEmpty) {
                                   searchEntries(searchController.text);
@@ -361,16 +363,20 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                 },
                                 child: Container(
                                   // margin: const EdgeInsets.only(bottom: 15.0), // 각 항목 사이 간격 조절
-                                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 3.0),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.transparent),
+                                    border:
+                                        Border.all(color: Colors.transparent),
                                     borderRadius: BorderRadius.circular(8.0),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsets.only(left: 10.0),
+                                        padding:
+                                            const EdgeInsets.only(left: 10.0),
                                         child: Text(
                                           currentPageEntries[index]
                                               .diarySetDate, // 날짜 직접 사용
@@ -382,9 +388,11 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                         ),
                                       ),
                                       Padding(
-                                        padding: const EdgeInsets.only(left: 15.0),
+                                        padding:
+                                            const EdgeInsets.only(left: 15.0),
                                         child: Text(
-                                          currentPageEntries[index].diaryTitle ??
+                                          currentPageEntries[index]
+                                                  .diaryTitle ??
                                               'No Title', // 제목 직접 사용
                                           style: const TextStyle(
                                             color: Color.fromARGB(
@@ -397,7 +405,8 @@ class _DiaryListPageState extends State<DiaryListPage> {
                                       const SizedBox(height: 10.0), // 점선 위 간격
                                       CustomPaint(
                                         size: const Size(double.infinity, 1),
-                                        painter: DottedLinePainter(color: Colors.white),
+                                        painter: DottedLinePainter(
+                                            color: Colors.white),
                                       ),
                                     ],
                                   ),
@@ -439,4 +448,4 @@ class _DiaryListPageState extends State<DiaryListPage> {
       ),
     );
   }
-}               
+}

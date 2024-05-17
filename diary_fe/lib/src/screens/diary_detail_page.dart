@@ -10,6 +10,7 @@ import 'package:diary_fe/src/widgets/background.dart'; // Background 위젯 impo
 import 'package:intl/intl.dart';
 import 'package:diary_fe/src/screens/analysis_page.dart';
 import 'package:diary_fe/src/models/diary_image.dart';
+import 'package:diary_fe/src/screens/update_diary_page.dart'; // UpdateDiaryPage import
 
 class DiaryDetailPage extends StatefulWidget {
   final DateTime selectedDay;
@@ -90,19 +91,19 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
 
       if (response.data != null) {
         final data = response.data;
-        final imageList = data['imageList'] as List;
-        if (imageList.isNotEmpty) {
+        final imageList = data['imageList'] as List?;
+        if (imageList != null && imageList.isNotEmpty) {
           final imageLink = imageList[0]['imageLink'];
           setState(() {
-            imageUrl = imageLink;
+            imageUrl = imageLink ?? ''; // null 값 처리
             print('Image URL set: $imageUrl'); // 로깅 추가
           });
         }
         // 날짜, 제목, 내용도 상태 변수에 저장
         setState(() {
-          diaryDate = data['diarySetDate']; // 날짜 형식에 맞게 조정해야 할 수 있음
-          diaryTitle = data['diaryTitle'];
-          diaryContent = data['diaryContent'];
+          diaryDate = data['diarySetDate'] ?? ''; // null 값 처리
+          diaryTitle = data['diaryTitle'] ?? ''; // null 값 처리
+          diaryContent = data['diaryContent'] ?? ''; // null 값 처리
           isLoading = false;
         });
       } else {
@@ -184,37 +185,37 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
     }
   }
 
-  // Future<void> updateDiary() async {
-  //   try {
-  //     const url = '/api/diary';
-  //     final data = {
-  //       'diaryIndex': widget.diaryIndex,
-  //       'diarySetDate': diaryDate,
-  //       'diaryTitle': titleController.text,
-  //       'diaryContent': contentController.text,
-  //     };
-  //     Response response = await apiService.put(url, data: data);
+  Future<void> updateDiary() async {
+    try {
+      const url = '/api/diary';
+      final data = {
+        'diaryIndex': widget.diaryIndex,
+        'diarySetDate': diaryDate,
+        'diaryTitle': titleController.text,
+        'diaryContent': contentController.text,
+      };
+      Response response = await apiService.put(url, data: data);
 
-  //     if (response.statusCode == 200) {
-  //       print('Diary updated successfully');
-  //       setState(() {
-  //         diaryTitle = titleController.text;
-  //         diaryContent = contentController.text;
-  //         showConfirmationView = false;
-  //       });
-  //       Navigator.of(context).pop({
-  //         'action': 'update',
-  //         'diaryIndex': widget.diaryIndex,
-  //         'diaryTitle': diaryTitle,
-  //         'diaryContent': diaryContent,
-  //       });
-  //     } else {
-  //       print('Failed to update diary');
-  //     }
-  //   } catch (e) {
-  //     print('Error updating diary: $e');
-  //   }
-  // }
+      if (response.statusCode == 200) {
+        print('Diary updated successfully');
+        setState(() {
+          diaryTitle = titleController.text;
+          diaryContent = contentController.text;
+          showConfirmationView = false;
+        });
+        Navigator.of(context).pop({
+          'action': 'update',
+          'diaryIndex': widget.diaryIndex,
+          'diaryTitle': diaryTitle,
+          'diaryContent': diaryContent,
+        });
+      } else {
+        print('Failed to update diary');
+      }
+    } catch (e) {
+      print('Error updating diary: $e');
+    }
+  }
 
   Future<void> deleteDiary() async {
     try {
@@ -558,7 +559,29 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                                   ),
                                   const SizedBox(width: 10),
                                   ElevatedButton(
-                                    onPressed: _toggleConfirmationView,
+                                    onPressed: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => UpdateDiaryPage(
+                                            diaryIndex: widget.diaryIndex,
+                                            diaryTitle: widget.diaryTitle,
+                                            diaryContent: widget.diaryContent,
+                                            initialSelectedDay:
+                                                widget.selectedDay,
+                                          ),
+                                        ),
+                                      );
+
+                                      if (result != null &&
+                                          result['action'] == 'update') {
+                                        setState(() {
+                                          // 수정된 내용을 반영
+                                          diaryTitle = result['diaryTitle'];
+                                          diaryContent = result['diaryContent'];
+                                        });
+                                      }
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: ThemeColors.color1,
                                       minimumSize: const Size(50, 25),
@@ -581,58 +604,6 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                             ],
                           ),
                         ),
-                        // if (isLoading)
-                        //   Container(
-                        //     width: double.infinity,
-                        //     height: MediaQuery.of(context).size.height * 0.3,
-                        //     decoration: BoxDecoration(
-                        //       color: Colors.grey.shade200,
-                        //       borderRadius: BorderRadius.circular(10),
-                        //       border: Border.all(
-                        //         color: themeColors.color2, // 테두리 색상
-                        //         width: 2, // 테두리 두께
-                        //       ),
-                        //     ),
-                        //     margin: const EdgeInsets.symmetric(
-                        //         horizontal: 20, vertical: 10),
-                        //     child: const Column(
-                        //       mainAxisAlignment: MainAxisAlignment.center,
-                        //       children: [
-                        //         CircularProgressIndicator(),
-                        //         SizedBox(height: 10),
-                        //         Text(
-                        //           '이미지를 생성중입니다.',
-                        //           style: TextStyle(fontSize: 14),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //   )
-                        // else if (imageUrl.isNotEmpty)
-                        //   Container(
-                        //     width: double.infinity,
-                        //     height: MediaQuery.of(context).size.height * 0.3,
-                        //     decoration: BoxDecoration(
-                        //       color: Colors.grey.shade200,
-                        //       borderRadius: BorderRadius.circular(10),
-                        //       border: Border.all(
-                        //         color: themeColors.color2, // 테두리 색상
-                        //         width: 2, // 테두리 두께
-                        //       ),
-                        //     ),
-                        //     margin: const EdgeInsets.symmetric(
-                        //         horizontal: 20, vertical: 10),
-                        //     child: ClipRRect(
-                        //       borderRadius: BorderRadius.circular(10),
-                        //       child: Image.network(
-                        //         imageUrl,
-                        //         fit: BoxFit.contain,
-                        //         errorBuilder: (context, error, stackTrace) {
-                        //           print('Image loading error: $error');
-                        //           return const Text('이미지 로딩 실패');
-                        //         },
-                        //       ),
-                        //     ),
-                        //   ),
                         if (isLoading)
                           Container(
                             width: double.infinity,

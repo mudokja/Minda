@@ -16,6 +16,8 @@ import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -154,50 +156,50 @@ public class AdviceService {
     public void updateAdviceByPeriod(Long memberIndex, LocalDate diarySetDate) {
         List<Advice> adviceList = adviceRepository.findAdvicesByMemberIndexAndDate(memberIndex, diarySetDate);
 
-        System.out.println("조언 목록 조회 후");
-
         if (adviceList != null && !adviceList.isEmpty()) {
-            System.out.println("조언 목록이 비어있는지 체크 후");
             for (Advice advice : adviceList) {
-                System.out.println("조언 목록의 각 조언 별로 반복문 실행");
                 List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, advice.getStartDate(), advice.getEndDate());
                 s3Service.deleteImageFromS3(advice.getImageLink());
                 adviceRepository.deleteByMemberIndexAndDate(memberIndex, advice.getStartDate(), advice.getEndDate());
 
                 if (diaryList != null && !diaryList.isEmpty()) {
-                    System.out.println("해당 기간의 일기 목록이 존재하는지 체크 후");
-                    openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
-                    String imageLink = String.valueOf(getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()));
+                    Mono<String> wordcloudMono = getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate());
+                    Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
 
-                    Mono<ChatGPTResponseDto> chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
-
-                    chatGPTResponseDto.subscribe(responseDto -> {
-                        String adviceContent = responseDto.getChoices().get(0).getMessage().getContent();
-                        log.info("advice = {}", advice);
-                        adviceRepository.save(Advice.builder()
+                    Mono.zip(wordcloudMono, adviceMono).subscribe(tuple -> {
+                        String imageLink = tuple.getT1();
+                        String adviceContent = tuple.getT2().getChoices().get(0).getMessage().getContent();
+                        Advice newAdvice = Advice.builder()
                                 .memberIndex(memberIndex)
                                 .startDate(advice.getStartDate())
                                 .endDate(advice.getEndDate())
                                 .adviceContent(adviceContent)
                                 .imageLink(imageLink)
-                                .build());
+                                .build();
+                        adviceRepository.save(newAdvice);
                     });
-//                    String adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
-//                    log.info("advice = {}", advice);
-//                    adviceRepository.save(Advice.builder()
-//                            .memberIndex(memberIndex)
-//                            .startDate(advice.getStartDate())
-//                            .endDate(advice.getEndDate())
-//                            .adviceContent(adviceContent)
-//                            .imageLink(imageLink)
-//                            .build());
+
+//                    Mono<ChatGPTResponseDto> chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
+
+//                    getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()).subscribe(imageLink -> {
+//                        openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate()).subscribe(responseDto -> {
+//                            String adviceContent = responseDto.getChoices().get(0).getMessage().getContent();
+//                            Advice newAdvice = Advice.builder()
+//                                    .memberIndex(memberIndex)
+//                                    .startDate(advice.getStartDate())
+//                                    .endDate(advice.getEndDate())
+//                                    .adviceContent(adviceContent)
+//                                    .imageLink(imageLink)
+//                                    .build();
+//                            adviceRepository.save(newAdvice);
+//                        });
+//                    });
                 }
-//                else {
-//                    adviceRepository.deleteByMemberIndexAndDate(memberIndex, advice.getStartDate(), advice.getEndDate());
-//                }
             }
         }
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(AdviceService.class);
 
     public Mono<String> getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
@@ -211,8 +213,28 @@ public class AdviceService {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .map(url -> url.replaceAll("^\"|\"$", ""));
+                .map(url -> url.replaceAll("^\"|\"$", ""))
+                .filter(url -> !url.isEmpty())  // 유효하지 않은 URL 필터링
+                .defaultIfEmpty("default-image-url.png")  // 기본 이미지 URL 제공
+                .doOnNext(url -> log.info("Wordcloud URL retrieved: {}", url))
+                .doOnError(error -> log.error("Error retrieving wordcloud URL", error));
     }
+
+//    public Mono<String> getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {
+//        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
+//        List<Integer> diaryIndexList = diaryList.stream().map(Diary::getDiaryIndex).map(Long::intValue).collect(Collectors.toList());
+//
+//        Map<String, List<Integer>> payload = new HashMap<>();
+//        payload.put("diary_index_list", diaryIndexList);
+//
+//        return webClient.post()
+//                .uri("https://k10b205.p.ssafy.io/api/ai/wordcloud")
+//                .bodyValue(payload)
+//                .retrieve()
+//                .bodyToMono(String.class)
+//                .map(url -> url.replaceAll("^\"|\"$", ""));
+//    }
+
 
 
 }

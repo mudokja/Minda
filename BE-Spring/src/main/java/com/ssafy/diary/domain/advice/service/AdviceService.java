@@ -148,15 +148,10 @@ public class AdviceService {
             Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
             Mono.zip(wordcloudMono, adviceMono).subscribe(tuple -> {
+                Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).get();
                 imageLink.set(tuple.getT1());
-                adviceContent.set(tuple.getT2().getChoices().get(0).getMessage().getContent());
-                adviceRepository.save(Advice.builder()
-                        .memberIndex(memberIndex)
-                        .startDate(adviceRequestDto.getStartDate())
-                        .endDate(adviceRequestDto.getEndDate())
-                        .adviceContent(String.valueOf(adviceContent))
-                        .imageLink(String.valueOf(imageLink))
-                        .build());
+                adviceContent.set(advice.getAdviceContent());
+                advice.updateImageLink(String.valueOf(imageLink));
             });
         } else {
             adviceContent.set(optionalAdvice.get().getAdviceContent());
@@ -185,16 +180,9 @@ public class AdviceService {
                     Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
 
                     Mono.zip(wordcloudMono, adviceMono).subscribe(tuple -> {
+//                        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()).get();
                         String imageLink = tuple.getT1();
-                        String adviceContent = tuple.getT2().getChoices().get(0).getMessage().getContent();
-                        Advice newAdvice = Advice.builder()
-                                .memberIndex(memberIndex)
-                                .startDate(advice.getStartDate())
-                                .endDate(advice.getEndDate())
-                                .adviceContent(adviceContent)
-                                .imageLink(imageLink)
-                                .build();
-                        adviceRepository.save(newAdvice);
+                        advice.updateImageLink(imageLink);
                     });
 
 //                    Mono<ChatGPTResponseDto> chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());

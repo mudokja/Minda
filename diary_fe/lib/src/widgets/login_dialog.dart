@@ -239,17 +239,22 @@ class _LoginModalState extends State<LoginModal> {
       });
       timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (remainingTime > 0) {
-          setState(() => remainingTime--);
+          setState!(() => remainingTime--);
           print(remainingTime);
         } else {
           timer.cancel();
-          setState(() {
+          setState!(() {
             isButtonDisabled = false;
             isCodeSent = false;
           });
           const Text('시간이 초과되었습니다.');
         }
       });
+    }
+
+    void cancelTimer() {
+      timer?.cancel();
+      timer = null;
     }
 
     Future<bool> verifyEmail(String email) async {
@@ -261,13 +266,14 @@ class _LoginModalState extends State<LoginModal> {
             "email": email,
           },
         );
-
+        print(response.statusCode);
         if (response.statusCode == 200) {
           timer?.cancel();
-          print("도착");
+
           setState!(() {
             verificationId = response.data["verificationId"];
           });
+          print(verificationId);
           return true;
           // 인증 코드 발송 성공 메시지 또는 로직
         } else {
@@ -275,6 +281,7 @@ class _LoginModalState extends State<LoginModal> {
           // 인증 코드 발송 실패 처리
         }
       } catch (e) {
+        print(e);
         if (e is DioException) {
           if (e.response?.statusCode == 400 &&
               e.response?.data == 'request Too many') {}
@@ -296,6 +303,7 @@ class _LoginModalState extends State<LoginModal> {
           }
           return false;
         }
+
         return false;
       }
     }
@@ -351,8 +359,9 @@ class _LoginModalState extends State<LoginModal> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text("이메일 인증"),
-          content: StatefulBuilder(builder: (context, StateSetter setState) {
-            setState = setState;
+          content: StatefulBuilder(builder: (context, StateSetter setState2) {
+            setState = setState2;
+
             return Form(
                 key: formKey,
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -372,7 +381,7 @@ class _LoginModalState extends State<LoginModal> {
                     onSaved: (value) {
                       if (emailController.text.isNotEmpty &&
                           isEmailValid(emailController.text)) {
-                        setState(() {
+                        setState2(() {
                           inputText = value!;
                         });
                       }
@@ -385,7 +394,7 @@ class _LoginModalState extends State<LoginModal> {
                           height: 20,
                         ),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
                               flex: 4,
@@ -397,7 +406,7 @@ class _LoginModalState extends State<LoginModal> {
                                     bool confirm = await confirmVerification(
                                         verificationCodeController.text);
                                     if (confirm) {
-                                      setState(() {
+                                      setState2(() {
                                         isVerified = true;
                                         verifiedEmail = inputText;
                                       });
@@ -436,6 +445,7 @@ class _LoginModalState extends State<LoginModal> {
                         ? null
                         : isVerified
                             ? () {
+                                timer?.cancel();
                                 Navigator.pop(context, verifiedEmail);
                               }
                             : () async {
@@ -443,8 +453,9 @@ class _LoginModalState extends State<LoginModal> {
                                   formKey.currentState!.save();
                                   bool requestSent =
                                       await verifyEmail(inputText!);
+                                  print(requestSent);
                                   if (requestSent) {
-                                    setState(() {
+                                    setState2(() {
                                       startTimer();
                                       isButtonDisabled = false;
                                       isCodeSent = true;
@@ -458,6 +469,7 @@ class _LoginModalState extends State<LoginModal> {
                   ),
                   TextButton(
                       onPressed: () {
+                        timer?.cancel();
                         Navigator.pop(context);
                       },
                       child: const Text("취소")),
@@ -466,6 +478,62 @@ class _LoginModalState extends State<LoginModal> {
         );
       },
     );
+  }
+
+  Future<void> againKakaoLogin(int againMax) async {
+    for (int i = 0; i < againMax; i++) {
+      if (i == againMax) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('알림'),
+              content: const Text('너무 많이 요청했어요. 조금 쉬었다 요청해주세요.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('확인'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
+      String? email = await showEmailRequest(context);
+      if (email == null || email.isEmpty || email == '') {
+        await Provider.of<UserProvider>(context, listen: false).unLink();
+
+        showErrorDialog(context, '가입을 취소 했습니다.');
+        return;
+      }
+      try {
+        await Provider.of<UserProvider>(context, listen: false)
+            .retryKakaoLogin(email);
+      } catch (e) {
+        if (e is SocialLoginError) {
+          await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('알림'),
+                content: const Text('이미 가입되어 있는 이메일이에요. 다른 이메일로 다시 시도해보세요.'),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('확인'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -625,20 +693,28 @@ class _LoginModalState extends State<LoginModal> {
                             if (e is SocialLoginError) {
                               switch (e.message.toString()) {
                                 case "Email Required":
-                                  String? email =
-                                      await showEmailRequest(context);
-                                  if (email == null ||
-                                      email.isEmpty ||
-                                      email == '') {
-                                    await Provider.of<UserProvider>(context,
-                                            listen: false)
-                                        .unLink();
-                                    showErrorDialog(context, '가입을 취소 했습니다.');
-                                    return;
-                                  }
-                                  await Provider.of<UserProvider>(context,
-                                          listen: false)
-                                      .retryKakaoLogin(email);
+                                  await againKakaoLogin(5);
+                                  break;
+                                case "Register Failed":
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('알림'),
+                                        content: const Text(
+                                            '회원 가입에 실패했어요. 잠시 후 다시 시도해주세요.'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: const Text('확인'),
+                                            onPressed: () {
+                                              Navigator.of(context)
+                                                  .pop(); // Close the dialog
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
                                   break;
                                 default:
                               }
@@ -660,21 +736,6 @@ class _LoginModalState extends State<LoginModal> {
                           width: 500, // InkWell의 크기를 지정
                           height: 60,
                         ),
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      // await measureAsyncFunction(() => _sendTextToAPI("응답해주세요 이건 메시지입니다."), 200);
-                      measureAsyncFunctionPerformance(100);
-                    },
-                    child: Text(
-                      '부하 테스트!',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: ThemeColors.gray,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),

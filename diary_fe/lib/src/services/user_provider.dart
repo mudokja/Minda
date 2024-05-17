@@ -156,11 +156,13 @@ class UserProvider with ChangeNotifier {
     } catch (e) {
       if (e is DioException) {
         if (e.response?.statusCode == 400) {
+          print(e.response?.data);
           switch (e.response?.data) {
             case "email is empty":
               throw SocialLoginError("Email Required");
-            default:
+            case "register failed":
               throw SocialLoginError("Register Failed");
+            default:
           }
         }
       }

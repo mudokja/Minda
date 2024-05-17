@@ -51,7 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void leave() async {
-    Provider.of<UserProvider>(context, listen: false).leave();
+    await Provider.of<UserProvider>(context, listen: false).leave();
     Navigator.push(
       context,
       MaterialPageRoute(

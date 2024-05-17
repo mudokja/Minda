@@ -152,6 +152,7 @@ public class AdviceService {
                 imageLink.set(tuple.getT1());
                 adviceContent.set(advice.getAdviceContent());
                 advice.updateImageLink(String.valueOf(imageLink));
+                adviceRepository.save(advice);
             });
         } else {
             adviceContent.set(optionalAdvice.get().getAdviceContent());
@@ -183,6 +184,7 @@ public class AdviceService {
 //                        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()).get();
                         String imageLink = tuple.getT1();
                         advice.updateImageLink(imageLink);
+                        adviceRepository.save(advice);
                     });
 
 //                    Mono<ChatGPTResponseDto> chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());

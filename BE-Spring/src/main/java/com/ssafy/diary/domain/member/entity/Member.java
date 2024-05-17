@@ -3,6 +3,7 @@ package com.ssafy.diary.domain.member.entity;
 import com.ssafy.diary.domain.advice.entity.Advice;
 import com.ssafy.diary.domain.auth.dto.MemberInfoDto;
 import com.ssafy.diary.domain.diary.entity.Diary;
+import com.ssafy.diary.domain.notification.entity.FirebaseMemberToken;
 import com.ssafy.diary.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -64,6 +65,9 @@ public class Member extends BaseEntity {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "member_index")
     private List<Advice> adviceList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<FirebaseMemberToken> firebaseMemberTokens = new ArrayList<>();
 
     @Builder
     public Member(Long index, String id, String password, Role role, AuthType platform, String email, String nickname, String profileImage) {

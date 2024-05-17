@@ -18,25 +18,25 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
-public class FirebaseMemberToken {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long firebaseTokenIndex;
-    @Column(nullable = false,length = 512,unique = true)
-    private String fireBaseToken;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private FireBasePlatform fireBasePlatform;
-    @Embedded
-    private DateField date=new DateField();
+    public class FirebaseMemberToken {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long firebaseTokenIndex;
+        @Column(nullable = false,length = 512,unique = true)
+        private String fireBaseToken;
+        @Column(nullable = false)
+        @Enumerated(EnumType.STRING)
+        private FireBasePlatform fireBasePlatform;
+        @Embedded
+        private DateField date=new DateField();
 
-    @JoinColumn(name = "member_index",nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
-    private Member member;
-    @Builder
-    public FirebaseMemberToken(String fireBaseToken, FireBasePlatform fireBasePlatform, Member member) {
-        this.fireBaseToken = fireBaseToken;
-        this.fireBasePlatform = fireBasePlatform;
-        this.member = member;
+        @JoinColumn(name = "member_index",nullable = false)
+        @ManyToOne(fetch = FetchType.LAZY)
+        private Member member;
+        @Builder
+        public FirebaseMemberToken(String fireBaseToken, FireBasePlatform fireBasePlatform, Member member) {
+            this.fireBaseToken = fireBaseToken;
+            this.fireBasePlatform = fireBasePlatform;
+            this.member = member;
+        }
     }
-}

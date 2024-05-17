@@ -57,10 +57,10 @@ public class S3Service {
                     String key = uuid.toString();
 
                     String contentType = entity.getContentType().getValue();
-                    int typeIndex = contentType.lastIndexOf("/")+1;
+                    int typeIndex = contentType.lastIndexOf("/") + 1;
                     contentType = contentType.substring(typeIndex);
 
-                    key += "."+contentType;
+                    key += "." + contentType;
 
                     amazonS3.putObject(bucket, key, inputStream, metadata);
                     return amazonS3.getUrl(bucket, key).toString();
@@ -93,14 +93,6 @@ public class S3Service {
         amazonS3.deleteObject(bucket, originalFilename);
     }
 
-    public void deleteImageFromS3(String imageLink) {
-            int lastSlashIndex = imageLink.lastIndexOf('/');
-            if (lastSlashIndex != -1) {
-                String imageName = imageLink.substring(lastSlashIndex + 1);
-                deleteFile(imageName);
-            }
-    }
-
     //이미지 s3에 저장하고 imageList 반환
     public List<Image> saveAndGetImageList(MultipartFile[] imageFiles) {
         List<Image> imageList = new ArrayList<>();
@@ -121,15 +113,22 @@ public class S3Service {
     }
 
     //이미지url에서 파일이름 추출해서 삭제
-    public void deleteImagesFromS3(List<Image> imageList) {
-        for (Image image : imageList) {
-            String imageName;
-            int lastSlashIndex = image.getImageLink().lastIndexOf('/');
+    public void deleteImageFromS3(String imageLink) {
+        if (imageLink != null) {
+            int lastSlashIndex = imageLink.lastIndexOf('/');
             if (lastSlashIndex != -1) {
-                imageName = image.getImageLink().substring(lastSlashIndex + 1);
+                String imageName = imageLink.substring(lastSlashIndex + 1);
                 deleteFile(imageName);
             }
         }
+    }
+
+    //이미지 리스트의 이미지url에서 파일이름 추출해서 삭제
+    public void deleteImagesFromS3(List<Image> imageList) {
+        for (Image image : imageList) {
+            deleteImageFromS3(image.getImageLink());
+        }
+
     }
 
 //    // 파일이 이미 S3에 존재하는지 확인

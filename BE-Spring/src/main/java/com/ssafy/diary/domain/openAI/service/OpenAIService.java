@@ -224,14 +224,14 @@ public class OpenAIService {
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException("failed advice to convert to ChatGPTResponseDto");
                     }
-//                    log.debug("advice = {}", advice);
-//                    adviceRepository.save(Advice.builder()
-//                            .memberIndex(memberIndex)
-//                            .startDate(startDate)
-//                            .endDate(endDate)
-//                            .adviceContent(message.getAdvice())
-//                            .adviceComment(message.getComment())
-//                            .build());
+                    log.debug("advice = {}", advice);
+                    adviceRepository.save(Advice.builder()
+                            .memberIndex(memberIndex)
+                            .startDate(startDate)
+                            .endDate(endDate)
+                            .adviceContent(message.getAdvice())
+                            .adviceComment(message.getComment())
+                            .build());
                 });
     }
 

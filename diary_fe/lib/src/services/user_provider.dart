@@ -43,7 +43,7 @@ class UserProvider with ChangeNotifier {
     Response response = await apiService
         .post('/api/auth/login', data: {"id": id, "password": pw});
     Map<String, dynamic> responseMap = response.data;
-    _fetchTokenInfo(responseMap);
+    await _fetchTokenInfo(responseMap);
     await _tokenRegister();
   }
 
@@ -96,7 +96,7 @@ class UserProvider with ChangeNotifier {
     try {
       if (kIsWeb) {
         //웹 방식 로그인은 문제가 발생하지 않으면 별도로 구현하지 않을예정
-        _webKakaoLogin();
+        await _webKakaoLogin();
       } else {
         if (Platform.isAndroid || Platform.isIOS) {
           if (talkInstalled) {
@@ -151,7 +151,7 @@ class UserProvider with ChangeNotifier {
     try {
       response =
           await apiService.post("/api/auth/oauth2/login", data: requestData);
-      _fetchTokenInfo(response.data);
+      await _fetchTokenInfo(response.data);
       await _tokenRegister();
     } catch (e) {
       if (e is DioException) {

@@ -512,6 +512,7 @@ class _LoginModalState extends State<LoginModal> {
       try {
         await Provider.of<UserProvider>(context, listen: false)
             .retryKakaoLogin(email);
+        return;
       } catch (e) {
         if (e is SocialLoginError) {
           await showDialog(

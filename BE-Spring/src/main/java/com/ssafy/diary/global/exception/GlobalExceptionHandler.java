@@ -50,7 +50,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException exception) {
         log.error("Runtime exception: ", exception);
-        return ResponseEntity.badRequest().body(exception.getMessage());
+        String message="Request Failed";
+        if(exception.getCause()==null){
+        message = exception.getMessage();
+        }
+
+        return ResponseEntity.badRequest().body(message);
     }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGeneralException(Exception exception) {
@@ -120,5 +125,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST )
                 .body(exception.getMessage());
+    }
+    @ExceptionHandler(MemberRegisterException.class)
+    public ResponseEntity<String> handleMemberRegisterException(RuntimeException exception) {
+        log.error("MemberRegisterException: ", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
     }
 }

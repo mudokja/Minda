@@ -7,7 +7,9 @@ import com.ssafy.diary.domain.member.repository.MemberRepository;
 import com.ssafy.diary.domain.refreshToken.repository.RefreshTokenRepository;
 import com.ssafy.diary.global.constant.AuthType;
 import com.ssafy.diary.global.constant.Role;
+import com.ssafy.diary.global.exception.AlreadyExistsEmailException;
 import com.ssafy.diary.global.exception.AlreadyExistsMemberException;
+import com.ssafy.diary.global.exception.MemberRegisterException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
@@ -63,9 +65,12 @@ public class MemberService {
     @Transactional
     public Member registerOauth2Member(MemberOauth2RegisterRequestDto memberOauth2RegisterRequestDto) throws AlreadyExistsMemberException, BadRequestException {
 
-        boolean isExistsMember = checkExistMemberId(memberOauth2RegisterRequestDto.getId(), AuthType.KAKAO);
+        boolean isExistsMember = checkExistMemberId(memberOauth2RegisterRequestDto.getId(), memberOauth2RegisterRequestDto.getPlatform());
+        boolean isExistsEmail = checkExistEmail(memberOauth2RegisterRequestDto.getEmail(),  memberOauth2RegisterRequestDto.getPlatform());
 
-        if (!isExistsMember) {
+        if (!isExistsMember&&!isExistsEmail) {
+            try{
+
             Member member=memberRepository.save(
                     Member.builder()
                             .id(memberOauth2RegisterRequestDto.getId())
@@ -75,9 +80,15 @@ public class MemberService {
                             .email(memberOauth2RegisterRequestDto.getEmail())
                             .build()
             );
-            if(member==null)
-                throw new BadRequestException("register failed");
             return member;
+            }catch (Exception e){
+
+            log.debug("register failed : {}",e.getMessage());
+                throw new MemberRegisterException("register failed");
+            }
+        }
+        if(isExistsEmail) {
+            throw new AlreadyExistsEmailException("email already exists");
         }
             return memberRepository.findByIdAndPlatform(memberOauth2RegisterRequestDto.getId(),memberOauth2RegisterRequestDto.getPlatform()).orElseThrow();
     }
@@ -85,8 +96,14 @@ public class MemberService {
     public void registerMember(MemberRegisterRequestDto memberRegisterRequestDto) throws AlreadyExistsMemberException {
 
         boolean isExistsMember = checkExistMemberId(memberRegisterRequestDto.getId(), AuthType.LOCAL);
-
-        if (!isExistsMember) {
+        boolean isExistsEmail = checkExistEmail(memberRegisterRequestDto.getEmail(), AuthType.LOCAL);
+        if(isExistsMember) {
+            throw new AlreadyExistsMemberException("member already exists");
+        }
+        if(isExistsEmail) {
+            throw new AlreadyExistsEmailException("email already exists");
+        }
+        try {
             memberRepository.save(
                     Member.builder()
                             .id(memberRegisterRequestDto.getId())
@@ -97,10 +114,10 @@ public class MemberService {
                             .password(passwordEncoder.encode(memberRegisterRequestDto.getPassword()))
                             .build()
             );
-        }
-        if(isExistsMember){
-            throw new AlreadyExistsMemberException("member ID "+memberRegisterRequestDto.getId()+ " is exists");
-        }
+        }catch (Exception e){
+        log.debug("register failed : {}",e.getMessage());
+        throw new MemberRegisterException("register failed");
+    }
     }
     @Transactional(readOnly = true)
     public boolean checkExistMemberId(String memberId, AuthType platform){

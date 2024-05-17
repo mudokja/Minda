@@ -218,29 +218,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: buttonWidth,
                         height: 55,
                         child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ThemeColors.color1,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8), // 선택적: 패딩 설정
-                          ),
-                          child: const Text(
-                            '알림 설정하기',
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 25,
-                      ),
-                      SizedBox(
-                        width: buttonWidth,
-                        height: 55,
-                        child: ElevatedButton(
                           onPressed: () {
                             logout();
                           },

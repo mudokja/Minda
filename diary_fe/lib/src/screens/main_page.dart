@@ -21,7 +21,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  bool isWrite = false;
+  bool? isWrite;
 
   void writeCheck() async {
     ApiService apiService = ApiService();
@@ -109,129 +109,130 @@ class _MainPageState extends State<MainPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            !isWrite
-                                ? Column(
-                                    children: [
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            const TextSpan(
-                                              text: '어서오세요 ',
-                                              style: TextStyle(
-                                                fontSize: 19,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  '${userProvider.user.nickname}',
-                                              style: TextStyle(
-                                                fontSize: 19,
-                                                color: ThemeColors.color2,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            const TextSpan(
-                                              text: '님!',
-                                              style: TextStyle(
-                                                fontSize: 19,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ],
+                            if (isWrite == null)
+                              const Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            else if (!isWrite!)
+                              Column(
+                                children: [
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        const TextSpan(
+                                          text: '어서오세요 ',
+                                          style: TextStyle(
+                                            fontSize: 19,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(
-                                        height: 5,
-                                      ),
-                                      const Text(
-                                        '오늘 하루는 어떠셨나요?',
-                                        style: TextStyle(
-                                          fontSize: 19,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
+                                        TextSpan(
+                                          text: '${userProvider.user.nickname}',
+                                          style: TextStyle(
+                                            fontSize: 19,
+                                            color: ThemeColors.color2,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(
-                                        height: 15,
-                                      ),
-                                      ElevatedButton(
-                                          onPressed: () {
-                                            showWritingPage(context);
-                                          },
-                                          child: const Text(
-                                            '일기 쓰기',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          )),
-                                      const SizedBox(
-                                        height: 100,
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            const TextSpan(
-                                              text: '안녕하세요 ',
-                                              style: TextStyle(
-                                                fontSize: 19,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  '${userProvider.user.nickname}',
-                                              style: TextStyle(
-                                                fontSize: 19,
-                                                color: ThemeColors
-                                                    .color2, // 변경하고자 하는 글자 색상
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            const TextSpan(
-                                              text: '님!',
-                                              style: TextStyle(
-                                                fontSize: 19,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ],
+                                        const TextSpan(
+                                          text: '님!',
+                                          style: TextStyle(
+                                            fontSize: 19,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(
-                                        height: 5,
-                                      ),
-                                      const Text(
-                                        '오늘은 일기를 작성하셨어요.',
-                                        style: TextStyle(
-                                          fontSize: 19,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const Text(
-                                        '분석들을 살펴보고 조언을 받아봐요.',
-                                        style: TextStyle(
-                                          fontSize: 19,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        height: 50,
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  const Text(
+                                    '오늘 하루는 어떠셨나요?',
+                                    style: TextStyle(
+                                      fontSize: 19,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        showWritingPage(context);
+                                      },
+                                      child: const Text(
+                                        '일기 쓰기',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      )),
+                                  const SizedBox(
+                                    height: 100,
+                                  ),
+                                ],
+                              )
+                            else
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        const TextSpan(
+                                          text: '안녕하세요 ',
+                                          style: TextStyle(
+                                            fontSize: 19,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: '${userProvider.user.nickname}',
+                                          style: TextStyle(
+                                            fontSize: 19,
+                                            color: ThemeColors.color2,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const TextSpan(
+                                          text: '님!',
+                                          style: TextStyle(
+                                            fontSize: 19,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  const Text(
+                                    '오늘은 일기를 작성하셨어요.',
+                                    style: TextStyle(
+                                      fontSize: 19,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const Text(
+                                    '분석들을 살펴보고 조언을 받아봐요.',
+                                    style: TextStyle(
+                                      fontSize: 19,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 50,
+                                  ),
+                                ],
+                              ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [

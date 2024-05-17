@@ -425,69 +425,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                       crossAxisAlignment:
                           CrossAxisAlignment.stretch, // 가로로 꽉 차게
                       children: [
-                        Stack(
-                          children: [
-                            const SizedBox(width: 15), // 추가적인 왼쪽 공간
-                            // 새로운 AI 이미지 생성 아이콘 버튼 추가
-                            IconButton(
-                              // icon: Image.asset('assets/icons/ai-file.png', width: 5, height: 5), // 이미지 파일 사용
-                              icon: const Icon(
-                                  Icons.brush), // 예시 아이콘, 적절한 아이콘으로 교체 필요
-                              // icon: const Icon(Icons.palette),
-                              // icon: const Icon(Icons.photo_filter_rounded),
-// icon: const Icon(Icons.add_photo_alternate),
-
-                              color: ThemeColors.color1, // 아이콘 색상 지정
-                              onPressed: generateImage, // AI 이미지 생성 로직 연결
-                            ),
-
-                            const SizedBox(width: 140), // AI 버튼과 삭제 버튼 간의 간격
-
-                            // 기존 '삭제' 버튼
-                            ElevatedButton(
-                              onPressed: () {
-                                // 일기 삭제
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: ThemeColors.color2, // 배경색
-                                foregroundColor: Colors.white, // 텍스트색
-                                minimumSize: const Size(50, 25), // 최소 크기 지정
-                                padding: EdgeInsets.zero, // 최소 패딩
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(45), // 모서리 둥글게
-                                ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '삭제',
-                                  style: TextStyle(fontSize: 16), // 폰트사이즈 설정
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10), // 버튼 간 간격 조정
-                            // 기존 '수정' 버튼
-                            ElevatedButton(
-                              onPressed: _toggleConfirmationView,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: ThemeColors.color1, // 배경색
-                                minimumSize: const Size(50, 25), // 최소 크기 지정
-                                foregroundColor: Colors.white, // 텍스트색
-                                padding: EdgeInsets.zero, // 최소 패딩
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(45), // 모서리 둥글게
-                                ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '수정',
-                                  style: TextStyle(fontSize: 16), // 폰트사이즈 설정
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 20), // 추가적인 오른쪽 공간
-                          ],
+                        const SizedBox(
+                          height: 40,
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

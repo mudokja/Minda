@@ -1,8 +1,8 @@
 package com.ssafy.diary.global.util;
 
+import com.amazonaws.util.StringUtils;
 import com.google.firebase.messaging.*;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.LocalDateTime;
 import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
@@ -11,7 +11,8 @@ import java.util.Map;
 @Slf4j
 public class FCMUtil {
     private static final long DEFAULT_ANDROID_TTL_TIME= 60L *1000*60*24*3;
-    public static void sendAllNotificationMessage(String title, String message, @Nullable Map<String,String> data, String topic, @Nullable Long androidTtlSec) throws FirebaseMessagingException {
+    public static void sendAllNotificationMessage(String title, String message, @Nullable Map<String,String> data, String topic, DiaryFCMOptions diaryFcmOptions) throws FirebaseMessagingException {
+        diaryOptionsCheck(diaryFcmOptions);
         Message requestMessage=Message.builder()
                 .setNotification(Notification.builder()
                         .setBody(message)
@@ -19,12 +20,13 @@ public class FCMUtil {
                         .build())
                 .putAllData(data)
                 .setAndroidConfig(AndroidConfig.builder()
-                        .setTtl(androidTtlSec==null?DEFAULT_ANDROID_TTL_TIME:androidTtlSec*1000)
+                        .setTtl(diaryFcmOptions.getAndroidTtlSec()==null?DEFAULT_ANDROID_TTL_TIME: diaryFcmOptions.getAndroidTtlSec()*1000)
                         .build())
                 .setWebpushConfig(WebpushConfig.builder()
                         .setNotification(WebpushNotification.builder()
                                 .setDirection(WebpushNotification.Direction.AUTO)
-                                .setRenotify(true)
+                                .setRenotify(diaryFcmOptions.getRenotify())
+                                .setTag(diaryFcmOptions.getTag())
                                 .setLanguage("ko-KR")
                                 .build())
                         .build())
@@ -35,8 +37,9 @@ public class FCMUtil {
                 .send(requestMessage);
         showResponseLog(response);
     }
-    public static void sendAllNotificationMessage(String title, String message, List<String> registrationToken, @Nullable Long androidTtlSec) throws FirebaseMessagingException {
+    public static void sendAllNotificationMessage(String title, String message, List<String> registrationToken, DiaryFCMOptions diaryFcmOptions) throws FirebaseMessagingException {
         List<Message> requestMessage=new ArrayList<>();
+        diaryOptionsCheck(diaryFcmOptions);
         registrationToken.forEach(token->
                 requestMessage.add(Message.builder()
                         .setNotification(Notification.builder()
@@ -44,12 +47,13 @@ public class FCMUtil {
                                 .setTitle(title)
                                 .build())
                         .setAndroidConfig(AndroidConfig.builder()
-                                .setTtl(androidTtlSec==null?DEFAULT_ANDROID_TTL_TIME:androidTtlSec*1000)
+                                .setTtl(diaryFcmOptions.getAndroidTtlSec()==null?DEFAULT_ANDROID_TTL_TIME: diaryFcmOptions.getAndroidTtlSec()*1000)
                                 .build())
                         .setWebpushConfig(WebpushConfig.builder()
                                 .setNotification(WebpushNotification.builder()
                                         .setDirection(WebpushNotification.Direction.AUTO)
-                                        .setRenotify(true)
+                                        .setRenotify(diaryFcmOptions.getRenotify())
+                                        .setTag(diaryFcmOptions.getTag())
                                         .setLanguage("ko-KR")
                                         .build())
                                 .build())
@@ -61,8 +65,17 @@ public class FCMUtil {
                 .sendEach(requestMessage);
         showBatchResponseLog(response);
     }
-    public static void sendAllNotificationMessage(String title, String message, String imageUrl, List<String> registrationToken, @Nullable Long androidTtlSec) throws FirebaseMessagingException {
+
+    private static void diaryOptionsCheck(DiaryFCMOptions diaryFcmOptions) {
+        boolean renotify= diaryFcmOptions.getRenotify();
+        if(renotify&& StringUtils.isNullOrEmpty(diaryFcmOptions.getTag())){
+            throw new RuntimeException("Renotify is True, But Tag Empty");
+        }
+    }
+
+    public static void sendAllNotificationMessage(String title, String message, String imageUrl, List<String> registrationToken, DiaryFCMOptions diaryFcmOptions) throws FirebaseMessagingException {
         List<Message> requestMessage=new ArrayList<>();
+        diaryOptionsCheck(diaryFcmOptions);
         registrationToken.forEach(token->
                 requestMessage.add(Message.builder()
                         .setNotification(Notification.builder()
@@ -71,12 +84,13 @@ public class FCMUtil {
                                 .setImage(imageUrl)
                                 .build())
                         .setAndroidConfig(AndroidConfig.builder()
-                                .setTtl(androidTtlSec==null?DEFAULT_ANDROID_TTL_TIME:androidTtlSec*1000)
+                                .setTtl(diaryFcmOptions.getAndroidTtlSec()==null?DEFAULT_ANDROID_TTL_TIME: diaryFcmOptions.getAndroidTtlSec()*1000)
                                 .build())
                         .setWebpushConfig(WebpushConfig.builder()
                                 .setNotification(WebpushNotification.builder()
                                         .setDirection(WebpushNotification.Direction.AUTO)
-                                        .setRenotify(true)
+                                        .setRenotify(diaryFcmOptions.getRenotify())
+                                        .setTag(diaryFcmOptions.getTag())
                                         .setLanguage("ko-KR")
                                         .build())
                                 .build())
@@ -88,8 +102,9 @@ public class FCMUtil {
                 .sendEach(requestMessage);
         showBatchResponseLog(response);
     }
-    public static void sendAllNotificationMessage(String title, String message, @Nullable Map<String,String> data, List<String> registrationToken, @Nullable Long androidTtlSec) throws FirebaseMessagingException {
+    public static void sendAllNotificationMessage(String title, String message, @Nullable Map<String,String> data, List<String> registrationToken, DiaryFCMOptions diaryFcmOptions) throws FirebaseMessagingException {
         List<Message> requestMessage=new ArrayList<>();
+        diaryOptionsCheck(diaryFcmOptions);
         registrationToken.forEach(token->
                 requestMessage.add(Message.builder()
                         .setNotification(Notification.builder()
@@ -98,12 +113,13 @@ public class FCMUtil {
                                 .build())
                         .putAllData(data)
                         .setAndroidConfig(AndroidConfig.builder()
-                                .setTtl(androidTtlSec==null?DEFAULT_ANDROID_TTL_TIME:androidTtlSec*1000)
+                                .setTtl(diaryFcmOptions.getAndroidTtlSec()==null?DEFAULT_ANDROID_TTL_TIME: diaryFcmOptions.getAndroidTtlSec()*1000)
                                 .build())
                         .setWebpushConfig(WebpushConfig.builder()
                                 .setNotification(WebpushNotification.builder()
                                         .setDirection(WebpushNotification.Direction.AUTO)
-                                        .setRenotify(true)
+                                        .setRenotify(diaryFcmOptions.getRenotify())
+                                        .setTag(diaryFcmOptions.getTag())
                                         .setLanguage("ko-KR")
                                         .build())
                                 .build())
@@ -122,7 +138,8 @@ public class FCMUtil {
         log.debug("Successful sent notification message count : {}", response.getSuccessCount());
     }
 
-    public static void sendNotificationMessage(String title, String message, @Nullable Map<String,String> data, String registrationToken, @Nullable Long androidTtlSec) throws FirebaseMessagingException {
+    public static void sendNotificationMessage(String title, String message, @Nullable Map<String,String> data, String registrationToken, DiaryFCMOptions diaryFcmOptions) throws FirebaseMessagingException {
+        diaryOptionsCheck(diaryFcmOptions);
         Message requestMessage=Message.builder()
                 .setNotification(Notification.builder()
                         .setBody(message)
@@ -130,12 +147,13 @@ public class FCMUtil {
                         .build())
                 .putAllData(data)
                 .setAndroidConfig(AndroidConfig.builder()
-                        .setTtl(androidTtlSec==null?DEFAULT_ANDROID_TTL_TIME:androidTtlSec*1000)
+                        .setTtl(diaryFcmOptions.getAndroidTtlSec()==null?DEFAULT_ANDROID_TTL_TIME: diaryFcmOptions.getAndroidTtlSec()*1000)
                         .build())
                 .setWebpushConfig(WebpushConfig.builder()
                         .setNotification(WebpushNotification.builder()
                                 .setDirection(WebpushNotification.Direction.AUTO)
-                                .setRenotify(true)
+                                .setRenotify(diaryFcmOptions.getRenotify())
+                                .setTag(diaryFcmOptions.getTag())
                                 .setLanguage("ko-KR")
                                 .build())
                         .build())
@@ -147,19 +165,21 @@ public class FCMUtil {
         showResponseLog(response);
 
     }
-    public static void sendNotificationMessage(String title, String message, String registrationToken, @Nullable Long androidTtlSec) throws FirebaseMessagingException {
+    public static void sendNotificationMessage(String title, String message, String registrationToken, DiaryFCMOptions diaryFcmOptions) throws FirebaseMessagingException {
+        diaryOptionsCheck(diaryFcmOptions);
         Message requestMessage=Message.builder()
                 .setNotification(Notification.builder()
                         .setBody(message)
                         .setTitle(title)
                         .build())
                 .setAndroidConfig(AndroidConfig.builder()
-                        .setTtl(androidTtlSec==null ?DEFAULT_ANDROID_TTL_TIME:androidTtlSec*1000)
+                        .setTtl(diaryFcmOptions.getAndroidTtlSec()==null ?DEFAULT_ANDROID_TTL_TIME: diaryFcmOptions.getAndroidTtlSec()*1000)
                         .build())
                 .setWebpushConfig(WebpushConfig.builder()
                         .setNotification(WebpushNotification.builder()
                                 .setDirection(WebpushNotification.Direction.AUTO)
-                                .setRenotify(true)
+                                .setRenotify(diaryFcmOptions.getRenotify())
+                                .setTag(diaryFcmOptions.getTag())
                                 .setLanguage("ko-KR")
                                 .build())
                         .build())
@@ -184,7 +204,7 @@ public class FCMUtil {
                         .setWebpushConfig(WebpushConfig.builder()
                                 .setNotification(WebpushNotification.builder()
                                         .setDirection(WebpushNotification.Direction.AUTO)
-                                        .setRenotify(true)
+                                        .setRenotify(false)
                                         .setLanguage("ko-KR")
                                         .build())
                                 .build())
@@ -214,7 +234,7 @@ public class FCMUtil {
                         .setWebpushConfig(WebpushConfig.builder()
                                 .setNotification(WebpushNotification.builder()
                                         .setDirection(WebpushNotification.Direction.AUTO)
-                                        .setRenotify(true)
+                                        .setRenotify(false)
                                         .setLanguage("ko-KR")
                                         .build())
                                 .build())
@@ -241,7 +261,7 @@ public class FCMUtil {
                         .setWebpushConfig(WebpushConfig.builder()
                                 .setNotification(WebpushNotification.builder()
                                         .setDirection(WebpushNotification.Direction.AUTO)
-                                        .setRenotify(true)
+                                        .setRenotify(false)
                                         .setLanguage("ko-KR")
                                         .build())
                                 .build())
@@ -268,7 +288,7 @@ public class FCMUtil {
                                 .setWebpushConfig(WebpushConfig.builder()
                                         .setNotification(WebpushNotification.builder()
                                                 .setDirection(WebpushNotification.Direction.AUTO)
-                                                .setRenotify(true)
+                                                .setRenotify(false)
                                                 .setLanguage("ko-KR")
                                                 .build())
                                         .build())
@@ -293,7 +313,7 @@ public class FCMUtil {
                         .setWebpushConfig(WebpushConfig.builder()
                                 .setNotification(WebpushNotification.builder()
                                         .setDirection(WebpushNotification.Direction.AUTO)
-                                        .setRenotify(true)
+                                        .setRenotify(false)
                                         .setLanguage("ko-KR")
                                         .build())
                                 .build())
@@ -317,7 +337,7 @@ public class FCMUtil {
                 .setWebpushConfig(WebpushConfig.builder()
                         .setNotification(WebpushNotification.builder()
                                 .setDirection(WebpushNotification.Direction.AUTO)
-                                .setRenotify(true)
+                                .setRenotify(false)
                                 .setLanguage("ko-KR")
                                 .build())
                         .build())

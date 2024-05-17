@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -38,6 +39,9 @@ public class AdviceService {
     private final AnalyzeRepository analyzeRepository;
     private final OpenAIService openAIService;
     private final S3Service s3Service;
+
+    @Value("${app.baseurl.ai}")
+    private String aiBaseUrl;
 
     @Autowired
     private final WebClient webClient;
@@ -209,7 +213,7 @@ public class AdviceService {
         payload.put("diary_index_list", diaryIndexList);
 
         return webClient.post()
-                .uri("https://k10b205.p.ssafy.io/api/ai/wordcloud")
+                .uri(aiBaseUrl+"/api/ai/wordcloud")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)

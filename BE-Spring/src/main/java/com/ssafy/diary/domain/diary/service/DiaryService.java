@@ -118,21 +118,20 @@ public class DiaryService {
             openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
                     .subscribe(ChatGPTRequestDto -> {
                                 adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
-//                                try {
-//                                    notificationService.sendFirebaseMemberNotificationMessage(
-//                                            KafkaMemberNotificationMessageRequestDto.builder()
-//                                                    .title("분석 완료")
-//                                                    .body("일기 분석이 완료되었어요!")
-//                                                    .memberIndex(memberIndex)
-//                                                    .build()
-//                                    );
-//                                } catch (FirebaseMessagingException e) {
-//                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
-//                                }
+
+                                try {
+                                    notificationService.sendFirebaseMemberNotificationMessage(
+                                            KafkaMemberNotificationMessageRequestDto.builder()
+                                                    .title("분석 완료")
+                                                    .body("일기 분석이 완료되었어요!")
+                                                    .memberIndex(memberIndex)
+                                                    .build()
+                                    );
+                                } catch (FirebaseMessagingException e) {
+                                    throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
+                                }
                             }
                     );
-
-//            adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
         });
     }
 

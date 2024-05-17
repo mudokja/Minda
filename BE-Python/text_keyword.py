@@ -8,6 +8,7 @@ import io
 print("호출: text_keyword.py")
 
 kiwi=Kiwi()
+okt = Okt()
 
 krwordrank_cloud = WordCloud(
     font_path = "malgunbd.ttf",
@@ -26,7 +27,6 @@ def split_sentences(text):
 
 def noun_sentences(sentences):
     try:
-        okt = Okt()
         noun_sentences = []
 
         for sentence in sentences:

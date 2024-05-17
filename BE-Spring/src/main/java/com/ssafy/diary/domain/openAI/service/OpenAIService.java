@@ -10,7 +10,6 @@ import com.ssafy.diary.domain.analyze.repository.AnalyzeRepository;
 import com.ssafy.diary.domain.diary.entity.Diary;
 import com.ssafy.diary.domain.diary.entity.Image;
 import com.ssafy.diary.domain.diary.repository.DiaryRepository;
-import com.ssafy.diary.domain.diary.repository.ImageRepository;
 import com.ssafy.diary.domain.openAI.dto.*;
 import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.AlreadyExistsImageException;
@@ -34,7 +33,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OpenAIService {
     private final DiaryRepository diaryRepository;
-    private final ImageRepository imageRepository;
     private final AnalyzeRepository analyzeRepository;
     private final AdviceRepository adviceRepository;
     private final S3Service s3Service;

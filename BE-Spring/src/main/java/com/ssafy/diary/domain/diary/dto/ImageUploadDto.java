@@ -11,5 +11,4 @@ public class ImageUploadDto {
 
     private List<MultipartFile> files;
 
-    // getter, setter, constructor 등 생략
 }

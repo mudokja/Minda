@@ -24,15 +24,6 @@ public class DiaryAddRequestDto {
 
 //    private MultipartFile[] imageFiles;
 
-//    @Builder
-//    public DiaryAddRequestDto(LocalDate diarySetDate, String diaryTitle, String diaryContent, List<String> hashtagList, MultipartFile[] imageFiles) {
-//        this.diarySetDate = diarySetDate;
-//        this.diaryTitle = diaryTitle;
-//        this.diaryContent = diaryContent;
-//        this.hashtagList = hashtagList;
-//        this.imageFiles = imageFiles;
-//    }
-
     public Diary toEntity(List<Image> imageList, Long memberIndex) {
         return Diary.builder()
                 .memberIndex(memberIndex)

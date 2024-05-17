@@ -24,8 +24,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -142,8 +142,8 @@ public class AdviceService {
 //                    .imageLink(imageLink)
 //                    .build());
 //
-            Mono<String> wordcloudMono = getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
-            Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+//            Mono<String> wordcloudMono = getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+//            Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
             AdviceResponseDto adviceResponseDto = getAdviceAndWordCloud(memberIndex, adviceRequestDto).block();
             adviceResponseDto.setStatus(statusMap);
@@ -223,14 +223,14 @@ public class AdviceService {
                     Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
 
                     Mono.zip(wordcloudMono, adviceMono).subscribe(tuple -> {
-//                        Advice advice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()).get();
+                        Advice newAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()).get();
                         String imageLink = tuple.getT1();
-                        advice.updateImageLink(imageLink);
-                        adviceRepository.save(advice);
+                        newAdvice.updateImageLink(imageLink);
+                        adviceRepository.save(newAdvice);
                     });
 
 //                    Mono<ChatGPTResponseDto> chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate());
-
+//
 //                    getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()).subscribe(imageLink -> {
 //                        openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate()).subscribe(responseDto -> {
 //                            String adviceContent = responseDto.getChoices().get(0).getMessage().getContent();
@@ -244,6 +244,22 @@ public class AdviceService {
 //                            adviceRepository.save(newAdvice);
 //                        });
 //                    });
+
+//                    String imageLink = getWordcloudByPeriod(memberIndex, advice.getStartDate(), advice.getEndDate()).block();
+//                    ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, advice.getStartDate(), advice.getEndDate()).block();
+//
+//                    String adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+//                    log.info("advice = {}", advice);
+//                    advice.updateImageLink(imageLink);
+//                        adviceRepository.save(advice);
+//                    adviceRepository.save(Advice.builder()
+//                            .memberIndex(memberIndex)
+//                            .startDate(advice.getStartDate())
+//                            .endDate(advice.getEndDate())
+//                            .adviceContent(adviceContent)
+//                            .imageLink(imageLink)
+//                            .build());
+
                 }
             }
         }

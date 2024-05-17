@@ -14,7 +14,6 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
-//@EntityListeners(AuditingEntityListener.class)
 public class Diary extends BaseEntity {
 
     @Id
@@ -50,9 +49,6 @@ public class Diary extends BaseEntity {
     @Column(name = "diary_anger")
     private Double diaryAnger;
 
-//    @Column(name = "diary_disgust")
-//    private Long diaryDisgust;
-
     @Setter
     @Column(name = "diary_surprise")
     private Double diarySurprise;
@@ -79,7 +75,6 @@ public class Diary extends BaseEntity {
         this.diarySadness = diarySadness;
         this.diaryFear = diaryFear;
         this.diaryAnger = diaryAnger;
-//        this.diaryDisgust = diaryDisgust;
         this.diarySurprise = diarySurprise;
         this.imageList = imageList;
     }
@@ -94,28 +89,14 @@ public class Diary extends BaseEntity {
                 .diarySadness(diarySadness)
                 .diaryFear(diaryFear)
                 .diaryAnger(diaryAnger)
-//                .diaryDisgust(diaryDisgust)
                 .diarySurprise(diarySurprise)
                 .imageList(imageList)
-//                .hashtagList(hashtagList)
                 .build();
     }
 
     public void update(DiaryUpdateRequestDto diaryUpdateRequestDto) {
         this.diaryTitle = diaryUpdateRequestDto.getDiaryTitle();
         this.diaryContent = diaryUpdateRequestDto.getDiaryContent();
-//        this.diaryHappiness = diaryUpdateRequestDto.getDiaryHappiness();
-//        this.diarySadness = diaryUpdateRequestDto.getDiarySadness();
-//        this.diaryFear = diaryUpdateRequestDto.getDiaryFear();
-//        this.diaryAnger = diaryUpdateRequestDto.getDiaryAnger();
-//        this.diaryDisgust = diaryUpdateRequestDto.getDiaryDisgust();
-//        this.diarySurprise = diaryUpdateRequestDto.getDiarySurprise();
     }
-
-//    // 이미지 추가 메소드
-//    public void addImage(Image image) {
-//        this.imageList.add(image);
-//        image.setDiaryIndex(this.diaryIndex); // 수동으로 외래 키 설정
-//    }
 
 }

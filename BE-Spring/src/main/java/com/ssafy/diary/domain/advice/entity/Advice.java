@@ -59,12 +59,4 @@ public class Advice extends BaseEntity {
         this.imageLink = imageLink;
     }
 
-//    public AdviceResponseDto toDto() {
-//        return AdviceResponseDto.builder()
-//                .adviceIndex(adviceIndex)
-//                .adviceContent(adviceContent)
-//                .startDate(startDate)
-//                .endDate(endDate)
-//                .build();
-//    }
 }

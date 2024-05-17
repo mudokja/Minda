@@ -50,11 +50,4 @@ public class AdviceController {
         String response = String.valueOf(adviceService.getWordcloudByPeriod(2L, LocalDate.parse("2024-05-01"),LocalDate.parse("2024-05-14")));
         return response;
     }
-
-    private final AdviceRepository adviceRepository;
-
-    @GetMapping("test/period")
-    public List<Advice> test2() {
-        return adviceRepository.findAdvicesByMemberIndexAndDate(42L, LocalDate.parse("2024-05-16"));
-    }
 }

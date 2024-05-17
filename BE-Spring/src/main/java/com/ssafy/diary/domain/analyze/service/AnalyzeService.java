@@ -59,11 +59,6 @@ public class AnalyzeService {
         }
     }
 
-
-    //    public void addAnalyze(){
-//        Analyze analyze = Analyze.builder().diaryIndex(11L).emotion(null).build();
-//        analyzeRepository.save(analyze);
-//    }
     public void updateAnalyze() {
     }
 

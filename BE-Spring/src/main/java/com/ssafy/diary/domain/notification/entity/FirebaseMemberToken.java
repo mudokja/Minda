@@ -31,7 +31,7 @@ public class FirebaseMemberToken {
     private DateField date=new DateField();
 
     @JoinColumn(name = "member_index",nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
     private Member member;
     @Builder
     public FirebaseMemberToken(String fireBaseToken, FireBasePlatform fireBasePlatform, Member member) {

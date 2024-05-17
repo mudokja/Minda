@@ -50,7 +50,7 @@ public class Member extends BaseEntity {
     private String nickname;
 
     @Setter
-    @Column(name = "member_email", nullable = false, unique = true)
+    @Column(name = "member_email", nullable = false)
     private String email;
 
     @Setter

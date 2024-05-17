@@ -118,7 +118,6 @@ public class DiaryService {
             openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
                     .subscribe(ChatGPTRequestDto -> {
                                 adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
-
                                 try {
                                     notificationService.sendFirebaseMemberNotificationMessage(
                                             KafkaMemberNotificationMessageRequestDto.builder()

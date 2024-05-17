@@ -16,8 +16,6 @@ import com.ssafy.diary.domain.s3.service.S3Service;
 import com.ssafy.diary.global.exception.DiaryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,6 +25,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -129,30 +128,45 @@ public class AdviceService {
 
         Optional<Advice> optionalAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
-        String adviceContent = "";
-        String imageLink = "";
+        AtomicReference<String> adviceContent = new AtomicReference<>("");
+        AtomicReference<String> imageLink = new AtomicReference<>("");
         if (!optionalAdvice.isPresent()) {
-            imageLink = String.valueOf(getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()));
-            ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).block();
+//            imageLink = String.valueOf(getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()));
+//            ChatGPTResponseDto chatGPTResponseDto = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate()).block();
+//
+//            adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
+//            log.info("advice = {}", adviceContent);
+//            adviceRepository.save(Advice.builder()
+//                    .memberIndex(memberIndex)
+//                    .startDate(adviceRequestDto.getStartDate())
+//                    .endDate(adviceRequestDto.getEndDate())
+//                    .adviceContent(adviceContent)
+//                    .imageLink(imageLink)
+//                    .build());
+//
+            Mono<String> wordcloudMono = getWordcloudByPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+            Mono<ChatGPTResponseDto> adviceMono = openAIService.generatePeriodAdvice(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
 
-            adviceContent = chatGPTResponseDto.getChoices().get(0).getMessage().getContent();
-            log.info("advice = {}", adviceContent);
-            adviceRepository.save(Advice.builder()
-                    .memberIndex(memberIndex)
-                    .startDate(adviceRequestDto.getStartDate())
-                    .endDate(adviceRequestDto.getEndDate())
-                    .adviceContent(adviceContent)
-                    .imageLink(imageLink)
-                    .build());
+            Mono.zip(wordcloudMono, adviceMono).subscribe(tuple -> {
+                imageLink.set(tuple.getT1());
+                adviceContent.set(tuple.getT2().getChoices().get(0).getMessage().getContent());
+                adviceRepository.save(Advice.builder()
+                        .memberIndex(memberIndex)
+                        .startDate(adviceRequestDto.getStartDate())
+                        .endDate(adviceRequestDto.getEndDate())
+                        .adviceContent(String.valueOf(adviceContent))
+                        .imageLink(String.valueOf(imageLink))
+                        .build());
+            });
         } else {
-            adviceContent = optionalAdvice.get().getAdviceContent();
-            imageLink = optionalAdvice.get().getImageLink();
+            adviceContent.set(optionalAdvice.get().getAdviceContent());
+            imageLink.set(optionalAdvice.get().getImageLink());
         }
 
         return AdviceResponseDto.builder()
 //                .adviceContent(chatGPTResponseDto.getChoices().get(0).getMessage().getContent())
-                .adviceContent(adviceContent)
-                .imageLink(imageLink)
+                .adviceContent(String.valueOf(adviceContent))
+                .imageLink(String.valueOf(imageLink))
                 .status(statusMap).build();
     }
 
@@ -203,7 +217,6 @@ public class AdviceService {
         }
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(AdviceService.class);
 
     public Mono<String> getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {
         List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
@@ -213,7 +226,7 @@ public class AdviceService {
         payload.put("diary_index_list", diaryIndexList);
 
         return webClient.post()
-                .uri(aiBaseUrl+"/api/ai/wordcloud")
+                .uri(aiBaseUrl + "/api/ai/wordcloud")
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -223,22 +236,5 @@ public class AdviceService {
                 .doOnNext(url -> log.info("Wordcloud URL retrieved: {}", url))
                 .doOnError(error -> log.error("Error retrieving wordcloud URL", error));
     }
-
-//    public Mono<String> getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {
-//        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, startDate, endDate);
-//        List<Integer> diaryIndexList = diaryList.stream().map(Diary::getDiaryIndex).map(Long::intValue).collect(Collectors.toList());
-//
-//        Map<String, List<Integer>> payload = new HashMap<>();
-//        payload.put("diary_index_list", diaryIndexList);
-//
-//        return webClient.post()
-//                .uri("https://k10b205.p.ssafy.io/api/ai/wordcloud")
-//                .bodyValue(payload)
-//                .retrieve()
-//                .bodyToMono(String.class)
-//                .map(url -> url.replaceAll("^\"|\"$", ""));
-//    }
-
-
 
 }

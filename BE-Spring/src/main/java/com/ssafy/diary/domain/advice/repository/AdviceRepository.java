@@ -17,6 +17,9 @@ public interface AdviceRepository extends JpaRepository<Advice, Long> {
     @Query("SELECT a FROM Advice a WHERE a.memberIndex = :memberIndex AND a.startDate = :startDate AND a.endDate = :endDate")
     Optional<Advice> findByMemberIndexAndPeriod(@Param("memberIndex") Long memberIndex, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
+    @Query("SELECT a FROM Advice a WHERE a.memberIndex = :memberIndex AND a.startDate <= :startDate AND a.endDate >= :endDate")
+    List<Advice> findByAllMemberIndexAndPeriod(@Param("memberIndex") Long memberIndex, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
     @Query("SELECT a FROM Advice a WHERE a.memberIndex = :memberIndex AND ((a.startDate < :diarySetDate AND a.endDate > :diarySetDate) OR (a.startDate < :diarySetDate AND a.endDate >= :diarySetDate) OR (a.startDate <= :diarySetDate AND a.endDate > :diarySetDate))")
     List<Advice> findAdvicesByMemberIndexAndDate(
             @Param("memberIndex") Long memberIndex,

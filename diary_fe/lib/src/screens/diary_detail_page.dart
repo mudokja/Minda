@@ -16,14 +16,14 @@ class DiaryDetailPage extends StatefulWidget {
   final DateTime selectedDay;
   final String diaryTitle;
   final String diaryContent;
-  final int diaryIndex; // diaryIndex필드 추가
+  final int diaryIndex; // diaryIndex 필드 추가
 
   const DiaryDetailPage({
     super.key,
     required this.selectedDay,
     required this.diaryTitle,
     required this.diaryContent,
-    required this.diaryIndex, //diaryIndex 필드 추가
+    required this.diaryIndex, // diaryIndex 필드 추가
   });
 
   @override
@@ -34,7 +34,7 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
     with SingleTickerProviderStateMixin {
   Dio dio = Dio(); // Dio 인스턴스 생성
   bool showConfirmationView = false; // 상태를 관리하는 변수
-  bool isLoading = false; //로딩 상태 관리
+  bool isLoading = false; // 로딩 상태 관리
   bool hasPrevious = true; // 이전 일기가 있는지 여부
   bool hasNext = true; // 다음 일기가 있는지 여부
   String imageUrl = ''; // 생성된 이미지 URL 저장
@@ -504,8 +504,10 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                                         MaterialPageRoute(
                                           builder: (context) => UpdateDiaryPage(
                                             diaryIndex: widget.diaryIndex,
-                                            diaryTitle: widget.diaryTitle,
-                                            diaryContent: widget.diaryContent,
+                                            diaryTitle:
+                                                diaryTitle, // 수정된 일기 제목 반영
+                                            diaryContent:
+                                                diaryContent, // 수정된 일기 내용 반영
                                             initialSelectedDay:
                                                 widget.selectedDay,
                                           ),
@@ -640,8 +642,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                                             CrossAxisAlignment.start,
                                         children: <Widget>[
                                           Text(
-                                            widget.diaryTitle.isNotEmpty
-                                                ? widget.diaryTitle
+                                            diaryTitle.isNotEmpty
+                                                ? diaryTitle
                                                 : '${widget.selectedDay.year}년 ${widget.selectedDay.month}월 ${widget.selectedDay.day}일의 일기',
                                             style: const TextStyle(
                                                 fontSize: 18,
@@ -649,8 +651,8 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                                           ),
                                           const SizedBox(height: 20),
                                           Text(
-                                            widget.diaryContent.isNotEmpty
-                                                ? widget.diaryContent
+                                            diaryContent.isNotEmpty
+                                                ? diaryContent
                                                 : '일기가 작성되지 않았어요..',
                                             style: const TextStyle(
                                                 fontSize: 18,

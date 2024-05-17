@@ -93,7 +93,6 @@ class _UpdateDiaryPageState extends State<UpdateDiaryPage> {
       Response response = await apiService.put('/api/diary', data: formData);
 
       if (response.statusCode == 200) {
-        print('Diary updated successfully');
         Navigator.of(context).pop({
           'action': 'update',
           'diaryIndex': widget.diaryIndex,

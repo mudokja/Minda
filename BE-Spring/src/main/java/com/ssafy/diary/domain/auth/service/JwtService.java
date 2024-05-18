@@ -89,7 +89,7 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         LocalDateTime now = LocalDateTime.now(ZoneId.of(TIME_ZONE));
-        Member member= memberRepository.findById(memberIndex).orElseThrow(()->new RuntimeException(""));
+        Member member= memberRepository.findByIndex(memberIndex).orElseThrow(()->new RuntimeException("member not found"));
         return Jwts.builder()
                 .subject("access_token")
                 .claim("memberIndex",member.getIndex().toString())

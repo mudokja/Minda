@@ -55,13 +55,13 @@ class NotificationService {
 
   void _configureFCMHandlers() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("onMessage: ${message.notification?.title}, ${message.notification?.body}");
+      debugPrint("onMessage: ${message.notification?.title}, ${message.notification?.body}");
       _showNotification(message);
     });
 
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("onMessageOpenedApp: ${message.notification?.title}, ${message.notification?.body}");
+      debugPrint("onMessageOpenedApp: ${message.notification?.title}, ${message.notification?.body}");
       _showNotification(message);
     });
 

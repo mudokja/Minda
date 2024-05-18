@@ -67,7 +67,7 @@ class UserProvider with ChangeNotifier {
       try {
         await UserApi.instance.loginWithKakaoTalk();
       } catch (error) {
-        print('카카오톡으로 로그인 실패 $error');
+       debugPrint('카카오톡으로 로그인 실패 $error');
 
         // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
         // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
@@ -77,7 +77,7 @@ class UserProvider with ChangeNotifier {
         try {
           await UserApi.instance.loginWithKakaoAccount();
         } catch (error) {
-          print('카카오계정으로 로그인 실패 $error');
+          debugPrint('카카오계정으로 로그인 실패 $error');
         }
       }
     } else {
@@ -103,7 +103,7 @@ class UserProvider with ChangeNotifier {
             try {
               await UserApi.instance.loginWithKakaoTalk();
             } catch (error) {
-              print('카카오톡으로 로그인 실패 $error');
+              debugPrint('카카오톡으로 로그인 실패 $error');
 
               // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
               // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
@@ -114,7 +114,7 @@ class UserProvider with ChangeNotifier {
               try {
                 await UserApi.instance.loginWithKakaoAccount();
               } catch (error) {
-                print('카카오계정으로 로그인 실패 $error');
+                debugPrint('카카오계정으로 로그인 실패 $error');
               }
             }
           } else {
@@ -156,7 +156,7 @@ class UserProvider with ChangeNotifier {
     } catch (e) {
       if (e is DioException) {
         if (e.response?.statusCode == 400) {
-          print(e.response?.data);
+          debugPrint(e.response?.data);
           switch (e.response?.data) {
             case "email is empty":
               throw SocialLoginError("Email Required");
@@ -227,9 +227,20 @@ class UserProvider with ChangeNotifier {
             key: "USER_DATA", value: json.encode(user.toJson()));
         notifyListeners(); // 데이터 변경 시 리스너에게 알림
       } else {
+        await deleteStorage.deleteAccessToken();
+        _isLoggedIn=false;
         // throw Exception('Failed to load user data');
       }
     } catch (e) {
+      if(e is DioException){
+        if(e.response?.statusCode==400){
+        switch(e.message.toString()){
+          case "member not found":
+            await deleteStorage.deleteTokens();
+            _isLoggedIn=false;
+        }
+        }
+      }
       // throw Exception('Failed to fetch user data: $e');
     }
   }

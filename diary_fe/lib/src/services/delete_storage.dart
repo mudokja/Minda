@@ -12,4 +12,7 @@ class DeleteStorage {
     await storage.delete(key: 'REFRESH_TOKEN');
     await storage.delete(key: 'USER_DATA');
   }
+  Future<void> deleteAccessToken() async {
+    await storage.delete(key: 'ACCESS_TOKEN');
+  }
 }

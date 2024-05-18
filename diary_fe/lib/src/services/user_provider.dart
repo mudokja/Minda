@@ -238,6 +238,7 @@ class UserProvider with ChangeNotifier {
           case "member not found":
             await deleteStorage.deleteTokens();
             _isLoggedIn=false;
+            break;
         }
         }
       }

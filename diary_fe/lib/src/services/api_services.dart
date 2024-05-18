@@ -41,7 +41,7 @@ class ApiService {
                 method: error.requestOptions.method,
                 headers: error.requestOptions.headers,
               );
-
+              refresh = true;
               return handler.resolve(await dio.request(
                 baseUrl + error.requestOptions.path,
                 options: opts,
@@ -49,12 +49,16 @@ class ApiService {
                 queryParameters: error.requestOptions.queryParameters,
               ));
             } catch (refreshError) {
+              if(refreshError is DioException){
+                handler.next(refreshError);
+              }
               return;
             }
           } else {
+            refresh=false;
             // throw Exception('Refresh token not found');
           }
-        } else if (error.response?.statusCode == 401 && refresh) {
+        } else if (error.response?.statusCode == 401 && !refresh) {
           DeleteStorage deleteStorage = DeleteStorage();
           deleteStorage.deleteAll();
         }

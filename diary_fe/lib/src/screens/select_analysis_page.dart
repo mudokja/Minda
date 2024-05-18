@@ -321,14 +321,14 @@ class _DayAnalysisPageState extends State<DayAnalysisPage> {
                         }
                       },
                       style: ButtonStyle(
-                        foregroundColor: WidgetStateProperty.resolveWith(
+                        foregroundColor: MaterialStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: WidgetStateProperty.resolveWith(
+                        overlayColor: MaterialStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(WidgetState.pressed)) {
+                            if (states.contains(MaterialState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;
@@ -864,14 +864,14 @@ class _WeekAnalysisPageState extends State<WeekAnalysisPage> {
                     TextButton(
                       onPressed: () => selectWeek(context),
                       style: ButtonStyle(
-                        foregroundColor: WidgetStateProperty.resolveWith(
+                        foregroundColor: MaterialStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: WidgetStateProperty.resolveWith(
+                        overlayColor: MaterialStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(WidgetState.pressed)) {
+                            if (states.contains(MaterialState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;
@@ -1454,14 +1454,14 @@ class _MonthAnalysisPageState extends State<MonthAnalysisPage> {
                     TextButton(
                       onPressed: () => selectMonth(context),
                       style: ButtonStyle(
-                        foregroundColor: WidgetStateProperty.resolveWith(
+                        foregroundColor: MaterialStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: WidgetStateProperty.resolveWith(
+                        overlayColor: MaterialStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(WidgetState.pressed)) {
+                            if (states.contains(MaterialState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;
@@ -2007,14 +2007,14 @@ class _CustomAnalysisPageState extends State<CustomAnalysisPage> {
                     TextButton(
                       onPressed: () => selectCustomRange(context),
                       style: ButtonStyle(
-                        foregroundColor: WidgetStateProperty.resolveWith(
+                        foregroundColor: MaterialStateProperty.resolveWith(
                           (states) {
                             return Colors.white;
                           },
                         ),
-                        overlayColor: WidgetStateProperty.resolveWith(
+                        overlayColor: MaterialStateProperty.resolveWith(
                           (states) {
-                            if (states.contains(WidgetState.pressed)) {
+                            if (states.contains(MaterialState.pressed)) {
                               return Colors.transparent;
                             }
                             return null;

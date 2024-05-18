@@ -208,7 +208,7 @@ class _WriteState extends State<Write> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('알림'),
-              content: const Text('이미 오늘 일기를 작성했어요!\n(중복 작성이 불가능해요.)'),
+              content: const Text('이미 이날의 일기를 작성했어요!\n(중복 작성이 불가능해요.)'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('확인'),

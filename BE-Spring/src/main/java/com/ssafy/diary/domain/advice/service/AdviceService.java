@@ -190,17 +190,13 @@ public class AdviceService {
                         newAdvice.updateImageLink(imageLink);
                         adviceRepository.save(newAdvice);
 
-                        try {
-                            notificationService.sendFirebaseMemberNotificationMessage(
-                                    KafkaMemberNotificationMessageRequestDto.builder()
-                                            .title("분석 업데이트 완료")
-                                            .body("기간별 분석이 업데이트되었어요!")
-                                            .memberIndex(memberIndex)
-                                            .build()
-                            );
-                        } catch (FirebaseMessagingException e) {
-                            throw new RuntimeException(e); // 체크드 예외를 런타임 예외로 변환
-                        }
+                        notificationService.sendKafkaFireBaseNotificationMessage(
+                                KafkaMemberNotificationMessageRequestDto.builder()
+                                        .title("분석 완료")
+                                        .body("분석이 업데이트되었어요!")
+                                        .memberIndex(memberIndex)
+                                        .build()
+                        );
                     });
                 }
             }

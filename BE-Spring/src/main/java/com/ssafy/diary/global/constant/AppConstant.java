@@ -7,7 +7,7 @@ import org.springframework.lang.Nullable;
 
 
 public enum AppConstant {
-    APP_NAME("ColDiary"),
+    APP_NAME("${common.app-name:MinDiary}"),
     NOTIFICATION_MEMBER_TOPIC("diary.notification.member"),
     NOTIFICATION_TOKEN_TOPIC("diary.notification.token"),
     EMAIL_VERIFICATION_TOPIC("diary.email.verification");

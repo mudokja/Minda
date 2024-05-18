@@ -2,12 +2,13 @@ package com.ssafy.diary.global.constant;
 
 import lombok.Getter;
 import org.checkerframework.checker.units.qual.N;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 
 
 public enum AppConstant {
-    APP_NAME("${common.app-name:MinDiary}"),
+    APP_NAME("Minda"),
     NOTIFICATION_MEMBER_TOPIC("diary.notification.member"),
     NOTIFICATION_TOKEN_TOPIC("diary.notification.token"),
     EMAIL_VERIFICATION_TOPIC("diary.email.verification");

@@ -36,15 +36,19 @@ class _SingleChoiceState extends State<SingleChoice> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontSize = screenWidth < 400 ? 13.0 : 16.0;
+    final buttonWidth = screenWidth * 0.88;
+
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.88,
+      width: buttonWidth,
       child: SegmentedButton<Calendar>(
         style: SegmentedButton.styleFrom(
           selectedBackgroundColor: const Color.fromARGB(255, 189, 105, 212),
           selectedForegroundColor: const Color.fromARGB(255, 230, 230, 230),
           backgroundColor: const Color.fromARGB(255, 230, 230, 230),
-          textStyle: const TextStyle(
-            fontSize: 18,
+          textStyle: TextStyle(
+            fontSize: fontSize,
             fontWeight: FontWeight.w600,
           ),
           side: const BorderSide(

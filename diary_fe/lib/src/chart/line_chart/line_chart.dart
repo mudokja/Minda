@@ -55,11 +55,11 @@ class _LineChartTestState extends State<LineChartTest> {
   Widget build(BuildContext context) {
     final labels = ['기쁨', '슬픔', '불안', '분노', '놀람'];
     final colors = [
-      const Color(0xff845EC2), // 기쁨
-      const Color(0xffD65DB1), // 슬픔
-      const Color(0xffFF6F91), // 불안
-      const Color(0xffFF9671), // 분노
-      const Color(0xffFFC75F), // 놀람
+      const Color(0xFFF5AC25),
+      const Color(0xFFBC7FCD),
+      const Color(0xFFDF1E1E),
+      const Color(0xFF86469C),
+      const Color(0xFFFC819E),
     ];
 
     return LineChart(

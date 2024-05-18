@@ -1,7 +1,6 @@
 package com.ssafy.diary.global.constant;
 
 import lombok.Getter;
-import org.checkerframework.checker.units.qual.N;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;

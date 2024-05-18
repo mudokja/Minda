@@ -233,9 +233,16 @@ class UserProvider with ChangeNotifier {
       }
     } catch (e) {
       if(e is DioException){
-        if(e.response?.statusCode==401){
-            await deleteStorage.deleteTokens();
-            _isLoggedIn=false;
+        if(e.response?.statusCode==400) {
+          switch (e.message.toString()) {
+            case "member not found":
+              await deleteStorage.deleteTokens();
+              _isLoggedIn = false;
+              break;
+          }
+        }else if(e.response?.statusCode==401){
+          await deleteStorage.deleteTokens();
+          _isLoggedIn=false;
         }
       }
       // throw Exception('Failed to fetch user data: $e');

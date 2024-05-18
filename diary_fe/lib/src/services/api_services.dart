@@ -50,7 +50,7 @@ class ApiService {
               ));
             } catch (refreshError) {
               if(refreshError is DioException){
-                handler.next(refreshError);
+                handler.next(error);
               }
               return;
             }

@@ -57,14 +57,6 @@ public class Diary extends BaseEntity {
     @JoinColumn(name = "diary_index")
     private List<Image> imageList = new ArrayList<>();
 
-//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JoinTable(
-//            name = "diary_image", // 조인 테이블 이름
-//            joinColumns = @JoinColumn(name = "diary_index"), // Diary 엔티티를 참조하는 외래키
-//            inverseJoinColumns = @JoinColumn(name = "image_index") // Image 엔티티를 참조하는 외래키
-//    )
-//    private List<Image> imageList = new ArrayList<>();
-
     @Builder
     public Diary (Long memberIndex, LocalDate diarySetDate, String diaryTitle, String diaryContent, Double diaryHappiness, Double diarySadness, Double diaryFear, Double diaryAnger, Double diarySurprise, List<Image> imageList){
         this.memberIndex = memberIndex;

@@ -66,35 +66,14 @@ public class AnalyzeService {
     }
 
     //Fast API로 요청 보내기
-//    public Mono<AnalyzeRequestDto> requestAnalyzeToFastlAPI(AnalyzeRequestDto analyzeRequestDto) {
-//        return (Mono<AnalyzeRequestDto>) webClient.post()
-//                .uri("/analyze")
-//                .bodyValue(analyzeRequestDto)
-//                .retrieve()
-//                .bodyToMono(AnalyzeRequestDto.class)
-//                .subscribe(body -> {
-//                    System.out.println("Response from External API: " + body);
-//                    // 받은 데이터 처리하는 로직
-//                });
-//    }
-
-    //Fast API로 요청 보내기
     public Mono<String> requestAnalyzeToFastAPI(AnalyzeRequestDto analyzeRequestDto) {
         return webClient.post()
                 .uri("https://k10b205.p.ssafy.io/api/ai/analyze")
-//                .uri(uriBuilder -> uriBuilder
-//                        .path("/analyze")
-//                        .queryParam("diary_index", analyzeRequestDto.getDiaryIndex())
-//                        .queryParam("diary_content", analyzeRequestDto.getDiaryContent())
-//                        .build())
                 .bodyValue(analyzeRequestDto)
                 .retrieve()
-//                .bodyToMono(AnalyzeResponseDto.class)
                 .bodyToMono(String.class)
-//                .bodyToMono(Analyze.class)
                 .doOnNext(body -> {
                     System.out.println("Response from External API: " + body);
-                    // 받은 데이터 처리하는 로직
                 });
     }
 

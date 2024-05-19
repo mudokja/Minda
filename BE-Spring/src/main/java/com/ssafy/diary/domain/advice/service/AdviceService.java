@@ -101,10 +101,10 @@ public class AdviceService {
 
     @Transactional
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {
-        String key = memberIndex + "_" + adviceRequestDto.getStartDate().toString() + "_" + adviceRequestDto.getEndDate().toString();
+        String requestIdentifier = memberIndex + "_" + adviceRequestDto.getStartDate().toString() + "_" + adviceRequestDto.getEndDate().toString();
 
         // 중복 요청 검사
-        if (requestMap.putIfAbsent(key, true) != null) {
+        if (requestMap.putIfAbsent(requestIdentifier, true) != null) {
             throw new IllegalStateException("이전 요청이 처리중입니다.");
         }
 
@@ -132,7 +132,7 @@ public class AdviceService {
             // 다이어리들의 감정값을 평균내어 statusMap에 넣습니다.
             int diaryCount = diaryList.size();
             if (diaryCount > 0) {
-                statusMap.keySet().forEach(statusKey -> statusMap.put(key, statusMap.get(key) / diaryCount));
+                statusMap.keySet().forEach(key -> statusMap.put(key, statusMap.get(key) / diaryCount));
             }
 
             Optional<Advice> optionalAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
@@ -153,7 +153,7 @@ public class AdviceService {
                     .build();
         } finally {
             // 요청 완료 후 상태 정리
-            requestMap.remove(key);
+            requestMap.remove(requestIdentifier);
         }
     }
 

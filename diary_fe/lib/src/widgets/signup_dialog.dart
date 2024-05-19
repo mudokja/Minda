@@ -169,6 +169,7 @@ class _SignUpModalState extends State<SignUpModal> {
     _nicknameController.removeListener(_validateNickname);
     _nicknameController.dispose();
     super.dispose();
+    _timer?.cancel();
   }
 
   void emailDuplicate() async {
@@ -321,8 +322,9 @@ class _SignUpModalState extends State<SignUpModal> {
   Future<void> login() async {
     try {
       _timer?.cancel();
-      Provider.of<UserProvider>(context, listen: false).login(_idController.text, _pwController.text);
-      Provider.of<UserProvider>(context, listen: false).fetchUserData();
+      await Provider.of<UserProvider>(context, listen: false)
+          .login(_idController.text, _pwController.text);
+      await Provider.of<UserProvider>(context, listen: false).fetchUserData();
     } catch (e) {
       print(e);
       // 로그인 과정 중 예외 처리

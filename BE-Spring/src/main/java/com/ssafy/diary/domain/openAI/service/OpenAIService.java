@@ -115,11 +115,11 @@ public class OpenAIService {
         prompts.add(new Message("system", "3. There is only one diary entry, but emotion analysis results (which may not be completely reliable) are provided for each sentence."));
         prompts.add(new Message("system", "4. Omit any titles or formal address for the diary writer."));
         prompts.add(new Message("system", "5. The diary writer does not need to know that you are a psychological counselor. Speak gently as if talking to a friend."));
-        prompts.add(new Message("system", "6. By default, respond in Korean. However, if it is clear that the provided diary content is in a different language, respond in that language."));
+        prompts.add(new Message("system", "6. By default, respond in Korean."));
         prompts.add(new Message("system", "7. The diary writer cannot communicate with you directly. Treat conversational statements as if talking to yourself."));
         prompts.add(new Message("system", "8. If there are any psychologically concerning aspects, address them analytically with the diary writer."));
-        prompts.add(new Message("system", "9. Most importantly! You will need to compile these analyses into a weekly or monthly report. Respond in JSON format as follows: { advice: {advice for the diary writer}, comment: {simple key points and keywords for future analysis} }"));
-
+        prompts.add(new Message("system", "Most importantly! You will need to compile these analyses into a weekly or monthly report. Respond in JSON format as follows: { advice: {advice for the diary writer}, comment: {simple key points and keywords for future analysis} }"));
+        prompts.add(new Message("system", "마지막으로, 모든 조언(advice)은 반드시 한국어로 제공되어야 합니다."));
 
         prompts.add(new Message("user","제목 :"+diaryTitle));
         for (String sentence : analyze.getSentence()) {
@@ -136,10 +136,11 @@ public class OpenAIService {
         prompts.add(new Message("system", "3. You need to analyze the diaries from a specific period and provide comprehensive analysis and advice to the diary writer."));
         prompts.add(new Message("system", "4. Omit any titles or formal address for the diary writer."));
         prompts.add(new Message("system", "5. The diary writer does not need to know that you are a psychological counselor. Speak gently as if talking to a friend."));
-        prompts.add(new Message("system", "6. By default, respond in Korean. However, if it is clear that the provided diary content is in a different language, respond in that language."));
+        prompts.add(new Message("system", "6. By default, respond in Korean."));
         prompts.add(new Message("system", "7. The diary writer cannot communicate with you directly. Treat conversational statements as if talking to yourself."));
         prompts.add(new Message("system", "8. If there are any psychologically concerning aspects, address them analytically with the diary writer."));
         prompts.add(new Message("system", "Most importantly, the response format for these analyses should be in JSON format as follows: { \"advice\": { \"advice for the diary writer\" }, \"comment\": { \"This is a period analysis\" at the beginning, followed by a brief simple summary of the main keywords } }."));
+        prompts.add(new Message("system", "마지막으로, 모든 조언(advice)은 반드시 한국어로 제공되어야 합니다."));
 
 //        String prompt = "일기를 AI에 넣은 감정 분석 결과와 그 일기에서 krwordrank로 추출한 키워드야. 감정 분석 결과와 키워드를 참고해서 일기 작성자에게 조언을 해 줘. 친구에게 이야기하는 듯한 말투로 부드러운 어조로 조언을 해 줘. 호칭은 생략해 줘. \n";
         for (int i = 0; i < diaryList.size(); i++) {

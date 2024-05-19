@@ -425,8 +425,20 @@ class _DiaryDetailPageState extends State<DiaryDetailPage>
                       crossAxisAlignment:
                           CrossAxisAlignment.stretch, // 가로로 꽉 차게
                       children: [
-                        const SizedBox(
-                          height: 40,
+                        Stack(
+                          children: [
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.close_sharp,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () => Navigator.of(context).pop(),
+                                padding: EdgeInsets.zero,
+                              ),
+                            )
+                          ],
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

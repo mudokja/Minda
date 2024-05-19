@@ -116,6 +116,15 @@ public class DiaryService {
             diaryRepository.save(diary);
             openAIService.generateAdvice(diary.getDiaryIndex(),memberIndex)
                     .subscribe(ChatGPTRequestDto -> {
+                                if(!diaryRepository.existsDiaryByMemberIndex(memberIndex)){
+                                    notificationService.sendKafkaFireBaseNotificationMessage(
+                                            KafkaMemberNotificationMessageRequestDto.builder()
+                                                    .title("분석 완료")
+                                                    .body("첫 분석인가요? 확인해보세요!")
+                                                    .memberIndex(memberIndex)
+                                                    .build());
+                                    return;
+                                }
                                 adviceService.updateAdviceByPeriod(memberIndex, diary.getDiarySetDate());
                             }
                     );

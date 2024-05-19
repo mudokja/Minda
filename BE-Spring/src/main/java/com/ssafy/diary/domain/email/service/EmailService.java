@@ -50,7 +50,7 @@ public class EmailService {
     @KafkaListener(topics = verificationTopics, groupId = "diary_consumer_01", properties = {"spring.json.value.default.type:com.ssafy.diary.domain.email.dto.KafkaEmailAuthDto"})
     public void sendAuthEmail(KafkaEmailAuthDto message) throws JsonProcessingException {
         log.debug("이메일 메시지 수신 : {}",message.toString());
-        emailUtil.sendMail(message.getEmail(),"["+ AppConstant.APP_NAME.value()+"]이메일 인증 메일입니다.", "인증번호 : "+ message.getCode());
+        emailUtil.sendMail(message.getEmail(),"[Minda]이메일 인증 메일입니다.", "인증번호 : "+ message.getCode());
     }
 
     public EmailAuthResponseDto checkAuthEmail(EmailAuthRequestDto emailAuthRequestDto){

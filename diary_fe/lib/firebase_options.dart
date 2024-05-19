@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '901079657910',
     projectId: 'coldiary-72f1c',
     storageBucket: 'coldiary-72f1c.appspot.com',
-    iosBundleId: 'com.example.diaryFe',
+    iosBundleId: 'com.minda.app.diaryFe',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '901079657910',
     projectId: 'coldiary-72f1c',
     storageBucket: 'coldiary-72f1c.appspot.com',
-    iosBundleId: 'com.example.diaryFe',
+    iosBundleId: 'com.minda.app.diaryFe',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

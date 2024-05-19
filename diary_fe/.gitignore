@@ -113,3 +113,4 @@ Dockerfile
 .env
 .env.*
 env.g.dart
+**/*.jks

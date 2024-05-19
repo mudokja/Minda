@@ -1,4 +1,4 @@
-package com.example.diary_fe
+package com.minda.app.diary_fe
 
 import io.flutter.embedding.android.FlutterActivity
 

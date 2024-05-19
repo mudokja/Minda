@@ -8,7 +8,7 @@ class ApiService {
 
   String baseUrl = 'https://k10b205.p.ssafy.io';
 // String baseUrl = 'http://192.168.31.35:8000';
-  //String baseUrl = 'http://localhost:8082';
+//   String baseUrl = 'http://localhost:8082';
   final storage = const FlutterSecureStorage();
   ApiService() {
     // bool refresh = true;

@@ -27,8 +27,9 @@ class UserProvider with ChangeNotifier {
   late User? kakaoUser;
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   bool _isLoggedIn = false;
+  bool _iskakao = false;
   final bool _isLoading = true; // 로딩 상태 추가
-
+  bool get iskakao => _iskakao;
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
 
@@ -52,13 +53,14 @@ class UserProvider with ChangeNotifier {
     await apiService.delete('/api/auth/logout?refreshToken=$refreshToken');
     await NotificationService().tokenDelete();
     deleteStorage.deleteAll();
+    _iskakao = false;
   }
 
   Future<void> leave() async {
-
     await apiService.delete("/api/member");
     await logout();
     await unLink();
+    _iskakao = false;
   }
 
   Future<void> _webKakaoLogin() async {
@@ -67,7 +69,7 @@ class UserProvider with ChangeNotifier {
       try {
         await UserApi.instance.loginWithKakaoTalk();
       } catch (error) {
-       debugPrint('카카오톡으로 로그인 실패 $error');
+        debugPrint('카카오톡으로 로그인 실패 $error');
 
         // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
         // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
@@ -97,12 +99,15 @@ class UserProvider with ChangeNotifier {
       if (kIsWeb) {
         //웹 방식 로그인은 문제가 발생하지 않으면 별도로 구현하지 않을예정
         await _webKakaoLogin();
+        _iskakao = true;
       } else {
         if (Platform.isAndroid || Platform.isIOS) {
           if (talkInstalled) {
             try {
               await UserApi.instance.loginWithKakaoTalk();
+              _iskakao = true;
             } catch (error) {
+              _iskakao = false;
               debugPrint('카카오톡으로 로그인 실패 $error');
 
               // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
@@ -113,14 +118,18 @@ class UserProvider with ChangeNotifier {
               // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인
               try {
                 await UserApi.instance.loginWithKakaoAccount();
+                _iskakao = true;
               } catch (error) {
+                _iskakao = false;
                 debugPrint('카카오계정으로 로그인 실패 $error');
               }
             }
           } else {
             try {
               await UserApi.instance.loginWithKakaoAccount();
+              _iskakao = true;
             } catch (error) {
+              _iskakao = false;
               debugPrint('카카오계정으로 로그인 실패 $error');
             }
           }
@@ -228,21 +237,21 @@ class UserProvider with ChangeNotifier {
         notifyListeners(); // 데이터 변경 시 리스너에게 알림
       } else {
         await deleteStorage.deleteAccessToken();
-        _isLoggedIn=false;
+        _isLoggedIn = false;
         // throw Exception('Failed to load user data');
       }
     } catch (e) {
-      if(e is DioException){
-        if(e.response?.statusCode==400) {
+      if (e is DioException) {
+        if (e.response?.statusCode == 400) {
           switch (e.message.toString()) {
             case "member not found":
               await deleteStorage.deleteTokens();
               _isLoggedIn = false;
               break;
           }
-        }else if(e.response?.statusCode==401){
+        } else if (e.response?.statusCode == 401) {
           await deleteStorage.deleteTokens();
-          _isLoggedIn=false;
+          _isLoggedIn = false;
         }
       }
       // throw Exception('Failed to fetch user data: $e');

@@ -63,6 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     var userProvider = Provider.of<UserProvider>(context);
+    bool iskakao = context.read<UserProvider>().iskakao;
     ThemeColors themeColors = ThemeColors();
     Size screenSize = MediaQuery.of(context).size;
     double buttonWidth = screenSize.width * 0.8;
@@ -161,59 +162,62 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(
                         height: 25,
                       ),
-                      SizedBox(
-                        width: buttonWidth,
-                        height: 55,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              barrierColor: Colors.transparent,
-                              builder: (BuildContext context) {
-                                var mediaQuery = MediaQuery.of(context);
-                                var keyboardHeight =
-                                    mediaQuery.viewInsets.bottom;
+                      if (!iskakao) ...[
+                        SizedBox(
+                          width: buttonWidth,
+                          height: 55,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                barrierColor: Colors.transparent,
+                                builder: (BuildContext context) {
+                                  var mediaQuery = MediaQuery.of(context);
+                                  var keyboardHeight =
+                                      mediaQuery.viewInsets.bottom;
 
-                                return AnimatedPadding(
-                                  padding: EdgeInsets.only(
-                                      bottom: keyboardHeight *
-                                          3 /
-                                          5), // 키보드 높이만큼 패딩 조정
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeOut,
-                                  child: Theme(
-                                    data: Theme.of(context).copyWith(
-                                      dialogBackgroundColor:
-                                          const Color(0xFFFFFFFF),
-                                      dialogTheme:
-                                          const DialogTheme(elevation: 0),
+                                  return AnimatedPadding(
+                                    padding: EdgeInsets.only(
+                                        bottom: keyboardHeight *
+                                            3 /
+                                            5), // 키보드 높이만큼 패딩 조정
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOut,
+                                    child: Theme(
+                                      data: Theme.of(context).copyWith(
+                                        dialogBackgroundColor:
+                                            const Color(0xFFFFFFFF),
+                                        dialogTheme:
+                                            const DialogTheme(elevation: 0),
+                                      ),
+                                      child:
+                                          const ChangePassword(), // 다이얼로그에 표시할 위젯
                                     ),
-                                    child:
-                                        const ChangePassword(), // 다이얼로그에 표시할 위젯
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ThemeColors.color1,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                                  );
+                                },
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ThemeColors.color1,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    15), // 모서리 둥글기 설정, 숫자를 더 크게 하면 더 둥글게 됩니다.
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8), // 선택적: 패딩 설정
                             ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8), // 선택적: 패딩 설정
-                          ),
-                          child: const Text(
-                            '비밀번호 변경',
-                            style: TextStyle(color: Colors.white, fontSize: 18),
+                            child: const Text(
+                              '비밀번호 변경',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 25,
-                      ),
+                        const SizedBox(
+                          height: 25,
+                        ),
+                      ],
                       SizedBox(
                         width: buttonWidth,
                         height: 55,

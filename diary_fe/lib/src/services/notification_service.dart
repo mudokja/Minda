@@ -11,8 +11,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  final ApiService apiService =ApiService();
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  final ApiService apiService = ApiService();
   String? token;
   static final NotificationService _instance = NotificationService._internal();
 
@@ -28,7 +29,8 @@ class NotificationService {
     _getToken();
     _tokenRefreshListener();
   }
-  Future<void> _initFCM() async{
+
+  Future<void> _initFCM() async {
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
@@ -39,42 +41,42 @@ class NotificationService {
       sound: true,
     );
     debugPrint('User granted permission: ${settings.authorizationStatus}');
-
   }
-  void _configureLocalNotification() {
 
-    FlutterLocalNotificationsPlugin().resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
+  void _configureLocalNotification() {
+    FlutterLocalNotificationsPlugin()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(const AndroidNotificationChannel(
-        'high_importance_channel', 'high_importance_notification',
-        importance: Importance.max));
-    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+            'high_importance_channel', 'high_importance_notification',
+            importance: Importance.max));
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
     FlutterLocalNotificationsPlugin().initialize(initializationSettings);
   }
 
   void _configureFCMHandlers() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint("onMessage: ${message.notification?.title}, ${message.notification?.body}");
+      debugPrint(
+          "onMessage: ${message.notification?.title}, ${message.notification?.body}");
       _showNotification(message);
     });
-
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint("onMessageOpenedApp: ${message.notification?.title}, ${message.notification?.body}");
+      debugPrint(
+          "onMessageOpenedApp: ${message.notification?.title}, ${message.notification?.body}");
       _showNotification(message);
     });
-
   }
 
-
-
   void _showNotification(RemoteMessage message) async {
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(android:
-    AndroidNotificationDetails(
-            'high_importance_channel',
-            'high_importance_notification',
-            importance: Importance.max,
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+        android: AndroidNotificationDetails(
+      'high_importance_channel',
+      'high_importance_notification',
+      importance: Importance.max,
     ));
     RemoteNotification? notification = message.notification;
     if (notification != null) {
@@ -89,64 +91,59 @@ class NotificationService {
 
   void _getToken() async {
     String? initToken;
-    if(kIsWeb) {
-      initToken = await FirebaseMessaging.instance.getToken(
-          vapidKey: Env.vapidKey);
+    if (kIsWeb) {
+      initToken =
+          await FirebaseMessaging.instance.getToken(vapidKey: Env.vapidKey);
 
       if (initToken == null || initToken.isEmpty) {
         return;
       }
-    }else if(Platform.isAndroid || Platform.isIOS) {
+    } else if (Platform.isAndroid || Platform.isIOS) {
       initToken = await FirebaseMessaging.instance.getToken();
-      if(initToken==null||initToken.isEmpty) {
+      if (initToken == null || initToken.isEmpty) {
         return;
       }
     }
     debugPrint("FCM Token: $initToken");
     // Save the token to the server if needed
-    token=initToken;
+    token = initToken;
   }
+
   void _tokenRefreshListener() {
-    _firebaseMessaging.onTokenRefresh
-        .listen((newToken) {
+    _firebaseMessaging.onTokenRefresh.listen((newToken) {
       debugPrint("FCM Token Refreshed: $newToken");
-      token=newToken;
+      token = newToken;
       tokenRegister();
-    })
-        .onError((err) {
+    }).onError((err) {
       // Error getting token.
     });
   }
-  Future<void> tokenRegister() async{
-    try {
 
-      if(kIsWeb){
-        if(token==null||token!.isEmpty) {
+  Future<void> tokenRegister() async {
+    try {
+      if (kIsWeb) {
+        if (token == null || token!.isEmpty) {
           return;
         }
-        await apiService.post("/api/notification",
-            data: {
-              "platform":"WEB",
-              "token":token,
-            }
-        );
-      }else if(Platform.isAndroid || Platform.isIOS){
-        if(token==null||token!.isEmpty) {
+        await apiService.post("/api/notification", data: {
+          "platform": "WEB",
+          "token": token,
+        });
+      } else if (Platform.isAndroid || Platform.isIOS) {
+        if (token == null || token!.isEmpty) {
           return;
         }
-        await apiService.post("/api/notification",
-            data: {
-              "platform":"WEB",
-              "token":token,
-            }
-        );
+        await apiService.post("/api/notification", data: {
+          "platform": "ANDROID",
+          "token": token,
+        });
       }
-    }catch(e){
-      if(e is DioException){
-        switch(e.response?.statusCode){
-          case 409 :
-            Response response=await tokenDelete();
-            if(response.statusCode==200){
+    } catch (e) {
+      if (e is DioException) {
+        switch (e.response?.statusCode) {
+          case 409:
+            Response response = await tokenDelete();
+            if (response.statusCode == 200) {
               tokenRegister();
               return;
             }
@@ -156,10 +153,11 @@ class NotificationService {
       }
       debugPrint(e.toString());
     }
-
   }
+
   Future<Response> tokenDelete() async {
-    Response response=await apiService.delete("/api/notification?token=${token}");
+    Response response =
+        await apiService.delete("/api/notification?token=$token");
     return response;
   }
 }

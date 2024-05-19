@@ -168,8 +168,8 @@ class _SignUpModalState extends State<SignUpModal> {
     _pw2Controller.dispose();
     _nicknameController.removeListener(_validateNickname);
     _nicknameController.dispose();
-    super.dispose();
     _timer?.cancel();
+    super.dispose();
   }
 
   void emailDuplicate() async {
@@ -295,8 +295,8 @@ class _SignUpModalState extends State<SignUpModal> {
       );
 
       if (response.statusCode == 201) {
-        Navigator.pop(context);
         await login();
+        Navigator.pop(context);
         showDialog(
           context: context,
           barrierDismissible: true,

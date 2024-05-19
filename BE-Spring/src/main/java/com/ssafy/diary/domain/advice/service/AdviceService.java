@@ -29,6 +29,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -96,55 +97,64 @@ public class AdviceService {
                 .status(statusMap).build();
     }
 
+    private ConcurrentHashMap<String, Boolean> requestMap = new ConcurrentHashMap<>();
+
     @Transactional
     public AdviceResponseDto getAdviceByPeriod(Long memberIndex, AdviceRequestDto adviceRequestDto) {
+        String key = memberIndex + "_" + adviceRequestDto.getStartDate().toString() + "_" + adviceRequestDto.getEndDate().toString();
 
-        List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+        // 중복 요청 검사
+        if (requestMap.putIfAbsent(key, true) != null) {
+            throw new IllegalStateException("이전 요청이 처리중입니다.");
+        }
 
-        if (diaryList == null || diaryList.isEmpty()) {
+        try {
+            List<Diary> diaryList = diaryRepository.findByMemberIndexAndDiarySetDateOrderByDiarySetDate(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+
+            if (diaryList == null || diaryList.isEmpty()) {
+                return AdviceResponseDto.builder()
+                        .adviceContent("다이어리가 없습니다.")
+                        .status(new HashMap<>())
+                        .build();
+            }
+
+            HashMap<String, Double> statusMap = new HashMap<>();
+
+            for (Diary diary : diaryList) {
+                // statusMap에 각 다이어리의 감정값을 누적하여 넣습니다.
+                statusMap.put("분노", statusMap.getOrDefault("분노", 0.0) + diary.getDiaryAnger());
+                statusMap.put("슬픔", statusMap.getOrDefault("슬픔", 0.0) + diary.getDiarySadness());
+                statusMap.put("놀람", statusMap.getOrDefault("놀람", 0.0) + diary.getDiarySurprise());
+                statusMap.put("불안", statusMap.getOrDefault("불안", 0.0) + diary.getDiaryFear());
+                statusMap.put("기쁨", statusMap.getOrDefault("기쁨", 0.0) + diary.getDiaryHappiness());
+            }
+
+            // 다이어리들의 감정값을 평균내어 statusMap에 넣습니다.
+            int diaryCount = diaryList.size();
+            if (diaryCount > 0) {
+                statusMap.keySet().forEach(statusKey -> statusMap.put(key, statusMap.get(key) / diaryCount));
+            }
+
+            Optional<Advice> optionalAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
+
+            if (!optionalAdvice.isPresent()) {
+                AdviceResponseDto adviceResponseDto = getAdviceAndWordCloud(memberIndex, adviceRequestDto).block();
+                adviceResponseDto.setStatus(statusMap);
+                return adviceResponseDto;
+            }
+
+            String adviceContent = optionalAdvice.get().getAdviceContent();
+            String imageLink = optionalAdvice.get().getImageLink();
+
             return AdviceResponseDto.builder()
-                    .adviceContent("다이어리가 없습니다.")
-                    .status(new HashMap<>())
+                    .adviceContent(adviceContent)
+                    .imageLink(imageLink)
+                    .status(statusMap)
                     .build();
+        } finally {
+            // 요청 완료 후 상태 정리
+            requestMap.remove(key);
         }
-
-        HashMap<String, Double> statusMap = new HashMap<>();
-
-        for (Diary diary : diaryList) {
-
-            // statusMap에 각 다이어리의 감정값을 누적하여 넣습니다.
-            statusMap.put("분노", statusMap.getOrDefault("분노", 0.0) + diary.getDiaryAnger());
-            statusMap.put("슬픔", statusMap.getOrDefault("슬픔", 0.0) + diary.getDiarySadness());
-            statusMap.put("놀람", statusMap.getOrDefault("놀람", 0.0) + diary.getDiarySurprise());
-            statusMap.put("불안", statusMap.getOrDefault("불안", 0.0) + diary.getDiaryFear());
-            statusMap.put("기쁨", statusMap.getOrDefault("기쁨", 0.0) + diary.getDiaryHappiness());
-        }
-
-        // 다이어리들의 감정값을 평균내어 statusMap에 넣습니다.
-        int diaryCount = diaryList.size();
-        if (diaryCount > 0) {
-            statusMap.put("분노", statusMap.getOrDefault("분노", 0.0) / diaryCount);
-            statusMap.put("슬픔", statusMap.getOrDefault("슬픔", 0.0) / diaryCount);
-            statusMap.put("놀람", statusMap.getOrDefault("놀람", 0.0) / diaryCount);
-            statusMap.put("불안", statusMap.getOrDefault("불안", 0.0) / diaryCount);
-            statusMap.put("기쁨", statusMap.getOrDefault("기쁨", 0.0) / diaryCount);
-        }
-
-        Optional<Advice> optionalAdvice = adviceRepository.findByMemberIndexAndPeriod(memberIndex, adviceRequestDto.getStartDate(), adviceRequestDto.getEndDate());
-
-        if (!optionalAdvice.isPresent()) {
-            AdviceResponseDto adviceResponseDto = getAdviceAndWordCloud(memberIndex, adviceRequestDto).block();
-            adviceResponseDto.setStatus(statusMap);
-            return adviceResponseDto;
-        }
-
-        String adviceContent = optionalAdvice.get().getAdviceContent();
-        String imageLink = optionalAdvice.get().getImageLink();
-
-        return AdviceResponseDto.builder()
-                .adviceContent(adviceContent)
-                .imageLink(imageLink)
-                .status(statusMap).build();
     }
 
     private Mono<AdviceResponseDto> getAdviceAndWordCloud(Long memberIndex, AdviceRequestDto adviceRequestDto) {
@@ -172,6 +182,8 @@ public class AdviceService {
         List<Advice> adviceList = adviceRepository.findAdvicesByMemberIndexAndDate(memberIndex, diarySetDate);
 
         if (adviceList != null && !adviceList.isEmpty()) {
+            Advice lastAdvice = adviceList.get(adviceList.size() - 1);
+
             for (Advice advice : adviceList) {
                 LocalDate startDate = advice.getStartDate();
                 LocalDate endDate = advice.getEndDate();
@@ -190,18 +202,21 @@ public class AdviceService {
                         newAdvice.updateImageLink(imageLink);
                         adviceRepository.save(newAdvice);
 
-                        notificationService.sendKafkaFireBaseNotificationMessage(
-                                KafkaMemberNotificationMessageRequestDto.builder()
-                                        .title("분석 완료")
-                                        .body("분석이 업데이트되었어요!")
-                                        .memberIndex(memberIndex)
-                                        .build()
-                        );
+                        if (advice.equals(lastAdvice)) {
+                            notificationService.sendKafkaFireBaseNotificationMessage(
+                                    KafkaMemberNotificationMessageRequestDto.builder()
+                                            .title("분석 완료")
+                                            .body("분석이 업데이트되었어요!")
+                                            .memberIndex(memberIndex)
+                                            .build()
+                            );
+                        }
                     });
                 }
             }
         }
     }
+
 
 
     public Mono<String> getWordcloudByPeriod(Long memberIndex, LocalDate startDate, LocalDate endDate) {

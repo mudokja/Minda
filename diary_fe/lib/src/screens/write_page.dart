@@ -7,6 +7,7 @@ import 'package:diary_fe/constants.dart';
 import 'package:diary_fe/src/screens/diary_list_page.dart';
 import 'package:diary_fe/src/screens/pages.dart';
 import 'package:diary_fe/src/services/api_services.dart';
+import 'package:diary_fe/src/widgets/stt_button.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -555,8 +556,9 @@ class _WriteState extends State<Write> {
           ),
         ),
       ),
-      const SizedBox(
+      SizedBox(
         height: 20,
+        child: STTButton(textController: diaryController,)
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,

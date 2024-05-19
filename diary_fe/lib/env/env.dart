@@ -16,4 +16,6 @@ abstract class Env {
   static const String apiUrl = _Env.apiUrl;
   @EnviedField(varName: 'AI_URL')
   static const String aiUrl = _Env.aiUrl;
+  @EnviedField(varName: 'STT_KEY', obfuscate: true)
+  static String sttKey= _Env.sttKey;
 }

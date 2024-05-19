@@ -19,6 +19,7 @@
 // }
 
 // setup.dart 파일
+import 'package:diary_fe/src/widgets/stt_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
@@ -39,6 +40,9 @@ Widget initializeDiaryProvider() {
       ),
       ChangeNotifierProvider<UserProvider>(
         create: (_) => UserProvider(),
+      ),
+      ChangeNotifierProvider<STTProvider>(
+        create: (_) => STTProvider(),
       ),
     ],
     child: const MyApp(),

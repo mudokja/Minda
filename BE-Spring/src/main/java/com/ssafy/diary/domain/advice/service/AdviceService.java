@@ -144,7 +144,7 @@ public class AdviceService {
             }
 
             String adviceContent = optionalAdvice.get().getAdviceContent();
-            String imageLink = optionalAdvice.get().getImageLink();git git
+            String imageLink = optionalAdvice.get().getImageLink();
 
             return AdviceResponseDto.builder()
                     .adviceContent(adviceContent)

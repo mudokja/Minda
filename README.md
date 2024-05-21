@@ -34,9 +34,9 @@
 ![NGinx Proxy Manager](https://img.shields.io/badge/nginx%20proxy%20manager-%23F15833?style=for-the-badge&logo=nginxproxymanager&logoColor=white)
 ![Nginx](https://img.shields.io/badge/Nginx-%23009639?style=for-the-badge&logo=nginx)
 ![Jenkins](https://img.shields.io/badge/Jenkins-%23D24939?style=for-the-badge&logo=jenkins&logoColor=black&color=white)
-![Portainer](https://img.shields.io/badge/Portainer-%2313BEF9?style=for-the-badge&logo=Portainer&logoColor=white)
 ![SonarQube](https://img.shields.io/badge/sonarqube-%234E9BCD?style=for-the-badge&logo=sonarqube&logoColor=white)
 ![AWS](https://img.shields.io/badge/aws-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)
+![Kafka](https://img.shields.io/badge/apache%20kafka-%23231F20?style=for-the-badge&logo=apachekafka&logoColor=white)
 
 ### AI
 
@@ -67,8 +67,9 @@
 
 ## 개요
 
-프로젝트 정보(개발기간, 팀원)
-2024.04.08 ~ 2024.05.20
+프로젝트 개발기간
+
+**_2024.04.08 ~ 2024.05.20 (7주)_**
 
 프로젝트 개요
 
@@ -77,9 +78,11 @@
 ## 주요 기능
 
 - 기본 일기 작성 기능(날짜에 따른 일기 작성 및 확인)<br />
-- 일기 분석 및 통계 기능(일기 감정 추출 분석 및 그래프 형태 통계 제공)<br />
-- 조언 기능(일기 내용 분석을 통해 적절한 조언을 제공)<br />
-- AI 이미지 생성, 워드 클라우드 기능을 통한 다양한 시각화 기능<br />
+- AI 일기 분석 및 통계 기능<br />
+- Kobert 모델을 이용한 감정 분석 기능<br />
+- 조언 기능(일기 분석 내용을 기반으로 조언 생성)<br />
+- KoGPT2를 이용한 챗봇
+- Dall-E AI 이미지 생성, 워드 클라우드 기능을 통한 다양한 시각화 기능<br />
 
 <br />
 
@@ -150,9 +153,9 @@
 
 **BACKEND**
 
-`이효재`: (BE 리더) | Spring API| FastAPI(Python) API | DB 아키텍쳐 설계 <br/>
-`김소연` : Spring API <br/>
-`정지훈` : Infra | Spring API | System 아키텍처 설계 | Security | CI/CD
+`이효재`: (BE 리더) | Spring API | AI | FastAPI(Python) API | DB 아키텍쳐 설계 <br/>
+`김소연` : Spring API | 외부 API 호출 비동기 처리 및 비즈니스 로직 구현 <br/>
+`정지훈` : Infra | Spring API | AI | System 아키텍처 설계 | Security | CI/CD
 
 # 배포 주소
 

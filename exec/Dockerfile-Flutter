@@ -1,0 +1,35 @@
+FROM debian:latest AS build-env
+
+LABEL maintainer ="mudokja@gmail.com"
+
+RUN apt-get update
+RUN apt-get install -y curl git wget unzip libgconf-2-4 gdb libstdc++6 libglu1-mesa fonts-droid-fallback lib32stdc++6 python3
+RUN apt-get clean
+
+RUN git clone https://github.com/flutter/flutter.git /usr/local/flutter
+
+ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+
+RUN flutter doctor -v
+
+RUN flutter channel stable
+RUN flutter upgrade
+RUN flutter config --enable-web
+
+RUN mkdir /app/
+COPY . /app/
+WORKDIR /app/
+
+RUN ["flutter", "pub", "get"]
+RUN flutter pub run build_runner clean
+RUN flutter pub run build_runner build --delete-conflicting-outputs
+
+RUN flutter build web --base-href "/"
+
+# Stage 2
+FROM nginx:1.24.0-alpine
+COPY --from=build-env /app/build/web /usr/share/nginx/html
+ARG DEFAULT_PORT=8082
+ENV PORT ${DEFAULT_PORT}
+EXPOSE $PORT
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

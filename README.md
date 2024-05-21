@@ -116,7 +116,7 @@
 - Epic : `FE`, `BE`, `INFRA`<br />
   각 에픽에 맞게 스토리 및 태스크를 작성하였습니다.
 - 번다운 차트
-  ![JIRA](readme_image/burndown.PNG.png)
+  ![JIRA](readme_image/burndown.PNG)
 
 ### GIT
 
@@ -133,7 +133,7 @@
 
 ### 시스템 구성도
 
-![시스템구성도](readme_image/diagram.PNG.png)
+![시스템구성도](readme_image/diagram.PNG)
 
 <br/>
 

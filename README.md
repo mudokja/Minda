@@ -1,6 +1,6 @@
 # Minda
 
-<img src="https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/eb1dffc8-0a11-42e3-b992-32b8c526a998/logo.png?id=1214c2cd-667e-49c3-b836-5abf383d49ed&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716422400000&signature=P-7SJxDJnCddq8VP4SlTQZ0j7S7ubYhSDJ4yfEQFoKM&downloadName=logo.png" width="150px"/>
+<img src="readme_image/logo.png" width="150px"/>
 
 <br/>
 
@@ -90,14 +90,14 @@
 
 <table width="100%" border-style="non" cellspacing="0" cellpadding="100">
   <tr>
-    <td align="center"><img src="https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/a231c68d-e466-4919-858a-359c074295f0/main.gif?id=09dfad1d-3f22-457f-bc9d-eb46e6b1a968&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=sabJm1fu-EGvFRRSBn9D4aq8aKczcXlcXjGylZj8WjU&downloadName=main.gif" alt="main_page" width="200"></td>
-    <td align="center"><img src="https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/dc6d0f8a-20d5-47ed-a0dc-58d656749b98/intro.gif?id=3898ea6d-f5a6-4a20-ab1c-c4554f6e4684&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=_YEhrV-Im4xV8R1raU31jPo0Uusttm0g0R-IESnNJWU&downloadName=intro.gif" alt="intro_page" width="200"></td>
-    <td align="center"><img src="https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/e2913b6d-ca94-41d5-a15e-595fe86f5210/write.gif?id=70040a09-186d-4985-814e-27d9407a8a53&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=ws0fggoob2wqSYjQffCErUhts11XA0H_P7St0WBUn2M&downloadName=write.gif" alt="write_page" width="200"></td>
+    <td align="center"><img src="readme_image/main.gif" alt="main_page" width="200"></td>
+    <td align="center"><img src="readme_image/intro.gif" alt="intro_page" width="200"></td>
+    <td align="center"><img src="readme_image/write.gif" alt="write_page" width="200"></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/687c0e89-6063-4ab6-b9bb-60c7d130d576/list.gif?id=4a08d1a2-b35b-4092-9224-7223507374fe&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716350400000&signature=0bTmHXZGgJAICE0t5bbI0NQJq3K6RL2pJSfNaBpjgNs&downloadName=list.gif" alt="diary_list" width="200"></td>
-    <td align="center"><img src="https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/4685410d-6817-42e3-b327-90e2d3bdda5a/profile.gif?id=8d2f9503-da55-4790-971d-75dc353d4b6a&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=ZQvWU2YGZHVMVBEeMyL8BgisdNeH-jk4EwKGd8HEKIg&downloadName=profile.gif" alt="profile_page" width="200"></td>
-    <td align="center"><img src="https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/6037a77a-4030-419a-b0e6-94b7d82ffcf4/analysis.gif?id=46540ab6-0117-49dd-ba5d-80a5b96927fd&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716350400000&signature=UNxZy67a1YNnWys6VJ09Y5Y-V4bXfPg6Yg5eAzV5uU4&downloadName=analysis.gif" alt="analyze_page" width="200"></td>
+    <td align="center"><img src="readme_image/list.gif" alt="diary_list" width="200"></td>
+    <td align="center"><img src="readme_image/profile.gif" alt="profile_page" width="200"></td>
+    <td align="center"><img src="readme_image/analysis.gif" alt="analyze_page" width="200"></td>
   </tr>
 </table>
 
@@ -116,14 +116,14 @@
 - Epic : `FE`, `BE`, `INFRA`<br />
   각 에픽에 맞게 스토리 및 태스크를 작성하였습니다.
 - 번다운 차트
-  ![JIRA](https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/34cb0162-3c85-4430-979f-be055c4c8274/burndown.png?id=5b9cd77b-4160-462a-8da4-1d15a14c0b5c&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=wthnolxjBrH5m3HJHI3oSYdUp9y18WEny-A6iEc1x74&downloadName=burndown.PNG.png)
+  ![JIRA](readme_image/burndown.PNG.png)
 
 ### GIT
 
 컨벤션 설정을 통해 규칙을 정하고 GERRIT을 함께 활용하여 서로의 코드에 코멘트를 남겨 보완할 수 있도록 합니다.
 
 - GIT 컨벤션
-  ![GIT 컨벤션](https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/3f544040-f303-4e8d-b49f-d62a0459bd1f/Git.png?id=8055e052-95f2-48e3-ab39-0beb943548a6&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=l4gnRucC-rycPAaPcwNMDdnEOyyYDp-V22vgW5TbvP0&downloadName=Git.png)
+  ![GIT 컨벤션](readme_image/Git.png)
 
 ### Notion
 
@@ -133,13 +133,13 @@
 
 ### 시스템 구성도
 
-![시스템구성도](https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/5665291c-c976-4348-8ded-8af1949f64bb/diagram.png?id=5671addd-ab65-4ae7-aea9-8372cc6c2590&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=8Ll8DksrexgZEIH159xKBoph3rQj5PbG93-78KHuzz0&downloadName=diagram.PNG.png)
+![시스템구성도](readme_image/diagram.PNG.png)
 
 <br/>
 
 ### ERD
 
-![ERD](https://file.notion.so/f/f/fdf16744-23c0-4e78-a6c0-fd9f3ee99d90/3f34ef07-fae2-47a8-8a5a-4cec85256197/erd.png?id=5f8615ee-8fd3-4975-a333-d02db685a049&table=block&spaceId=fdf16744-23c0-4e78-a6c0-fd9f3ee99d90&expirationTimestamp=1716343200000&signature=8Vwa9cnlPhjpoBKgjHzGbhL-T8ibvfBPmjNVLM350ME&downloadName=erd.png)
+![ERD](readme_image/erd.png)
 
 <br /><br />
 
